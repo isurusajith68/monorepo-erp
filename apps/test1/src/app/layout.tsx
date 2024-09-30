@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>ERP</title>
+        <title>ERP </title>
       </head>
       <body className={inter.className}>
         <Toaster />
