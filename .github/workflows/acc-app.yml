@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'apps/test/**'
+      - 'apps/test1/**'
 jobs:
   build-and-publish:
     name: Build and Publish Next.js App
