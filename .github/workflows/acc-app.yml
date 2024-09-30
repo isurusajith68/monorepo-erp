@@ -1,0 +1,35 @@
+name: Publish Acc Erp
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'apps/test/**'
+jobs:
+  build-and-publish:
+    name: Build and Publish Next.js App
+    runs-on: ubuntu-latest  
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install pnpm
+        run: npm i -g pnpm
+
+      # - name: Install Dependencies
+      #   run: pnpm install --filter @new/web
+      # Install all dependencies in the monorepo recursively
+      - name: Install Dependencies
+        run: pnpm recursive install
+        
+      - name: Build Acc App
+        run: pnpm --filter @erp/test1 build
+
+      - name: Deploy Acc App
+        run: echo "Deploying Account Erp App..."
