@@ -27,7 +27,11 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Axios from 'axios'
 import { useToast } from '@/hooks/use-toast'
 import { useQuery } from '@tanstack/react-query'
-import { useUpdateBookingMutation } from '../../_services/mutation'
+import {
+  useInsertBookingMutation,
+  useUpdateBookingMutation,
+} from '../../_services/mutation'
+import { useGetBooking, useGetPrevBooking } from '../../_services/queries'
 
 const formSchema = z.object({
   roomnumber: z.coerce.number().min(2, {
@@ -86,6 +90,7 @@ const BookingForm = () => {
   } = form
 
   const updateMutation = useUpdateBookingMutation()
+  const insertMutation = useInsertBookingMutation()
 
   //   useEffect(() => {
   //     if (id) {
@@ -115,36 +120,38 @@ const BookingForm = () => {
   //     queryKey: ['repoData'],
   //     queryFn: () =>  Axios.get(`http://localhost:4000/booking/${id}`)
   //   })
+  // console.log("qqq")
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['booking', id],
-    queryFn: async () => {
-      let data1
-      data1 = await Axios.get(`http://localhost:4000/booking/${id ?? 0}`)
-      return data1.data.data
+  const { data, isLoading, isError, error } = useGetBooking(id)
+  // const { data, isLoading, isError, error } = useQuery({
+  //   queryKey: ["booking", id],
+  //   queryFn: async () => {
+  //     let data1;
+  //     data1 = await Axios.get(`http://localhost:4000/booking/${id ?? 0}`);
+  //     return data1.data.data;
 
-      // let data
-      // setTimeout(async() => {
-      //    data = await Axios.get(`http://localhost:4000/booking/${id?? 0}`);
-      //    return data.data;
-      // }, 2000);
+  // let data
+  // setTimeout(async() => {
+  //    data = await Axios.get(`http://localhost:4000/booking/${id?? 0}`);
+  //    return data.data;
+  // }, 2000);
 
-      // const p = new Promise((resolve) => {
-      //     setTimeout(async() => {
-      //        const data = await Axios.get(`http://localhost:4000/booking/${id?? 0}`);
-      //        console.log("data",data.data.data)
-      //         resolve(data.data.data);
-      //     }, 2000);
-      // })
-      // return p
+  // const p = new Promise((resolve) => {
+  //     setTimeout(async() => {
+  //        const data = await Axios.get(`http://localhost:4000/booking/${id?? 0}`);
+  //        console.log("data",data.data.data)
+  //         resolve(data.data.data);
+  //     }, 2000);
+  // })
+  // return p
 
-      // return fetchBookingData(id)
-    },
-  })
+  //     // return fetchBookingData(id)
+  //   },
+  // });
 
   useEffect(() => {
     form.reset(data)
-    console.log('firstgggggggggg')
+    // console.log("firstgggggggggg",data);
   }, [data])
 
   //------------------------------------------------------------------------------------------------
@@ -218,9 +225,81 @@ const BookingForm = () => {
   //     navigate(`/customers/${objId.lastInsertRowid}`);
   //   }
   // }
+
+  // async function onSubmit(data: any) {
+  //   const id = getValues("id"); // Check if data already exists
+  //   console.log("Form data:", data);
+
+  //   if (id) {
+  //     // If `id` exists, fetch updated data and display it in frontend
+  //     try {
+  //       let dirtyValues: any = {};
+
+  //       // Capture only modified fields
+  //       for (const key in dirtyFields) {
+  //         dirtyValues[key] = data[key];
+  //       }
+
+  //       console.log("Dirty Values (Fields to Update):", dirtyValues);
+
+  //       // Use mutateAsync for update mutation
+  //       const resMutation = await updateMutation.mutateAsync({ id, dirtyValues });
+  //       console.log("Update resMutation:", resMutation);
+
+  //       // Check if the update was successful
+  //       if (resMutation && !updateMutation.isError) {
+  //         toast({
+  //           className: "text-green-600",
+  //           title: "Booking",
+  //           description: <span>Updated successfully.</span>,
+  //           duration: 5000,
+  //         });
+
+  //         // Optionally reset the form with updated data (if returned by the API)
+  //         const updatedData = resMutation.updatedBooking;
+  //         form.reset(updatedData);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error updating booking:", error);
+  //     }
+  //   } else {
+  //     // If no `id`, insert a new booking
+  //     try {
+  //       // Use mutateAsync for insert mutation
+  //       const resMutation = await insertMutation.mutateAsync({ data });
+  //       console.log("Insert resMutation:", resMutation);
+
+  //       // Check if the insertion was successful
+  //       if (resMutation && insertMutation.isSuccess) {
+  //         const newId = resMutation.lastInsertRowid;
+  //         console.log("Newly inserted ID:", newId);
+
+  //         // Set the newly inserted id to avoid duplicate insertions
+  //         setValue("id", newId, { shouldDirty: false });
+
+  //         toast({
+  //           className: "text-green-600",
+  //           title: "Booking",
+  //           description: <span>Added successfully.</span>,
+  //           duration: 2000,
+  //         });
+
+  //         // Optionally navigate to the booking detail page after successful insert
+  //         navigate(`/booking/${newId}`);
+
+  //         // Fetch the newly inserted booking and display it in the UI
+  //         const newBooking = resMutation.newBooking;
+  //         form.reset(newBooking); // Reset the form with new booking data
+  //       }
+  //     } catch (error) {
+  //       console.error("Error inserting booking:", error);
+  //     }
+  //   }
+  // }
+
   async function onSubmit(data: any) {
     const id = getValues('id') // Check if data already exists
-    console.log('Form data:', data)
+    // console.log("Form data:", data);
 
     if (id) {
       // If `id` exists, fetch updated data and display it in frontend
@@ -232,7 +311,7 @@ const BookingForm = () => {
           dirtyValues[key] = data[key]
         }
 
-        console.log('Dirty Values (Fields to Update):', dirtyValues)
+        // console.log("Dirty Values (Fields to Update):", dirtyValues);
 
         // const mutation = useMutation({
         //     mutationFn: () => {
@@ -245,9 +324,11 @@ const BookingForm = () => {
         //   dirtyValues
         // );
         const resMutation = updateMutation.mutate({ id, dirtyValues })
+        // console.log("Inserting new resMutation:", resMutation);
+        // console.log("Inserting new booking:", updateMutation);
 
         // Check if update was successful
-        if (!resMutation.error) {
+        if (!updateMutation.isError) {
           toast({
             className: 'text-green-600',
             title: 'Booking',
@@ -266,12 +347,19 @@ const BookingForm = () => {
     } else {
       // If no `id`, insert a new booking
       try {
-        console.log('Inserting new booking:', data)
+        // const resMutation = insertMutation.mutate({ data });
+        // console.log("Inserting new resMutation:", resMutation);
+        // console.log("Inserting new booking:", insertMutation);
+        const responseData = await insertMutation.mutateAsync({ data })
+        // console.log("Response Data from Mutation:", responseData);
 
-        const response = await Axios.post('http://localhost:4000/booking', data)
-
-        if (response.data.success) {
-          const newId = response.data.lastInsertRowid
+        // const response = await Axios.post(
+        //   "http://localhost:4000/booking",
+        //   data
+        // );
+        if (responseData.success) {
+          const newId = responseData.lastInsertRowid
+          // console.log("first",responseData.lastInsertRowid)
 
           // Set the newly inserted id to avoid duplicate insertions
           setValue('id', newId, { shouldDirty: false })
@@ -282,14 +370,35 @@ const BookingForm = () => {
             description: <span>Added successfully.</span>,
             duration: 2000,
           })
-
+          // console.log("idddddddddddddddddddddddddddd",newId)
           // Optionally navigate to the booking detail page after successful insert
           navigate(`/booking/${newId}`)
 
           // Fetch the newly inserted booking and display it in the UI
-          const newBooking = response.data.newBooking
+          const newBooking = data.newBooking
           form.reset(newBooking) // Reset the form with new booking data
         }
+
+        // if (response.data.success) {
+        //   const newId = response.data.lastInsertRowid;
+
+        //   // Set the newly inserted id to avoid duplicate insertions
+        //   setValue("id", newId, { shouldDirty: false });
+
+        //   toast({
+        //     className: "text-green-600",
+        //     title: "Booking",
+        //     description: <span>Added successfully.</span>,
+        //     duration: 2000,
+        //   });
+
+        //   // Optionally navigate to the booking detail page after successful insert
+        //   navigate(`/booking/${newId}`);
+
+        //   // Fetch the newly inserted booking and display it in the UI
+        //   const newBooking = response.data.newBooking;
+        //   form.reset(newBooking); // Reset the form with new booking data
+        // }
       } catch (error) {
         console.error('Error inserting booking:', error)
       }
@@ -331,7 +440,7 @@ const BookingForm = () => {
   const deleteAction = async (id) => {
     if (id) {
       try {
-        console.log('Deleting booking with id:', id)
+        // console.log("Deleting booking with id:", id);
 
         // Make the DELETE request to the backend API
         await Axios.delete(`http://localhost:4000/deletebooking/${id}`)
@@ -358,13 +467,16 @@ const BookingForm = () => {
       }
     }
   }
-  const getPrevItem = async () => {
-    const prevItem = await Axios.get(
-      `http://localhost:4000/prev-material-item/${id ?? 0}`,
-    )
 
-    if (prevItem.data.data && Object.keys(prevItem.data.data).length !== 0) {
-      navigate(`/booking/${prevItem.data.data.id}`)
+  const {
+    data: prevItem,
+    isLoading: prevLoading,
+    error: prevError,
+  } = useGetPrevBooking(id)
+  console.log('prevvvvvvvvvvvvvvvvvvvvvvvv', prevItem)
+  const getPrevItem = () => {
+    if (prevItem && Object.keys(prevItem).length !== 0) {
+      navigate(`/booking/${prevItem.id}`)
     } else {
       toast({
         className: 'text-blue-600',
@@ -409,7 +521,7 @@ const BookingForm = () => {
               <Button
                 className="  bg-green-600"
                 type="button"
-                onClick={() => getPrevItem(id)}
+                onClick={getPrevItem}
               >
                 previous
               </Button>
@@ -434,7 +546,7 @@ const BookingForm = () => {
       </div>
       <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
 
-      {isLoading ? (
+      {isLoading || updateMutation.isPending || prevLoading ? (
         <div> loading...</div>
       ) : (
         <div className="mt-5 w-full h-2/3 bg-green-100 rounded border border-green-300 p-10 ">

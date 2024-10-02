@@ -6,21 +6,17 @@ import Image from 'next/image'
 function Template4() {
   return (
     <div>
-      <div className="ml-10">
-        <h1>Template 4</h1>
-        <p>This is a template 4</p>
+      <div className='ml-10'>
+      <h1>Template 4</h1>
+      <p>This is a template 4</p>
+
       </div>
-      <div className="bg-slate-100 border-2 w-[100%] text-center ml-10">
-        <Image
-          src="/img/marimar-templates.jpg"
-          width={500}
-          height={10}
-          alt={'hh'}
-        />
+      <div className='bg-slate-100 border-2 w-[100%] text-center ml-10'>
+      <Image src="/img/marimar-templates.jpg" width={500} height={10} alt={'hh'} />
       </div>
-      <Link href={'create-web'}>
-        <Button className="mt-2 ml-[90%]">Use This</Button>
-      </Link>
+      <Link href={"create-web"} >
+        <Button className='mt-2 ml-[90%]'>Use This</Button>
+       </Link>
     </div>
   )
 }

@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import React, { useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,8 +12,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -22,59 +22,62 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { NavLink, useNavigate, useParams } from 'react-router-dom'
-import Axios from 'axios'
-import { useToast } from '@/hooks/use-toast'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
+import Axios from "axios";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   roomnumber: z.coerce.number().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   //   id: z.string().min(2, {
   //     message: "Username must be at least 2 characters.",
   //   }),
   id: z.number().optional(),
   checkin: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   checkout: z.string().min(2, {
-    message: 'You must select a Date',
+    message: "You must select a Date",
   }),
   telephone: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   email: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   adultcount: z.coerce.number().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
 
+
+
+  
   childrencount: z.coerce.number().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   bookingdate: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
-})
+});
 const BookingForm = () => {
-  const { id } = useParams()
+  const { id } = useParams();
   // const id= params.id;
-  const { toast } = useToast()
-  const navigate = useNavigate()
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {},
-  })
+  });
   const {
     control,
     watch,
     setValue,
     getValues,
     formState: { isDirty, dirtyFields, isLoading, isSubmitSuccessful },
-  } = form
+  } = form;
 
   useEffect(() => {
     if (id) {
@@ -82,23 +85,28 @@ const BookingForm = () => {
         try {
           // Make API request to get customer data by ID
           const response = await Axios.get(
-            `http://localhost:4000/booking/${id}`,
-          )
+            `http://localhost:4000/booking/${id}`
+          );
           if (response.data.success) {
             // Reset the form with customer data
-            console.log('id', response.data.data)
-            form.reset(response.data.data)
+            console.log("id", response.data.data);
+            form.reset(response.data.data);
           } else {
-            console.error('Customer not found:', response.data.msg)
+            console.error("Customer not found:", response.data.msg);
           }
         } catch (error) {
-          console.error('Error fetching customer:', error)
+          console.error("Error fetching customer:", error);
         }
-      }
+      };
 
-      fetchCustomer()
+      fetchCustomer();
+      
+      
+      
+      
+
     }
-  }, [id, form])
+  }, [id, form]);
   //   function onSubmit(data: any) {
   //     // // console.log("first")
   //     // const sendData = async () => {
@@ -169,146 +177,150 @@ const BookingForm = () => {
   //     }
   //   }
   async function onSubmit(data: any) {
-    const id = getValues('id') // Check if data already exists
-    console.log('Form data:', data)
+    const id = getValues("id"); // Check if data already exists
+    console.log("Form data:", data);
 
     if (id) {
       // If `id` exists, fetch updated data and display it in frontend
       try {
-        let dirtyValues: any = {}
+        let dirtyValues: any = {};
 
         // Capture only modified fields
         for (const key in dirtyFields) {
-          dirtyValues[key] = data[key]
+          dirtyValues[key] = data[key];
         }
 
-        console.log('Dirty Values (Fields to Update):', dirtyValues)
+        console.log("Dirty Values (Fields to Update):", dirtyValues);
 
         // Send update request
         const response = await Axios.put(
           `http://localhost:4000/bookings/${id}`,
-          dirtyValues,
-        )
+          dirtyValues
+        );
 
         // Check if update was successful
         if (response.data.success) {
           toast({
-            className: 'text-green-600',
-            title: 'Booking',
+            className: "text-green-600",
+            title: "Booking",
             description: <span>Updated successfully.</span>,
             duration: 5000,
-          })
+          });
 
           // Update the UI with the new data (you can handle this as per your frontend logic)
-          const updatedData = response.data.updatedBooking
+          const updatedData = response.data.updatedBooking;
           // Example: Set updated data into the form
-          reset(updatedData)
+          reset(updatedData);
         }
       } catch (error) {
-        console.error('Error updating booking:', error)
+        console.error("Error updating booking:", error);
       }
     } else {
       // If no `id`, insert a new booking
       try {
-        console.log('Inserting new booking:', data)
+        console.log("Inserting new booking:", data);
 
-        const response = await Axios.post('http://localhost:4000/booking', data)
+        const response = await Axios.post(
+          "http://localhost:4000/booking",
+          data
+        );
 
         if (response.data.success) {
-          const newId = response.data.lastInsertRowid
+          const newId = response.data.lastInsertRowid;
 
           // Set the newly inserted id to avoid duplicate insertions
-          setValue('id', newId, { shouldDirty: false })
+          setValue("id", newId, { shouldDirty: false });
 
           toast({
-            className: 'text-green-600',
-            title: 'Booking',
+            className: "text-green-600",
+            title: "Booking",
             description: <span>Added successfully.</span>,
             duration: 2000,
-          })
+          });
 
           // Optionally navigate to the customer detail page after successful insert
-          navigate(`/booking/${newId}`)
+          navigate(`/booking/${newId}`);
 
           // Fetch the newly inserted booking and display it in the UI
-          const newBooking = response.data.newBooking
-          reset(newBooking) // Reset the form with new booking data
+          const newBooking = response.data.newBooking;
+          reset(newBooking); // Reset the form with new booking data
         }
       } catch (error) {
-        console.error('Error inserting booking:', error)
+        console.error("Error inserting booking:", error);
       }
     }
   }
 
-  //   const deleteAction = async (id) => {
+//   const deleteAction = async (id) => {
+    
+  
+//     if (id) {
+//       try {
+//         console.log("Deleting customer with id:", id);
+  
+//         // Make the DELETE request to the backend API
+//         await Axios.delete(`http://localhost:4000/deletecustomers/${id}`);
+  
+//         // Show success toast notification
+//         toast({
+//           className: "text-red-600",
+//           title: "Customer",
+//           description: <span>Deleted successfully..</span>,
+//           duration: 3000,
+//         });
+  
+//         // Navigate to the customer list after deletion
+//         navigate("/booking/add");
+//       } catch (error) {
+//         // Handle any error that occurs during the delete process
+//         console.error("Error deleting customer:", error);
+//         toast({
+//           className: "text-red-600",
+//           title: "Error",
+//           description: <span>Failed to delete the customer..</span>,
+//           duration: 3000,
+//         });
+//       }
+//     }
+//   };
 
-  //     if (id) {
-  //       try {
-  //         console.log("Deleting customer with id:", id);
-
-  //         // Make the DELETE request to the backend API
-  //         await Axios.delete(`http://localhost:4000/deletecustomers/${id}`);
-
-  //         // Show success toast notification
-  //         toast({
-  //           className: "text-red-600",
-  //           title: "Customer",
-  //           description: <span>Deleted successfully..</span>,
-  //           duration: 3000,
-  //         });
-
-  //         // Navigate to the customer list after deletion
-  //         navigate("/booking/add");
-  //       } catch (error) {
-  //         // Handle any error that occurs during the delete process
-  //         console.error("Error deleting customer:", error);
-  //         toast({
-  //           className: "text-red-600",
-  //           title: "Error",
-  //           description: <span>Failed to delete the customer..</span>,
-  //           duration: 3000,
-  //         });
-  //       }
-  //     }
-  //   };
-
-  const deleteAction = async (id) => {
+const deleteAction = async (id) => {
     if (id) {
       try {
-        console.log('Deleting booking with id:', id)
-
+        console.log("Deleting booking with id:", id);
+  
         // Make the DELETE request to the backend API
-        await Axios.delete(`http://localhost:4000/deletebooking/${id}`)
-
+        await Axios.delete(`http://localhost:4000/deletebooking/${id}`);
+  
         // Show success toast notification
         toast({
-          className: 'text-red-600',
-          title: 'Booking',
+          className: "text-red-600",
+          title: "Booking",
           description: <span>Deleted successfully..</span>,
           duration: 3000,
-        })
-
+        });
+  
         // Navigate to the customer list after deletion
-        navigate('/booking/add')
+        navigate("/booking/add");
       } catch (error) {
         // Handle any error that occurs during the delete process
-        console.error('Error deleting customer:', error)
+        console.error("Error deleting customer:", error);
         toast({
-          className: 'text-red-600',
-          title: 'Error',
+          className: "text-red-600",
+          title: "Error",
           description: <span>Failed to delete the customer..</span>,
           duration: 3000,
-        })
+        });
       }
     }
-  }
-
+  };
+  
   return (
     <div>
       <div className="flex items-center justify-between mt-5 ml-10">
         <h1 className="text-2xl font-bold ">Add Booking {id}</h1>
         {/* <NavLink to={"list"}>View List</NavLink> */}
-        {id && <Button onClick={() => navigate('/booking/add')}>Add</Button>}
+       { id && <Button onClick={() => navigate("/booking/add")}>Add</Button>}
       </div>
       <hr className="mt-5 ml-10 border-2 border-green-300"></hr>
 
@@ -501,7 +513,7 @@ const BookingForm = () => {
                         <AlertDialogAction
                           className="bg-red-600"
                           onClick={() => {
-                            deleteAction(id)
+                            deleteAction(id);
                           }}
                         >
                           Delete
@@ -518,7 +530,7 @@ const BookingForm = () => {
         <div></div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default BookingForm
+export default BookingForm;
