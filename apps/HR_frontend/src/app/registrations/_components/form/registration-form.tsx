@@ -1,8 +1,8 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -11,53 +11,53 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { NavLink, useNavigate, useParams } from 'react-router-dom'
-import Axios from 'axios'
-import { useToast } from '@/hooks/use-toast'
-import { useEffect } from 'react'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
+import Axios from "axios";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 const formSchema = z.object({
   //   id: z.string().min(2, {
   //     message: "Username must be at least 2 characters.",
   //   }),
   id: z.number().optional(),
   fullname: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   address: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   email: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   telephone: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   city: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   province: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   country: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   postalcode: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
-})
+});
 
 const RegistrationForm = () => {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const { toast } = useToast()
+    const { id } = useParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullname: '',
+      fullname: "",
     },
-  })
+  });
 
   const {
     control,
@@ -65,7 +65,7 @@ const RegistrationForm = () => {
     setValue,
     getValues,
     formState: { isDirty, dirtyFields, isLoading, isSubmitSuccessful },
-  } = form
+  } = form;
 
   useEffect(() => {
     if (id) {
@@ -73,154 +73,154 @@ const RegistrationForm = () => {
         try {
           // Make API request to get customer data by ID
           const response = await Axios.get(
-            `http://localhost:4000/registration/${id}`,
-          )
+            `http://localhost:4000/registration/${id}`
+          );
           if (response.data.success) {
             // Reset the form with customer data
-            console.log('id', response.data.data)
-            form.reset(response.data.data)
+            console.log("id", response.data.data);
+            form.reset(response.data.data);
           } else {
-            console.error('Customer not found:', response.data.msg)
+            console.error("Customer not found:", response.data.msg);
           }
         } catch (error) {
-          console.error('Error fetching customer:', error)
+          console.error("Error fetching customer:", error);
         }
-      }
+      };
 
-      fetchCustomer()
+      fetchCustomer();
     }
-  }, [id, form])
+  }, [id, form]);
 
-  //   function onSubmit(data: z.infer<typeof formSchema>) {
-  //     // axios.post("https://reqres.in/api/login", userData).then((response) => {
-  //     //   console.log(response.status, response.data.token);
-  //     // });
+//   function onSubmit(data: z.infer<typeof formSchema>) {
+//     // axios.post("https://reqres.in/api/login", userData).then((response) => {
+//     //   console.log(response.status, response.data.token);
+//     // });
 
-  //     // navigate("/");
-  //     // console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", values);
-  //     // toast({
-  //     //   className: "text-green-600",
-  //     //   title: "Registration",
-  //     //   description: <span>Added successfully..</span>,
-  //     //   duration: 2000,
-  //     // });
+//     // navigate("/");
+//     // console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", values);
+//     // toast({
+//     //   className: "text-green-600",
+//     //   title: "Registration",
+//     //   description: <span>Added successfully..</span>,
+//     //   duration: 2000,
+//     // });
 
-  //     //from next js
-  //     console.log("data", data);
-  //     const id = getValues("id"); // this checks if the data already exists in the database
+//     //from next js
+//     console.log("data", data);
+//     const id = getValues("id"); // this checks if the data already exists in the database
 
-  //     if (id) {
-  //       // If an `id` exists, update the customer with only the changed fields (dirtyFields)
-  //       let dirtyValues: any = {};
+//     if (id) {
+//       // If an `id` exists, update the customer with only the changed fields (dirtyFields)
+//       let dirtyValues: any = {};
 
-  //       for (const key in dirtyFields) {
-  //         dirtyValues[key] = data[key];
-  //       }
+//       for (const key in dirtyFields) {
+//         dirtyValues[key] = data[key];
+//       }
 
-  //       console.log("dirtyValues", dirtyValues);
+//       console.log("dirtyValues", dirtyValues);
 
-  //       //   await updateCustomer(dirtyValues, id.toString());
-  //       toast({
-  //         className: "text-green-600",
-  //         title: "Customer",
-  //         description: <span>Updated successfully..</span>,
-  //         duration: 5000,
-  //       });
-  //     } else {
-  //       // If no `id` exists, insert a new customer and get the new `id`
-  //       console.log(data);
-  //       const sendData = async () => {
-  //         const response = await Axios.post(
-  //           "http://localhost:4000/registration",
-  //           data
-  //         );
-  //         console.log("response.data", response.data);
-  //       };
+//       //   await updateCustomer(dirtyValues, id.toString());
+//       toast({
+//         className: "text-green-600",
+//         title: "Customer",
+//         description: <span>Updated successfully..</span>,
+//         duration: 5000,
+//       });
+//     } else {
+//       // If no `id` exists, insert a new customer and get the new `id`
+//       console.log(data);
+//       const sendData = async () => {
+//         const response = await Axios.post(
+//           "http://localhost:4000/registration",
+//           data
+//         );
+//         console.log("response.data", response.data);
+//       };
 
-  //       sendData();
-  //       setValue("id", objId.lastInsertRowid, { shouldDirty: false }); // Set the `id` to avoid adding the same data again
+//       sendData();
+//       setValue("id", objId.lastInsertRowid, { shouldDirty: false }); // Set the `id` to avoid adding the same data again
 
-  //       toast({
-  //         className: "text-green-600",
-  //         title: "Customer",
-  //         description: <span>Added successfully..</span>,
-  //         duration: 2000,
-  //       });
-  //       // After inserting, use the newly generated `id`
-  //       navigate(`/customers/${objId.lastInsertRowid}`);
-  //     }
-  //   }
-  async function onSubmit(data: any) {
-    const id = getValues('id') // Check if data already exists
-    console.log('Form data:', data)
+//       toast({
+//         className: "text-green-600",
+//         title: "Customer",
+//         description: <span>Added successfully..</span>,
+//         duration: 2000,
+//       });
+//       // After inserting, use the newly generated `id`
+//       navigate(`/customers/${objId.lastInsertRowid}`);
+//     }
+//   }
+async function onSubmit(data: any) {
+    const id = getValues("id"); // Check if data already exists
+    console.log("Form data:", data);
 
     if (id) {
       // If `id` exists, fetch updated data and display it in frontend
       try {
-        let dirtyValues: any = {}
+        let dirtyValues: any = {};
 
         // Capture only modified fields
         for (const key in dirtyFields) {
-          dirtyValues[key] = data[key]
+          dirtyValues[key] = data[key];
         }
 
-        console.log('Dirty Values (Fields to Update):', dirtyValues)
+        console.log("Dirty Values (Fields to Update):", dirtyValues);
 
         // Send update request
         const response = await Axios.put(
           `http://localhost:4000/registrations/${id}`,
-          dirtyValues,
-        )
+          dirtyValues
+        );
 
         // Check if update was successful
         if (response.data.success) {
           toast({
-            className: 'text-green-600',
-            title: 'Customer',
+            className: "text-green-600",
+            title: "Customer",
             description: <span>Updated successfully.</span>,
             duration: 5000,
-          })
+          });
 
           // Update the UI with the new data (you can handle this as per your frontend logic)
-          const updatedData = response.data.updatedRegistration
+          const updatedData = response.data.updatedRegistration;
           // Example: Set updated data into the form
-          reset(updatedData)
+          reset(updatedData);
         }
       } catch (error) {
-        console.error('Error updating customer:', error)
+        console.error("Error updating customer:", error);
       }
     } else {
       // If no `id`, insert a new customer
       try {
-        console.log('Inserting new customer:', data)
+        console.log("Inserting new customer:", data);
 
         const response = await Axios.post(
-          'http://localhost:4000/registration',
-          data,
-        )
+          "http://localhost:4000/registration",
+          data
+        );
 
         if (response.data.success) {
-          const newId = response.data.lastInsertRowid
+          const newId = response.data.lastInsertRowid;
 
           // Set the newly inserted id to avoid duplicate insertions
-          setValue('id', newId, { shouldDirty: false })
+          setValue("id", newId, { shouldDirty: false });
 
           toast({
-            className: 'text-green-600',
-            title: 'Customer',
+            className: "text-green-600",
+            title: "Customer",
             description: <span>Added successfully.</span>,
             duration: 2000,
-          })
+          });
 
           // Optionally navigate to the customer detail page after successful insert
-          navigate(`/registration/${newId}`)
+          navigate(`/registration/${newId}`);
 
           // Fetch the newly inserted customer and display it in the UI
-          const newCustomer = response.data.newCustomer
-          reset(newCustomer) // Reset the form with new customer data
+          const newCustomer = response.data.newCustomer;
+          reset(newCustomer); // Reset the form with new customer data
         }
       } catch (error) {
-        console.error('Error inserting customer:', error)
+        console.error("Error inserting customer:", error);
       }
     }
   }
@@ -228,9 +228,7 @@ const RegistrationForm = () => {
     <div>
       <div className="flex items-center  justify-between ml-10 mt-5">
         <h1 className="text-2xl font-bold ">Guest Registration {id}</h1>
-        {id && (
-          <Button onClick={() => navigate('/registration/add')}>Add</Button>
-        )}
+        { id && <Button onClick={() => navigate("/registration/add")}>Add</Button>}
         {/* <Button>View List</Button> */}
       </div>
       <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
@@ -407,7 +405,7 @@ const RegistrationForm = () => {
         <div></div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RegistrationForm
+export default RegistrationForm;

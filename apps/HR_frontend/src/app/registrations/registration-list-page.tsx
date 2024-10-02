@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -6,77 +6,76 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { useEffect, useState } from 'react'
-import Axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+  } from "@/components/ui/alert-dialog";
+import { useEffect, useState } from "react";
+import Axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const RegistrationListPage = () => {
-  const [registration, setRegistration] = useState([])
-  //   const [searchId, setSearchId] = useState("");
-  //   const [selectedCustomerType, setselectedCustomerType] = useState("all");
-  //   const [searchName, setSearchName] = useState("");
-  const navigate = useNavigate()
+  const [registration, setRegistration] = useState([]);
+//   const [searchId, setSearchId] = useState("");
+//   const [selectedCustomerType, setselectedCustomerType] = useState("all");
+//   const [searchName, setSearchName] = useState("");
+    const navigate = useNavigate();
+
 
   useEffect(() => {
     // Fetch registration data from the backend
     const fetchRegistration = async () => {
       try {
         // Make API request to get registration data by ID
-        const response = await Axios.get(
-          `http://localhost:4000/allregistration`,
-        )
+        const response = await Axios.get(`http://localhost:4000/allregistration`);
         if (response.data.success) {
           // Reset the form with registration data
-          console.log('id', response.data.data)
+          console.log("id", response.data.data);
           const sortedData = response.data.data.sort(
-            (a: any, b: any) => b.id - a.id,
-          )
-          setRegistration(sortedData)
+            (a: any, b: any) => b.id - a.id
+          );
+          setRegistration(sortedData);
           // form.reset(response.data.data);
         } else {
-          console.error('Registration not found:', response.data.msg)
+          console.error("Registration not found:", response.data.msg);
         }
       } catch (error) {
-        console.error('Error fetching registration:', error)
+        console.error("Error fetching registration:", error);
       }
-    }
+    };
 
-    fetchRegistration()
-  }, [])
+    fetchRegistration();
+  }, []);
 
   const handleEdit = (id: number) => {
-    navigate(`/registration/${id}`)
-  }
+    navigate(`/registration/${id}`);
+  };
 
-  //   const filteredInvoices = customers.filter((customer: any) => {
-  //     const matchesId = customer.id
-  //       .toString()
-  //       .toLowerCase()
-  //       .includes(searchId.toLowerCase());
-  //     const matchesName = customer.cname
-  //       .toLowerCase()
-  //       .includes(searchName.toLowerCase());
+//   const filteredInvoices = customers.filter((customer: any) => {
+//     const matchesId = customer.id
+//       .toString()
+//       .toLowerCase()
+//       .includes(searchId.toLowerCase());
+//     const matchesName = customer.cname
+//       .toLowerCase()
+//       .includes(searchName.toLowerCase());
 
-  //     const matchesProjectType =
-  //       selectedCustomerType === "all" ||
-  //       customer.ctype.toLowerCase() === selectedCustomerType.toLowerCase();
+//     const matchesProjectType =
+//       selectedCustomerType === "all" ||
+//       customer.ctype.toLowerCase() === selectedCustomerType.toLowerCase();
 
-  //     return matchesId && matchesName && matchesProjectType;
-  //   });
-  // customer delete function
-
+//     return matchesId && matchesName && matchesProjectType;
+//   });
+// customer delete function
+  
   return (
     <div>
       <div className="flex items-center  justify-between ml-10 mt-5">
@@ -102,75 +101,64 @@ const RegistrationListPage = () => {
           </TableRow>
         </TableHeader>
         <TableBody className="bg-green-50">
-          {registration.map((registration: any) => (
-            <TableRow key={registration.id}>
-              <TableCell className="text-center">{registration.id}</TableCell>
-              <TableCell className="text-center">
-                {registration.fullname}
-              </TableCell>
+            {registration.map((registration: any) => (
+              <TableRow key={registration.id}>
+                <TableCell className="text-center">{registration.id}</TableCell>
+                <TableCell className="text-center">{registration.fullname}</TableCell>
 
-              <TableCell className="text-center">
-                {registration.address}
-              </TableCell>
-              <TableCell className="text-center">{registration.city}</TableCell>
-              <TableCell className="text-center">
-                {registration.province}
-              </TableCell>
-              <TableCell className="text-center">
-                {registration.country}
-              </TableCell>
-              <TableCell className="text-center">
-                {registration.postalcode}
-              </TableCell>
-              <TableCell className="text-center">
-                {registration.email}
-              </TableCell>
-              <TableCell className="text-center">
-                {registration.telephone}
-              </TableCell>
-              <TableCell className="text-center flex">
-                <Button
-                  className="bg-green-600 ml-5"
-                  onClick={() => handleEdit(registration.id)}
-                  type="button"
-                >
-                  Edit
-                </Button>
+                <TableCell className="text-center">{registration.address}</TableCell>
+                <TableCell className="text-center">{registration.city}</TableCell>
+                <TableCell className="text-center">{registration.province}</TableCell>
+                <TableCell className="text-center">{registration.country}</TableCell>
+                <TableCell className="text-center">
+                  {registration.postalcode}
+                </TableCell>
+                <TableCell className="text-center">{registration.email}</TableCell>
+                <TableCell className="text-center">{registration.telephone}</TableCell>
+                <TableCell className="text-center flex">
+                  <Button
+                    className="bg-green-600 ml-5"
+                    onClick={() => handleEdit(registration.id)}
+                    type="button"
+                  >
+                    Edit
+                  </Button>
 
-                <AlertDialog>
-                  <AlertDialogTrigger>
-                    <Button className="ml-5 bg-green-600 bg-destructive">
-                      Delete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Are you absolutely sure?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete your data and remove your data from our servers.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
+                  <AlertDialog>
+                    <AlertDialogTrigger>
+                      <Button className="ml-5 bg-green-600 bg-destructive">
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete your data and remove your data from our
+                          servers.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
                         className="bg-red-600"
                         //   onClick={() => deleteAction(invoice.id)}
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
       </Table>
     </div>
-  )
-}
+  );
+};
 
-export default RegistrationListPage
+export default RegistrationListPage;

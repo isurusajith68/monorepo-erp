@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import React, { useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,8 +12,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -22,175 +22,222 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { NavLink, useNavigate, useParams } from 'react-router-dom'
-import Axios from 'axios'
-import { useToast } from '@/hooks/use-toast'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
+import Axios from "axios";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
+  
   //   id: z.string().min(2, {
   //     message: "Username must be at least 2 characters.",
   //   }),
   id: z.number().optional(),
   itemname: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
   itemdes: z.string().min(2, {
-    message: 'You must select a Date',
+    message: "You must select a Date",
   }),
   itemowner: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+    message: "Username must be at least 2 characters.",
   }),
-})
+  
+});
 const StoreForm = () => {
-  const { id } = useParams()
+  const { id } = useParams();
   // const id= params.id;
-  const { toast } = useToast()
-  const navigate = useNavigate()
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {},
-  })
+  });
   const {
     control,
     watch,
     setValue,
     getValues,
     formState: { isDirty, dirtyFields, isLoading, isSubmitSuccessful },
-  } = form
+  } = form;
 
   useEffect(() => {
     if (id) {
       const fetchCustomer = async () => {
         try {
           // Make API request to get customer data by ID
-          const response = await Axios.get(`http://localhost:4000/store/${id}`)
+          const response = await Axios.get(
+            `http://localhost:4000/store/${id}`
+          );
           if (response.data.success) {
             // Reset the form with customer data
-            console.log('id', response.data.data)
-            form.reset(response.data.data)
+            console.log("id", response.data.data);
+            form.reset(response.data.data);
           } else {
-            console.error('item not found:', response.data.msg)
+            console.error("item not found:", response.data.msg);
           }
         } catch (error) {
-          console.error('Error fetching item:', error)
+          console.error("Error fetching item:", error);
         }
-      }
+      };
 
-      fetchCustomer()
+      fetchCustomer();
+      
+      
+
     }
-  }, [id, form])
+  }, [id, form]);
+
+  
 
   async function onSubmit(data: any) {
-    const id = getValues('id') // Check if data already exists
-    console.log('Form data:', data)
+    const id = getValues("id"); // Check if data already exists
+    console.log("Form data:", data);
 
     if (id) {
       // If `id` exists, fetch updated data and display it in frontend
       try {
-        let dirtyValues: any = {}
+        let dirtyValues: any = {};
 
         // Capture only modified fields
         for (const key in dirtyFields) {
-          dirtyValues[key] = data[key]
+          dirtyValues[key] = data[key];
         }
 
-        console.log('Dirty Values (Fields to Update):', dirtyValues)
+        console.log("Dirty Values (Fields to Update):", dirtyValues);
 
         // Send update request
         const response = await Axios.put(
           `http://localhost:4000/store/${id}`,
-          dirtyValues,
-        )
+          dirtyValues
+        );
 
         // Check if update was successful
         if (response.data.success) {
           toast({
-            className: 'text-green-600',
-            title: 'Booking',
+            className: "text-green-600",
+            title: "Booking",
             description: <span>Updated successfully.</span>,
             duration: 5000,
-          })
+          });
 
           // Update the UI with the new data (you can handle this as per your frontend logic)
-          const updatedData = response.data.updateItem
+          const updatedData = response.data.updateItem;
           // Example: Set updated data into the form
-          reset(updatedData)
+          reset(updatedData);
         }
       } catch (error) {
-        console.error('Error updating item:', error)
+        console.error("Error updating item:", error);
       }
     } else {
       // If no `id`, insert a new booking
       try {
-        console.log('Inserting new item:', data)
+        console.log("Inserting new item:", data);
 
-        const response = await Axios.post('http://localhost:4000/store', data)
+        const response = await Axios.post(
+          "http://localhost:4000/store",
+          data
+        );
 
         if (response.data.success) {
-          const newId = response.data.lastInsertRowid
+          const newId = response.data.lastInsertRowid;
 
           // Set the newly inserted id to avoid duplicate insertions
-          setValue('id', newId, { shouldDirty: false })
+          setValue("id", newId, { shouldDirty: false });
 
           toast({
-            className: 'text-green-600',
-            title: 'Store',
+            className: "text-green-600",
+            title: "Store",
             description: <span>Added successfully.</span>,
             duration: 2000,
-          })
+          });
 
           // Optionally navigate to the customer detail page after successful insert
-          navigate(`/store/${newId}`)
+          navigate(`/store/${newId}`);
 
           // Fetch the newly inserted booking and display it in the UI
-          const newitem = response.data.newitem
-          reset(newitem) // Reset the form with new booking data
+          const newitem = response.data.newitem;
+          reset(newitem); // Reset the form with new booking data
         }
       } catch (error) {
-        console.error('Error inserting item:', error)
+        console.error("Error inserting item:", error);
       }
     }
   }
 
-  const deleteAction = async (id) => {
+
+
+
+
+
+
+
+
+  
+
+
+const deleteAction = async (id) => {
     if (id) {
       try {
-        console.log('Deleting booking with id:', id)
-
+        console.log("Deleting booking with id:", id);
+  
         // Make the DELETE request to the backend API
-        await Axios.delete(`http://localhost:4000/deleteitem/${id}`)
-
+        await Axios.delete(`http://localhost:4000/deleteitem/${id}`);
+  
         // Show success toast notification
         toast({
-          className: 'text-red-600',
-          title: 'Booking',
+          className: "text-red-600",
+          title: "Booking",
           description: <span>Deleted successfully..</span>,
           duration: 3000,
-        })
-
+        });
+  
         // Navigate to the customer list after deletion
-        navigate('/booking/add')
+        navigate("/booking/add");
       } catch (error) {
         // Handle any error that occurs during the delete process
-        console.error('Error deleting customer:', error)
+        console.error("Error deleting customer:", error);
         toast({
-          className: 'text-red-600',
-          title: 'Error',
+          className: "text-red-600",
+          title: "Error",
           description: <span>Failed to delete the customer..</span>,
           duration: 3000,
-        })
+        });
       }
     }
-  }
+  };
 
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
   return (
     <div>
       <div className="flex items-center justify-between mt-5 ml-10">
         <h1 className="text-2xl font-bold ">Store {id}</h1>
         {/* <NavLink to={"list"}>View List</NavLink> */}
-        {id && <Button onClick={() => navigate('/booking/add')}>Add</Button>}
+       { id && <Button onClick={() => navigate("/booking/add")}>Add</Button>}
       </div>
       <hr className="mt-5 ml-10 border-2 border-green-300"></hr>
 
@@ -256,7 +303,9 @@ const StoreForm = () => {
                     </FormItem>
                   )}
                 />
+                
               </div>
+              
             </div>
 
             <div className="flex space-x-3">
@@ -286,7 +335,7 @@ const StoreForm = () => {
                         <AlertDialogAction
                           className="bg-red-600"
                           onClick={() => {
-                            deleteAction(id)
+                            deleteAction(id);
                           }}
                         >
                           Delete
@@ -303,7 +352,7 @@ const StoreForm = () => {
         <div></div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default StoreForm
+export default StoreForm;

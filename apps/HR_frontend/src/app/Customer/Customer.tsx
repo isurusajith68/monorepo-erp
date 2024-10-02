@@ -1,3 +1,5 @@
 export default function Customer() {
-  return <div>Customerqq</div>
+  return (
+    <div>Customerqq</div>
+  )
 }

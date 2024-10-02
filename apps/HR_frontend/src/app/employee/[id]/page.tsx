@@ -1,7 +1,9 @@
-import EmployeeForm from '../_component/form/employee-form'
+import EmployeeForm from "../_component/form/employee-form";
 
 const EditEmployee = () => {
-  return <EmployeeForm />
+    return ( 
+        <EmployeeForm/>
+     );
 }
-
-export default EditEmployee
+ 
+export default EditEmployee;
