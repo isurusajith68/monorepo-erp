@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@erp/common": "workspace:^",
     "@erp/sample-lib": "workspace:^"
   },
   "devDependencies": {
