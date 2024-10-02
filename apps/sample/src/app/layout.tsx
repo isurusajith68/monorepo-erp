@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import './globals.css'
-import NavBar from '@erp/common/src/App'
+import NavBar from '@erp/common/src/components/Nav'
 import { usePathname } from 'next/navigation'
 
 const items = [
