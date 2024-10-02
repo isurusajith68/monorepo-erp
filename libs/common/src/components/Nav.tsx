@@ -1,5 +1,8 @@
-import Link from 'next/link'
-import { useState } from 'react'
+// import NextLink from 'next/link'
+import { NavLink as ReactLink } from 'react-router-dom'
+import React, { useState } from 'react'
+
+const NextLink = React.lazy(() => import('next/link'))
 
 type NavItem = {
   path: string
@@ -15,13 +18,42 @@ type NavBarProps = {
   items: NavItem[]
   logo: Logo
   activeItem?: string
+  use?: string
 }
 
-export default function NavBar({ items, logo, activeItem }: NavBarProps) {
+export default function NavBar({ items, logo, activeItem, use }: NavBarProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleMenu = () => {
     setIsOpen(!isOpen)
+  }
+
+  const renderLink = (item: NavItem) => {
+    if (use === 'next') {
+      return (
+        <NextLink
+          href={item.path}
+          className={
+            item.path === activeItem ? 'text-red-500 font-bold' : 'text-white'
+          }
+        >
+          {item.name}
+        </NextLink>
+      )
+    }
+    if (use === 'react') {
+      return (
+        <ReactLink
+          to={item.path}
+          className={({ isActive }) =>
+            isActive ? 'text-red-500 font-bold' : 'text-white'
+          }
+        >
+          {item.name}
+        </ReactLink>
+      )
+    }
+    return <a href={item.path}>{item.name}</a>
   }
 
   return (
@@ -83,36 +115,14 @@ export default function NavBar({ items, logo, activeItem }: NavBarProps) {
 
         <ul className="hidden md:flex space-x-4">
           {items.map((item, index) => (
-            <li
-              key={index}
-              className={
-                item.path === activeItem
-                  ? 'text-red-500 font-bold'
-                  : 'text-white'
-              }
-            >
-              <Link href={item.path} className="">
-                {item.name}
-              </Link>
-            </li>
+            <li key={index}>{renderLink(item)}</li>
           ))}
         </ul>
       </div>
       {isOpen && (
         <ul className="md:hidden block space-y-2 mt-4">
           {items.map((item, index) => (
-            <li
-              key={index}
-              className={
-                item.path === activeItem
-                  ? 'text-red-500 font-bold'
-                  : 'text-white'
-              }
-            >
-              <Link href={item.path} className="block ">
-                {item.name}
-              </Link>
-            </li>
+            <li key={index}>{renderLink(item)}</li>
           ))}
         </ul>
       )}

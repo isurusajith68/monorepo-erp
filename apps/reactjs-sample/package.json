@@ -1,5 +1,5 @@
 {
-  "name": "@erp/common",
+  "name": "reactjs-sample",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,8 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@types/react-router-dom": "^5.3.3",
-    "next": "^14.2.14",
+    "@erp/common": "workspace:^",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2"

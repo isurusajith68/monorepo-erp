@@ -18,6 +18,8 @@ const logo = {
 // console.log(window.location.href)
 // const activeItem = window.location.pathname
 
+const use = 'next'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,7 +31,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {' '}
-        <NavBar items={items} logo={logo} activeItem={currentPath} />
+        <NavBar items={items} logo={logo} activeItem={currentPath} use={use} />
         {children}
       </body>
     </html>
