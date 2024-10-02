@@ -8,11 +8,14 @@ import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import React from 'react'
 
-export default function ContactForm({ contactdata, onFormDataChange }: any) {
+export default function ContactForm({
+  contactdata,
+  handleContactFormDataChange,
+}: any) {
   // Handle change in the form and pass the updated data to the parent
   const handleChange = (e: any) => {
     const { name, value } = e.target
-    onFormDataChange({
+    handleContactFormDataChange({
       ...contactdata,
       [name]: value,
     })

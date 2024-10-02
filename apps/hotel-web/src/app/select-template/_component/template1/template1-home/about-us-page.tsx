@@ -1,6 +1,20 @@
-import React from 'react'
+'use clinet'
 
-function AboutUsPage({ formData }: any) {
+import React, { useEffect, useState } from 'react'
+
+function AboutUsPage({ aboutFormData }: any) {
+  const [aboutimage, setimgUrl] = useState<any[]>([])
+
+  useEffect(() => {
+    if (aboutFormData?.aboutimages?.length > 0) {
+      const imageUrls = aboutFormData.aboutimages.map((image: any) =>
+        URL.createObjectURL(image.file),
+      )
+      setimgUrl(imageUrls)
+    }
+  }, [aboutFormData])
+
+  console.log('yyyyyyyyyyyyy', aboutimage)
   return (
     <section className="py-16 bg-gray-100">
       <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10 mr-5">
@@ -11,30 +25,31 @@ function AboutUsPage({ formData }: any) {
             <div className="bg-yellow-500 w-16 h-0.5 mt-3 ml-2"></div>
           </div>
           <h2 className="text-3xl font-bold text-gray-800 mb-4">
-            Welcome to <span className="text-yellow-500">{formData.name}</span>
+            Welcome to{' '}
+            <span className="text-yellow-500">{aboutFormData.name}</span>
           </h2>
-          <p className="text-gray-600 mb-6">{formData.description}</p>
+          <p className="text-gray-600 mb-6">{aboutFormData.description}</p>
 
           {/* Stats Section */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div className="text-center bg-white shadow-lg p-6 rounded-lg">
               <i className="fa fa-hotel text-4xl text-yellow-500 mb-4"></i>
               <h3 className="text-3xl font-bold text-gray-800">
-                {formData.room}
+                {aboutFormData.room}
               </h3>
               <p className="text-gray-600">Rooms</p>
             </div>
             <div className="text-center bg-white shadow-lg p-6 rounded-lg">
               <i className="fa fa-users text-4xl text-yellow-500 mb-4"></i>
               <h3 className="text-3xl font-bold text-gray-800">
-                {formData.staff}
+                {aboutFormData.staff}
               </h3>
               <p className="text-gray-600">Staffs</p>
             </div>
             <div className="text-center bg-white shadow-lg p-6 rounded-lg">
               <i className="fa fa-user-friends text-4xl text-yellow-500 mb-4"></i>
               <h3 className="text-3xl font-bold text-gray-800">
-                {formData.client}
+                {aboutFormData.client}
               </h3>
               <p className="text-gray-600">Clients</p>
             </div>
@@ -47,8 +62,8 @@ function AboutUsPage({ formData }: any) {
 
         {/* Images Section */}
         <div className="grid grid-cols-2 grid-rows-2 gap-4 mr-5">
-          {formData.aboutimageUrls &&
-            formData.aboutimageUrls.map((imageUrl: any, index: any) => (
+          {aboutimage &&
+            aboutimage.map((imageUrl: string, index: number) => (
               <img
                 key={index}
                 src={imageUrl}

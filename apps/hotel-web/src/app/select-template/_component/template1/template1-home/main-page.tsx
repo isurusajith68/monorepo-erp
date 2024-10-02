@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Home from './home-page'
 import AboutUsPage from './about-us-page'
 import ServicePage from './service-page'
@@ -12,6 +12,8 @@ import AboutProfileForm from './user-inputs/about-page-userinput'
 import ServiceForm from './user-inputs/service-page-inputs'
 import RoomForm from './user-inputs/room-page-inputs'
 import ContactForm from './user-inputs/contact-page-inputs'
+import { Button } from '@/components/ui/button'
+import { InsertHotelData } from './user-inputs/user-input-action'
 
 function MainPage() {
   // State to hold the data from the form
@@ -20,11 +22,13 @@ function MainPage() {
     phone: '{+94 775518779}',
     email: '{abc@gmail.com}',
     title: '{Discover A Brand Luxurious Hotel}',
-    image: '',
+    fileRecords: [],
+  })
+
+  const [aboutFormData, setAboutFormData] = useState({
     description:
       '{It was time to get rid of the vines. Oh God, let it be Gods pain. Some backyard will be backyard and them. There was a great deal of pain in the two parts of the body}',
     aboutimages: [], // Holds the actual file objects
-    aboutimageUrls: [], // Holds the image preview URLs,
     room: '{50}',
     staff: '{120}',
     client: '{450}',
@@ -32,9 +36,9 @@ function MainPage() {
 
   const [serviceFormData, setServiceFormData] = useState([
     {
-      serviceTitle: '{Service Title}',
-      serviceDescription: '{Service Description}',
-      image: [],
+      servicetitle: '{Service Title}',
+      servicedescription: '{Service Description}',
+      serviceimage: [],
     },
   ])
 
@@ -42,15 +46,15 @@ function MainPage() {
     {
       roomtitle: '{Room Title}',
       roomprice: '{Room Price}',
-      roombeds: '{03',
+      roombeds: '{03}',
       roombath: '{02}',
       otherfacility: '{Wifi}',
       roomsdescription: '{Room Description}',
-      image: [],
+      roomimage: [],
     },
   ])
 
-  const [contactdata, SetContactData] = useState({
+  const [contactdata, setContactData] = useState({
     bookingemail: '{book@example.com}',
     generaleemail: '{info@example.com}',
     technicalemail: '{tech@example.com}',
@@ -60,6 +64,15 @@ function MainPage() {
   // Function to handle form data change
   const handleFormDataChange = (newData: any) => {
     setFormData(newData)
+  }
+
+  useEffect(() => {
+    console.log('set unada', serviceFormData)
+  }, [serviceFormData])
+
+  // Function to handle form data change
+  const handleAboutFormDataChange = (newData: any) => {
+    setAboutFormData(newData)
   }
 
   // Function to handle form data change
@@ -74,7 +87,89 @@ function MainPage() {
 
   // Function to handle form data change
   const handleContactFormDataChange = (newData: any) => {
-    SetContactData(newData)
+    setContactData(newData)
+  }
+
+  const handleImage = () => {
+    if (formData.fileRecords) {
+      const formDataa = new FormData()
+      formData.fileRecords.map((filer: any, index: any) => {
+        formDataa.append(index.toString(), filer.file)
+      })
+      console.log('formData11111111111', formDataa)
+      return formDataa
+    } else {
+      return null
+    }
+  }
+  const handleaboutImage = () => {
+    if (aboutFormData.aboutimages) {
+      const formDataa = new FormData()
+      aboutFormData.aboutimages.map((filer: any, index: any) => {
+        formDataa.append(index.toString(), filer.file)
+      })
+      console.log('formData222222222', formDataa)
+      return formDataa
+    } else {
+      return null
+    }
+  }
+  const handlserviceImage = () => {
+    const formData = new FormData()
+
+    serviceFormData.forEach((service, index) => {
+      // Append each image file for this service
+      service.serviceimage.forEach((imageFile, imgIndex) => {
+        formData.append(
+          `service[${index}][serviceimage][${imgIndex}]`,
+          imageFile,
+        )
+      })
+    })
+    return formData
+  }
+  const handleroomImage = () => {
+    const formData = new FormData()
+
+    // Iterate over the roomsFormData to append room details and images
+    roomsFormData.forEach((room, roomIndex) => {
+      // Append each image from the roomimage array
+      room.roomimage.forEach((file, imageIndex) => {
+        formData.append(`room[${roomIndex}][roomimage][${imageIndex}]`, file)
+      })
+    })
+
+    return formData
+  }
+
+  const handleSubmit = async (event: any) => {
+    event.preventDefault()
+
+    try {
+      // Call InsertHotelData, keeping metadata intact but removing file objects
+      const response = await InsertHotelData({
+        data: { ...formData, fileRecords: null }, // Send sanitized formData
+        aboutFormData: { ...aboutFormData, aboutimages: null },
+        serviceFormData: { ...serviceFormData, serviceimage: null },
+        roomsFormData: { ...roomsFormData, roomimage: null },
+        contactdata: contactdata,
+        imageData: handleImage(), // File data for image uploads
+        aboutImageData: handleaboutImage(), // File data for about image uploads
+        roomImageData: handleroomImage(), // File data for room image uploads
+        serviceImageData: handlserviceImage(),
+      })
+
+      if (response.success) {
+        alert(
+          'Hotel data inserted successfully with ID: ' +
+            response.lastInsertRowid,
+        )
+      } else {
+        alert('Error: ' + response.msg)
+      }
+    } catch (error) {
+      console.error('Error inserting hotel data:', error)
+    }
   }
 
   return (
@@ -85,7 +180,7 @@ function MainPage() {
         <Home formData={formData} />
 
         {/* About Us Section */}
-        <AboutUsPage formData={formData} />
+        <AboutUsPage aboutFormData={aboutFormData} />
 
         {/* Services Section */}
         <ServicePage services={serviceFormData} />
@@ -104,34 +199,41 @@ function MainPage() {
         />
       </div>
 
-      <div className="hidden md:block lg:w-1/3 md:w-1/3 sm:w-1/3 ">
-        <div className="bg-slate-100 h-full w-full">
-          <h1>user input area</h1>
-          <ProfileForm
-            formData={formData}
-            onFormDataChange={handleFormDataChange}
-          ></ProfileForm>
+      <div className="lg:w-1/3 md:w-1/3 sm:w-1/3 bg-slate-50 relative h-screen overflow-y-auto">
+        <h1>Form area</h1>
+        {/* Profile Form */}
+        <ProfileForm
+          formData={formData}
+          setParentFormDataChange={handleFormDataChange}
+        />
 
-          <AboutProfileForm
-            formData={formData}
-            onFormDataChange={handleFormDataChange}
-          ></AboutProfileForm>
+        {/* About Profile Form */}
+        <AboutProfileForm
+          aboutFormData={aboutFormData}
+          handleAboutFormDataChange={handleAboutFormDataChange}
+        />
 
-          <ServiceForm
-            serviceFormData={serviceFormData}
-            onFormDataChange={handleServiceFormDataChange}
-          ></ServiceForm>
+        {/* Service Form */}
+        <ServiceForm
+          serviceFormData={serviceFormData}
+          handleServiceFormDataChange={handleServiceFormDataChange}
+        />
 
-          <RoomForm
-            roomsFormData={roomsFormData}
-            onFormDataChange={handleRoomsFormDataChange}
-          ></RoomForm>
+        {/* Room Form */}
+        <RoomForm
+          roomsFormData={roomsFormData}
+          handleRoomsFormDataChange={handleRoomsFormDataChange}
+        />
 
-          <ContactForm
-            contactdata={contactdata}
-            onFormDataChange={handleContactFormDataChange}
-          ></ContactForm>
-        </div>
+        {/* Contact Form */}
+        <ContactForm
+          contactdata={contactdata}
+          handleContactFormDataChange={handleContactFormDataChange}
+        />
+
+        <Button type="submit" onClick={handleSubmit}>
+          Submit
+        </Button>
       </div>
     </div>
   )

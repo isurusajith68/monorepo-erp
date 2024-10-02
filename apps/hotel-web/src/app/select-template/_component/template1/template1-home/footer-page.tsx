@@ -113,14 +113,12 @@ function FooterPage({
           <div className="col-span-1">
             <h3 className="text-xl font-bold mb-4">SERVICES</h3>
             <ul className="space-y-2 text-gray-400">
-              {services.map((services: any, index: any) => (
-                <div className="hover:text-yellow-500 flex space-x-1">
-                  <IoIosArrowForward />
-                  <li key={index}>
-                    <a href="#">{services.serviceTitle}</a>
-                  </li>
-                </div>
-              ))}
+              {/* {services.map((services :any, index:any) => (
+           <div className="hover:text-yellow-500 flex space-x-1">
+            <IoIosArrowForward />
+           <li key={index}><a href="#">{services.serviceTitle}</a></li>
+           </div>
+          ))} */}
             </ul>
           </div>
         </div>

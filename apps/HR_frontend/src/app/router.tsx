@@ -18,12 +18,12 @@ import RootLayout from './RootLayout'
 import AddBookingPage from './bookings/add/page'
 import BookingViewPge from './bookings/[id]/page'
 import BookingListPage from './bookings/booking-list-page'
-import RegistrationListPage from './registrations/registration-list-page'
-import AddRegistrationPage from './registrations/add/page'
-import RegistrationViewPage from './registrations/[id]/page'
-import StoreListPage from './store/store-list'
-import ViewStorePage from './store/[id]/page'
-import AddStorePage from './store/add/page'
+// import RegistrationListPage from "./registrations/registration-list-page";
+// import AddRegistrationPage from "./registrations/add/page";
+// import RegistrationViewPage from "./registrations/[id]/page";
+// import StoreListPage from "./store/store-list";
+// import ViewStorePage from "./store/[id]/page";
+// import AddStorePage from "./store/add/page";
 import EmployeeListPage from './employee/employee-list-page'
 import EmployeeForm from './employee/_component/form/employee-form'
 import EditEmployee from './employee/[id]/page'
@@ -49,7 +49,7 @@ export const router = createBrowserRouter(
         <Route path="add" element={<AddEmployee />} />
         <Route path=":id" element={<EditEmployee />} />
       </Route>
-      <Route path="registrations" element={<RegistrationListPage />} />
+      {/* <Route path="registrations" element={<RegistrationListPage />} />
       <Route path="registration">
         <Route path="add" element={<AddRegistrationPage />} />
         <Route path=":id" element={<RegistrationViewPage />} />
@@ -58,7 +58,7 @@ export const router = createBrowserRouter(
       <Route path="store">
         <Route path="add" element={<AddStorePage />} />
         <Route path=":id" element={<ViewStorePage />} />
-      </Route>
+      </Route> */}
 
       {/* <Route path="view-booking" element={<ViewBooking />} />
       <Route path="guest-registration" element={<GuestRegistration />} />

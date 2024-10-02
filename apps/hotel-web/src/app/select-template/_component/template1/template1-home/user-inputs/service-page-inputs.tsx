@@ -5,8 +5,6 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
-import { Form } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -16,49 +14,75 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 export default function ServiceForm({
   serviceFormData,
-  onFormDataChange,
+  handleServiceFormDataChange,
 }: any) {
-  const [serviceRows, setServiceRows] = useState([serviceFormData])
+  const [serviceRows, setServiceRows] = useState(serviceFormData || [])
+
+  // Update serviceRows whenever serviceFormData changes
+  useEffect(() => {
+    setServiceRows(serviceFormData)
+  }, [serviceFormData])
 
   // Handle change in the form and pass the updated data to the parent
-  const handleChange = (index: any, e: any) => {
-    const { name, files, value } = e.target
+  const handleChange = (
+    index: number,
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, files, value } = event.target
     const updatedServices = [...serviceRows]
-    updatedServices[index] = {
-      ...updatedServices[index],
-      [name]: value,
-    }
 
-    if (name === 'image' && files.length > 0) {
-      const file = files[0]
-      const imageUrl = URL.createObjectURL(file) // Create a preview URL
-
+    // Update the service field for text inputs
+    if (name !== 'image') {
       updatedServices[index] = {
         ...updatedServices[index],
-        image: file,
-        imageUrl: imageUrl,
+        [name]: value,
+      }
+    }
+
+    // Handle file upload for the specific service
+    if (name === 'image' && files) {
+      const selectedFiles = Array.from(files) // Get selected files
+
+      // Update the service row with the new files
+      updatedServices[index] = {
+        ...updatedServices[index],
+        serviceimage: selectedFiles.map((file) => ({
+          id: null,
+          file,
+          title: '',
+        })), // Store file info
+        imageUrl: selectedFiles.map((file) => URL.createObjectURL(file)), // Create preview URLs
       }
     }
 
     setServiceRows(updatedServices)
-    onFormDataChange(updatedServices) // Pass updated services to parent
+    handleServiceFormDataChange(updatedServices) // Pass updated services to the parent
   }
 
   // Add a new service row
   const addServiceRow = () => {
-    setServiceRows([...serviceRows, { serviceFormData }])
+    setServiceRows([
+      ...serviceRows,
+      {
+        servicetitle: '{Service Title}',
+        servicedescription: '{Service Description}',
+        serviceimage: [], // Initialize as an empty array for new rows
+        imageUrl: [], // Initialize as an empty array for new rows
+      },
+    ])
   }
 
   // Remove a service row by index
-  const removeServiceRow = (index: any) => {
+  const removeServiceRow = (index: number) => {
     const updatedServices = serviceRows.filter((_, i) => i !== index)
     setServiceRows(updatedServices)
-    onFormDataChange(updatedServices) // Pass updated services to parent
+    handleServiceFormDataChange(updatedServices) // Pass updated services to the parent
   }
 
   return (
@@ -86,16 +110,16 @@ export default function ServiceForm({
                     <TableCell>
                       <Input
                         type="text"
-                        name="serviceTitle"
-                        value={service.serviceTitle}
-                        placeholder="Hotel Name"
+                        name="servicetitle" // Ensure correct naming
+                        value={service.servicetitle || ''}
+                        placeholder="Service Title"
                         onChange={(e) => handleChange(index, e)}
                       />
                     </TableCell>
                     <TableCell>
                       <Textarea
-                        name="serviceDescription"
-                        value={service.serviceDescription}
+                        name="servicedescription" // Ensure correct naming
+                        value={service.servicedescription || ''}
                         placeholder="Service Description"
                         onChange={(e) => handleChange(index, e)}
                       />
@@ -104,19 +128,22 @@ export default function ServiceForm({
                       <Input
                         type="file"
                         name="image"
-                        onChange={(e) => handleChange(index, e)} // No value binding for file input
+                        accept="image/*" // Restrict file selection to images
+                        onChange={(e) => handleChange(index, e)} // Handle file selection
+                        multiple // Allow multiple files
                       />
                     </TableCell>
                     <TableCell>
-                      {service.imageUrl && (
-                        <div>
-                          <img
-                            src={service.imageUrl}
-                            alt="Hotel Preview"
-                            width="50"
-                          />
-                        </div>
-                      )}
+                      {service.imageUrl &&
+                        service.imageUrl.map((url: any, idx: any) => (
+                          <div key={idx}>
+                            <img
+                              src={url}
+                              alt={`Service Preview ${idx}`}
+                              width="50"
+                            />
+                          </div>
+                        ))}
                     </TableCell>
                     <TableCell>
                       <Button

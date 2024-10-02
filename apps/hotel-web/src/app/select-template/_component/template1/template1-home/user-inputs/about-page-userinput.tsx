@@ -1,3 +1,6 @@
+'use clinet'
+
+import PayBillForm, { FileRecord } from '@/app/imageSave/page'
 import {
   Accordion,
   AccordionContent,
@@ -7,38 +10,30 @@ import {
 import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
-export default function AboutProfileForm({ formData, onFormDataChange }: any) {
-  const handleChange = (e: any) => {
-    const { name, value, files } = e.target
+export default function AboutProfileForm({
+  aboutFormData,
+  handleAboutFormDataChange,
+}: any) {
+  const [aboutimages, setFileRecords] = useState<FileRecord[]>([])
 
-    // Check if the input is for images
-    if (name === 'aboutimages' && files.length > 0) {
-      const selectedFiles = Array.from(files)
+  const handleChange = (e) => {
+    const { name, files, value } = e.target
 
-      // Limit selection to a maximum of 4 files
-      if (selectedFiles.length > 4) {
-        alert('You can only select a maximum of 4 images.')
-        return
-      }
-
-      const imageUrls = selectedFiles.map((file) => URL.createObjectURL(file))
-
-      // Update the formData with the file objects and image URLs
-      onFormDataChange({
-        ...formData,
-        aboutimages: selectedFiles, // Store the selected files
-        aboutimageUrls: imageUrls, // Store the image preview URLs
-      })
-    } else {
-      // Update the formData for text fields (like description, room, staff, client)
-      onFormDataChange({
-        ...formData,
-        [name]: value, // Update the field with the corresponding value
-      })
-    }
+    handleAboutFormDataChange({
+      ...aboutFormData,
+      [name]: value,
+      aboutimages: aboutimages,
+    })
   }
+
+  useEffect(() => {
+    handleAboutFormDataChange({
+      ...aboutFormData,
+      aboutimages: aboutimages,
+    })
+  }, [aboutimages])
 
   return (
     <div>
@@ -52,7 +47,7 @@ export default function AboutProfileForm({ formData, onFormDataChange }: any) {
                   <label>Hotel Description</label>
                   <Textarea
                     name="description"
-                    value={formData.description}
+                    value={aboutFormData.description}
                     placeholder="Hotel description"
                     onChange={handleChange}
                     className="h-20"
@@ -63,7 +58,7 @@ export default function AboutProfileForm({ formData, onFormDataChange }: any) {
                   <Input
                     type="text"
                     name="room"
-                    value={formData.room}
+                    value={aboutFormData.room}
                     placeholder="Hotel Rooms"
                     onChange={handleChange}
                   />
@@ -73,7 +68,7 @@ export default function AboutProfileForm({ formData, onFormDataChange }: any) {
                   <Input
                     type="text"
                     name="staff"
-                    value={formData.staff}
+                    value={aboutFormData.staff}
                     placeholder="Hotel Staff"
                     onChange={handleChange}
                   />
@@ -83,14 +78,20 @@ export default function AboutProfileForm({ formData, onFormDataChange }: any) {
                   <Input
                     type="text"
                     name="client"
-                    value={formData.client}
+                    value={aboutFormData.client}
                     placeholder="Hotel Clients"
                     onChange={handleChange}
                   />
                 </div>
                 <div>
                   <label>Hotel Images</label>
-                  <Input
+
+                  <PayBillForm
+                    invoiceid={8}
+                    setParentFileRecords={setFileRecords}
+                  />
+
+                  {/* <Input
                     type="file"
                     name="aboutimages"
                     multiple
@@ -98,10 +99,10 @@ export default function AboutProfileForm({ formData, onFormDataChange }: any) {
                   />
                 </div>
                 <div className="grid">
-                  {formData.aboutimageUrls &&
-                    formData.aboutimageUrls.length > 0 && (
+                  {aboutFormData.aboutimageUrls &&
+                    aboutFormData.aboutimageUrls.length > 0 && (
                       <div className="flex gap-2">
-                        {formData.aboutimageUrls.map(
+                        {aboutFormData.aboutimageUrls.map(
                           (imageUrl: any, index: any) => (
                             <img
                               key={index}
@@ -109,10 +110,10 @@ export default function AboutProfileForm({ formData, onFormDataChange }: any) {
                               alt={`Hotel Preview ${index + 1}`}
                               width="50"
                             />
-                          ),
+                          )
                         )}
                       </div>
-                    )}
+                    )}*/}
                 </div>
               </form>
             </Form>

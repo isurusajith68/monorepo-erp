@@ -10,9 +10,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 function Home({ formData }: any) {
+  const [imgUrl, setimgUrl] = useState<string>('')
+
+  useEffect(() => {
+    console.log('aaaaaa', formData)
+    if (formData?.fileRecords?.length > 0) {
+      setimgUrl(URL.createObjectURL(formData.fileRecords[0].file))
+    }
+  }, [formData])
+
   return (
     <div>
       <div className="bg-blue-900 text-white z-0 relative">
@@ -52,7 +61,7 @@ function Home({ formData }: any) {
         <div
           className="relative bg-cover bg-center h-[600px] z-0"
           style={{
-            backgroundImage: `url(${formData.imageUrl})`,
+            backgroundImage: `url(${imgUrl})`,
           }}
         >
           <div className="absolute z-10 inset-0 bg-black opacity-50"></div>

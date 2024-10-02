@@ -53,7 +53,7 @@ export default function EmployeeListPage() {
   }, [])
 
   const handleEdit = (id: number) => {
-    navigate(`/booking/${id}`)
+    navigate(`/employee/${id}`)
   }
 
   return (
@@ -140,7 +140,7 @@ export default function EmployeeListPage() {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         className="bg-red-600"
-                        //   onClick={() => deleteAction(invoice.id)}
+                        //onClick={() => deleteAction(invoice.id)}
                       >
                         Delete
                       </AlertDialogAction>
