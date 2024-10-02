@@ -3,20 +3,23 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Form } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import React from "react";
+} from '@/components/ui/accordion'
+import { Form } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import React from 'react'
 
-export default function ContactForm({ contactdata, handleContactFormDataChange }: any) {
+export default function ContactForm({
+  contactdata,
+  handleContactFormDataChange,
+}: any) {
   // Handle change in the form and pass the updated data to the parent
   const handleChange = (e: any) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     handleContactFormDataChange({
       ...contactdata,
       [name]: value,
-    });
-  };
+    })
+  }
 
   return (
     <div>
@@ -76,5 +79,5 @@ export default function ContactForm({ contactdata, handleContactFormDataChange }
         </AccordionItem>
       </Accordion>
     </div>
-  );
+  )
 }

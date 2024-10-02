@@ -1,9 +1,9 @@
-import React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import React from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -12,74 +12,71 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { NavLink, useNavigate } from "react-router-dom";
-import Axios from "axios";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { NavLink, useNavigate } from 'react-router-dom'
+import Axios from 'axios'
 
 const formSchema = z.object({
   roomnumber: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   //   id: z.string().min(2, {
   //     message: "Username must be at least 2 characters.",
   //   }),
   checkin: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   checkout: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   telephone: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   email: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   adultcount: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   childrencount: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   bookingdate: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
-});
+})
 
-export default function  Booking() {
-  const navigate = useNavigate();
+export default function Booking() {
+  const navigate = useNavigate()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      roomnumber: "",
+      roomnumber: '',
     },
-  });
+  })
 
   function onSubmit(data: any) {
     // console.log("first")
     const sendData = async () => {
-      const response = await Axios.post(
-        "http://localhost:4000/booking",
-        data
-      );
-      console.log("response.data", response.data);
-    };
+      const response = await Axios.post('http://localhost:4000/booking', data)
+      console.log('response.data', response.data)
+    }
 
-    sendData();
+    sendData()
 
     // axios.post("https://reqres.in/api/login", userData).then((response) => {
     //   console.log(response.status, response.data.token);
     // });
 
-    navigate("/");
+    navigate('/')
     // console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", values);
   }
   return (
     <div>
       <div className="flex items-center  justify-between ml-10 mt-5">
         <h1 className="text-2xl font-bold ">Add Booking</h1>
-        <NavLink to={"list"}>View List</NavLink>
+        <NavLink to={'list'}>View List</NavLink>
         {/* <Button>View List</Button> */}
       </div>
       <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
@@ -256,5 +253,5 @@ export default function  Booking() {
         <div></div>
       </div>
     </div>
-  );
+  )
 }

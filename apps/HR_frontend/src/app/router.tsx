@@ -2,10 +2,10 @@ import {
   Route,
   createBrowserRouter,
   createRoutesFromElements,
-} from "react-router-dom";
-import Dashboard from "./Dashboard/Dashboard";
+} from 'react-router-dom'
+import Dashboard from './Dashboard/Dashboard'
 // import Customer from "./Customer/Customer";
-import RootLayout from "./RootLayout";
+import RootLayout from './RootLayout'
 // import Invoice from "./Invoice/Invoice";
 // import AddInvoice from "./Invoice/add-invoice";
 // import ListInvoice from "./Invoice/list-invoice";
@@ -15,19 +15,19 @@ import RootLayout from "./RootLayout";
 // import ViewRegistration from "@/components/View-Registration/ViewRegistration";
 // import GuestRegistration from "@/components/Guest-Registration/GuestRegistration";
 
-import AddBookingPage from "./bookings/add/page";
-import BookingViewPge from "./bookings/[id]/page";
-import BookingListPage from "./bookings/booking-list-page";
+import AddBookingPage from './bookings/add/page'
+import BookingViewPge from './bookings/[id]/page'
+import BookingListPage from './bookings/booking-list-page'
 // import RegistrationListPage from "./registrations/registration-list-page";
 // import AddRegistrationPage from "./registrations/add/page";
 // import RegistrationViewPage from "./registrations/[id]/page";
 // import StoreListPage from "./store/store-list";
 // import ViewStorePage from "./store/[id]/page";
 // import AddStorePage from "./store/add/page";
-import EmployeeListPage from "./employee/employee-list-page";
-import EmployeeForm from "./employee/_component/form/employee-form";
-import EditEmployee from "./employee/[id]/page";
-import AddEmployee from "./employee/add/page";
+import EmployeeListPage from './employee/employee-list-page'
+import EmployeeForm from './employee/_component/form/employee-form'
+import EditEmployee from './employee/[id]/page'
+import AddEmployee from './employee/add/page'
 
 // const getRoutes = (children: any[]) => {
 //    const res =  children &&
@@ -63,9 +63,9 @@ export const router = createBrowserRouter(
       {/* <Route path="view-booking" element={<ViewBooking />} />
       <Route path="guest-registration" element={<GuestRegistration />} />
       <Route path="view-registration" element={<ViewRegistration />} /> */}
-    </Route>
-  )
-);
+    </Route>,
+  ),
+)
 
 {
   /* <div>
