@@ -1,17 +1,7 @@
-import React from 'react'
+"use client";
 
-interface Service {
-  id: number
-  imageUrl: string
-  serviceTitle: string
-  serviceDescription: string
-}
+function ServicePage({ services }: any) {
 
-interface ServicePageProps {
-  services: Service[]
-}
-
-function ServicePage({ services }: ServicePageProps) {
   return (
     <div>
       <section className="py-16 bg-gray-100">
@@ -27,25 +17,26 @@ function ServicePage({ services }: ServicePageProps) {
             Our Services
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mr-10">
-            {services.map((service) => (
+            {services.map((service: any, index: any) => (
               <div
-                key={service.id}
+                key={index}
                 className="bg-white rounded-lg shadow-lg p-6 hover:bg-yellow-500 hover:text-white transition-all duration-300"
               >
-                <div className="">
-                  <img
-                    src={service.imageUrl}
-                    alt="icon"
-                    width={30}
-                    height={30}
-                    className="ml-[45%]"
-                  />
+                <div className="flex flex-wrap justify-center gap-2">
+                    <img
+                      key={index}
+                      src={service.imageUrl}
+                      alt={`Service Image ${index + 1}`}
+                      width={60}
+                      height={60}
+                      className="rounded-lg"
+                    />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 mt-4">
-                  {service.serviceTitle}
+                  {service.servicetitle}
                 </h3>
                 <p className="text-gray-600 mt-4 w-full justify-center">
-                  {service.serviceDescription}
+                  {service.servicedescription}
                 </p>
               </div>
             ))}
@@ -53,7 +44,7 @@ function ServicePage({ services }: ServicePageProps) {
         </div>
       </section>
     </div>
-  )
+  );
 }
 
-export default ServicePage
+export default ServicePage;

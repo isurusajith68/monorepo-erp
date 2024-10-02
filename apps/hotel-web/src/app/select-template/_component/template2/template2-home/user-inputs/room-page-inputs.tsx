@@ -3,10 +3,10 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -15,9 +15,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Textarea } from '@/components/ui/textarea'
-import React, { useState } from 'react'
+} from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import React, { useState } from "react";
 
 export default function RoomForm({
   roomsFormData,
@@ -25,51 +25,51 @@ export default function RoomForm({
   onFormDataChange,
   onFormDataChange1,
 }: any) {
-  const [roomsRows, setRoomsRows] = useState([roomsFormData])
+  const [roomsRows, setRoomsRows] = useState([roomsFormData]);
 
   // Handle change in the form and pass the updated data to the parent
   const handleChange = (index: any, e: any) => {
-    const { name, files, value } = e.target
-    const updatedRooms = [...roomsRows]
+    const { name, files, value } = e.target;
+    const updatedRooms = [...roomsRows];
     updatedRooms[index] = {
       ...updatedRooms[index],
       [name]: value,
-    }
+    };
 
-    if (name === 'image' && files.length > 0) {
-      const file = files[0]
-      const imageUrl = URL.createObjectURL(file) // Create a preview URL
+    if (name === "image" && files.length > 0) {
+      const file = files[0];
+      const imageUrl = URL.createObjectURL(file); // Create a preview URL
 
       updatedRooms[index] = {
         ...updatedRooms[index],
         image: file,
         imageUrl: imageUrl,
-      }
+      };
     }
 
-    setRoomsRows(updatedRooms)
-    onFormDataChange(updatedRooms)
-  }
+    setRoomsRows(updatedRooms);
+    onFormDataChange(updatedRooms);
+  };
 
   const handleDescriptionChange = (e: any) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     onFormDataChange1({
       ...roomdescription,
       [name]: value,
-    })
-  }
+    });
+  };
 
   // Add a new room row
   const AddRoomsRow = () => {
-    setRoomsRows([...roomsRows, roomsFormData])
-  }
+    setRoomsRows([...roomsRows, roomsFormData]);
+  };
 
   // Remove a room row by index
   const RemoveRoomsRow = (index: any) => {
-    const updatedRooms = roomsRows.filter((_, i) => i !== index)
-    setRoomsRows(updatedRooms)
-    onFormDataChange(updatedRooms) // Pass updated services to parent
-  }
+    const updatedRooms = roomsRows.filter((_, i) => i !== index);
+    setRoomsRows(updatedRooms);
+    onFormDataChange(updatedRooms); // Pass updated services to parent
+  };
 
   return (
     <div className="w-[100%] overflow-hidden">
@@ -164,5 +164,5 @@ export default function RoomForm({
         </AccordionItem>
       </Accordion>
     </div>
-  )
+  );
 }
