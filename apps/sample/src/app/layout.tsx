@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import './globals.css'
 import NavBar from '@erp/common/src/components/Nav'
 import { usePathname } from 'next/navigation'
@@ -32,7 +31,6 @@ export default function RootLayout({
         {' '}
         <NavBar items={items} logo={logo} activeItem={currentPath} />
         {children}
-        <Link href="/about">About</Link>
       </body>
     </html>
   )
