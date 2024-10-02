@@ -5,12 +5,11 @@ import { router } from './routes'
 import { Toaster } from '@/components/ui/toaster'
 
 function App() {
-
   return (
     <>
-     {/* <h1 className='text-6xl'>hello</h1>
+      {/* <h1 className='text-6xl'>hello</h1>
      <Button>hello</Button> */}
-     <Toaster />
+      <Toaster />
       {/* initialize browser router */}
       <RouterProvider router={router}></RouterProvider>
     </>
