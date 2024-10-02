@@ -11,7 +11,8 @@
     "lint": "pnpm exec nx run-many --target=lint",
     "tsc": "pnpm exec nx run-many --target=tsc",
     "validate": "pnpm format:write",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "preinstall": "node -e \"if (!require('child_process').execSync('pnpm -v', { stdio: 'ignore' })) throw new Error('Please install pnpm to proceed.');\""
   },
   "keywords": [],
   "author": "",
