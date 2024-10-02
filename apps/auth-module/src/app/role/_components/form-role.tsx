@@ -1,19 +1,19 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -21,25 +21,26 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { useFieldArray, useForm } from "react-hook-form";
-import { FaPlus } from "react-icons/fa";
-import { MdOutlineRemoveCircleOutline } from "react-icons/md";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Textarea } from "@/components/ui/textarea";
-import Axios from "axios";
+} from '@/components/ui/table'
+import { useFieldArray, useForm } from 'react-hook-form'
+import { FaPlus } from 'react-icons/fa'
+import { MdOutlineRemoveCircleOutline } from 'react-icons/md'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Textarea } from '@/components/ui/textarea'
+import Axios from 'axios'
+import { useQuery } from '@tanstack/react-query'
 
 export const detailRowSchema = z.object({
   name: z.string().min(2, {
-    message: "name must be at least 2 characters.",
+    message: 'name must be at least 2 characters.',
   }),
   description: z.any().optional(),
-});
+})
 
 const FormSchema = z.object({
   purchasedetails: z.array(detailRowSchema),
-});
+})
 
 export default function FormRole() {
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -47,30 +48,73 @@ export default function FormRole() {
     defaultValues: {
       purchasedetails: [
         {
-          name: "admin",
+          name: 'admin',
         },
       ],
     },
-  });
+  })
 
   const { fields, append, remove } = useFieldArray({
-    name: "purchasedetails",
+    name: 'purchasedetails',
     control: form.control,
-  });
+  })
+
+  // const { data:dataa, isLoading, isError, error } = useQuery({
+  //   queryKey: ["booking"],
+  //   queryFn: async () => {
+  //     let data1;
+  //     data1 = await Axios.get('http://localhost:10000/getData');
+  //     console.log("response",data1)
+  //     return data1.data;
+  //   }})
+
+  // const fetchData = async () => {
+  //   const response = await Axios.get('http://localhost:10000/getData');
+  //   return response.data;
+  // };
+
+  // const { data, isLoading, isError, error } = useQuery({
+  //   queryKey: ['getData'],
+  //   queryFn: fetchData,
+  // });
+
+  // if (isLoading) {
+  //   return <div>Loading...</div>;
+  // }
+
+  // if (isError) {
+  //   return <div>Error: {error.message}</div>;
+  // }
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log("data", data);
+    console.log('data', data)
 
-    const addRole=async()=>{
+    // const addRole=async()=>{
 
-        const response=await Axios.post("http://localhost:10000/addrole",data)
-        console.log(response)
+    //     const response=await Axios.post("http://localhost:10000/addrole",data)
+    //     console.log(response)
 
-    }
-    addRole();
+    // }
+    // addRole();
+
+    const {
+      data: dataa,
+      isLoading,
+      isError,
+      error,
+    } = useQuery({
+      queryKey: ['booking'],
+      queryFn: async () => {
+        let data1
+        data1 = await Axios.get('http://localhost:10000/getData')
+        console.log('response', data1)
+        return data1.data
+      },
+    })
   }
   return (
     <div>
+      {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="border-2 rounded-lg border-green-300 p-4 bg-green-100 ">
@@ -130,7 +174,7 @@ export default function FormRole() {
                     <TableCell className="p-1 text-center font-medium">
                       <Button
                         type="button"
-                        variant={"outline"}
+                        variant={'outline'}
                         className="text-2xl mx-1"
                         onClick={() => remove(index)}
                       >
@@ -138,7 +182,7 @@ export default function FormRole() {
                       </Button>
 
                       <Button
-                        variant={"outline"}
+                        variant={'outline'}
                         className="text-2xl mx-1"
                         type="button"
                         onClick={() => append({})}
@@ -159,5 +203,24 @@ export default function FormRole() {
         </form>
       </Form>
     </div>
-  );
+  )
 }
+
+// const { data, isLoading, isError, error } = useQuery({
+//   queryKey: ["booking", id],
+//   queryFn: async () => {
+//     let data1;
+//     data1 = await Axios.get('http://localhost:10000/getData');
+//     return data1.data.data;
+
+// const getData = async () => {
+//   const response = await Axios.get('http://localhost:10000/getData', {
+//     withCredentials: true, // This ensures cookies are sent with the request
+//   })
+//   console.log('first')
+//   setData(response.data)
+// }
+
+// useEffect(() => {
+//   getData()
+// }, [])
