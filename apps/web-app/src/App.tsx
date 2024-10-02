@@ -1,5 +1,4 @@
 function App() {
-  use
   return (
     <div>
       <h1 className="text-9xl text-red-600 font-bold underline">
