@@ -11,7 +11,7 @@ export function useGetEmployee(id: string | undefined) {
     queryKey: ['employee', id],
     queryFn: async () => {
       let data1
-      data1 = await Axios.get(`${bapi}${id ?? 0}`)
+      data1 = await Axios.get(`http://localhost:4000/employee/${id ?? 0}`)
 
       return data1.data.data
     },
@@ -22,7 +22,7 @@ export function useGetAllEmployee() {
     queryKey: ['allEmployees'],
     queryFn: async () => {
       let data1
-      data1 = await Axios.get(`http://localhost:4000/allEmployees`)
+      data1 = await Axios.get(`http://localhost:4000/getAllemployees`)
 
       return data1.data.data
     },

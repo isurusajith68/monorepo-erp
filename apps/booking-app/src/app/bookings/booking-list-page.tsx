@@ -42,19 +42,7 @@ export default function BookingListPage() {
   //     const response = await Axios.get(`http://localhost:4000/allbookings`)
   //     if (response.data.success) {
   //       // Reset the form with booking data
-  //       console.log('id', response.data.data)
-  //       const sortedData = response.data.data.sort(
-  //         (a: any, b: any) => b.id - a.id,
-  //       )
-  //       setBooking(sortedData)
-  //       // form.reset(response.data.data);
-  //     } else {
-  //       console.error('booking not found:', response.data.msg)
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching booking:', error)
-  //   }
-  // }
+
   useEffect(() => {
     // Fetch booking data from the backend
     try {

@@ -22,48 +22,81 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useNavigate } from 'react-router-dom'
 import Axios from 'axios'
+import { useToast } from '@/hooks/use-toast'
+import { useQueryClient } from '@tanstack/react-query'
+import { useDeleteEmployeeMutation } from './services/mutation'
+import { useGetAllEmployee } from './services/queries'
 
 export default function EmployeeListPage() {
-  const [Employee, setEmployee] = useState([])
+  const { toast } = useToast()
+  const [employee, setEmployee] = useState([])
   const navigate = useNavigate()
+  const deleteEMutation = useDeleteEmployeeMutation()
+  const queryClient = useQueryClient()
 
-  // Fetch booking data from the backend
-  const fetchEmployee = async () => {
-    try {
-      // Make API request to get booking data by ID
-      const response = await Axios.get(`http://localhost:4000/getAllemployees`)
-      if (response.data.success) {
-        // Reset the form with booking data
-        console.log('id', response.data.data)
-        const sortedData = response.data.data.sort(
-          (a: any, b: any) => b.id - a.id,
-        )
-        setEmployee(sortedData)
-        // form.reset(response.data.data);
-      } else {
-        console.error('employee not found:', response.data.msg)
-      }
-    } catch (error) {
-      console.error('Error fetching booking:', error)
-    }
-  }
+  const { data, isSuccess } = useGetAllEmployee()
 
   useEffect(() => {
-    fetchEmployee()
-  }, [])
+    // Fetch booking data from the backend
+    try {
+      if (isSuccess) {
+        console.log('id', data)
+        const sortedData = data.sort((a: any, b: any) => b.id - a.id)
+        setEmployee(sortedData)
+      } else {
+        console.error('employee not found:', data.msg)
+      }
+    } catch (error) {
+      console.error('Error fetching employee:', error)
+    }
+  }, [data, isSuccess])
 
   const handleEdit = (id: number) => {
     navigate(`/employee/${id}`)
   }
-  console.log('object')
+
+  const deleteAction = async (id: number) => {
+    if (id) {
+      try {
+        // Trigger delete mutation
+        await deleteEMutation.mutateAsync({ id })
+
+        // Invalidate the query to refetch the data
+        queryClient.invalidateQueries() // Replace with the actual query key used in `useGetAllBooking`
+
+        // Show success toast notification
+        toast({
+          className: 'text-red-600',
+          title: 'Employee',
+          description: <span>Deleted successfully.</span>,
+          duration: 3000,
+        })
+      } catch (error) {
+        // Handle any error that occurs during the delete process
+        console.error('Error deleting employee:', error)
+        toast({
+          className: 'text-red-600',
+          title: 'Error',
+          description: <span>Failed to delete the employee.</span>,
+          duration: 3000,
+        })
+      }
+    }
+  }
+
   return (
     <div>
-      <div className="flex items-center justify-between mt-5 ml-10">
+      <div className="flex items-center  justify-between ml-10 mt-5">
         <h1 className="text-2xl font-bold ">View Employee</h1>
         {/* <NavLink to={'list'}>View List</NavLink> */}
-        <Button onClick={() => navigate('/employee/add')}>Add New</Button>
+        <Button
+          onClick={() => navigate('/employee/add')}
+          className="bg-green-600"
+        >
+          + Add
+        </Button>
       </div>
-      <hr className="mt-5 ml-10 border-2 border-green-300"></hr>
+      <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
 
       <Table className="mt-10 overflow-hidden rounded-xl">
         <TableHeader className="text-center bg-green-300">
@@ -82,7 +115,7 @@ export default function EmployeeListPage() {
           </TableRow>
         </TableHeader>
         <TableBody className="bg-green-50">
-          {Employee.map((employees: any) => (
+          {employee.map((employees: any) => (
             <TableRow key={employees.id}>
               <TableCell className="text-center">{employees.id}</TableCell>
               <TableCell className="text-center">{employees.emname}</TableCell>
@@ -140,7 +173,7 @@ export default function EmployeeListPage() {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         className="bg-red-600"
-                        //onClick={() => deleteAction(invoice.id)}
+                        onClick={() => deleteAction(employee.id)}
                       >
                         Delete
                       </AlertDialogAction>

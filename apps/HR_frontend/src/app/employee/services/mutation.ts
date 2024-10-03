@@ -10,16 +10,20 @@ import axios from 'axios'
 
 export const useUpdateEmployeeMutation = () => {
   const bapi = import.meta.env.VITE_API_EMPLOYEEAPI
-  // console.log("aaaqqq",bapi)
   const queryClient = useQueryClient()
+  console.log('sewwwwwwwwwwwwwwwwwwwwwwwwww')
 
   return useMutation({
     mutationFn: async (params: any) => {
       // console.log("paramsss",params.dirtyValues )
       // console.log("paramsss",bapi + params.id)
+      console.log('sewwwwwwwwwwwwwwwwwwwwwwwwww', params)
 
       try {
-        const res = await axios.put(`${bapi}${params.id}`, params.dirtyValues)
+        const res = await axios.put(
+          `http://localhost:4000/employee/${params.id}`,
+          params.dirtyValues,
+        )
         // console.log("ressssssssssssssssssssssss",res)
         return res
       } catch (error) {
@@ -31,7 +35,7 @@ export const useUpdateEmployeeMutation = () => {
 }
 
 export const useInsertEmployeeMutation = () => {
-  const bapi = import.meta.env.VITE_API_EMPLOYEEAPI
+  // const bapi = import.meta.env.VITE_API_EMPLOYEEAPI
   // console.log("aaaqqq",bapi)
   const queryClient = useQueryClient()
 
@@ -41,7 +45,7 @@ export const useInsertEmployeeMutation = () => {
       // console.log("geeth",bapi + params.data.id)
 
       try {
-        const res = await axios.post(`${bapi}`, data.data)
+        const res = await axios.post(`http://localhost:4000/emp`, data.data)
         // console.log("ressssssssssssssssssssssss",res.data)
         return res.data
       } catch (error) {

@@ -27,6 +27,17 @@ import { Input } from '@/components/ui/input'
 import { NavLink, useNavigate, useParams } from 'react-router-dom'
 import Axios from 'axios'
 import { useToast } from '@/hooks/use-toast'
+import {
+  useDeleteEmployeeMutation,
+  useInsertEmployeeMutation,
+  useUpdateEmployeeMutation,
+} from '../../services/mutation'
+
+import {
+  useGetEmployee,
+  useGetNextEmployee,
+  useGetPrevEmployee,
+} from '../../services/queries'
 
 const formSchema = z.object({
   id: z.number().optional(),
@@ -82,36 +93,22 @@ const EmployeeForm = () => {
     watch,
     setValue,
     getValues,
-    formState: { isDirty, dirtyFields, isLoading, isSubmitSuccessful },
+    formState: { isDirty, dirtyFields, isSubmitSuccessful },
   } = form
 
-  useEffect(() => {
-    if (id) {
-      const fetchEmployee = async () => {
-        try {
-          // Make API request to get customer data by ID
-          const response = await Axios.get(
-            `http://localhost:4000/employee/${id}`,
-          )
-          if (response.data.success) {
-            // Reset the form with customer data
-            console.log('id', response.data.data)
-            form.reset(response.data.data)
-          } else {
-            console.error('Employee not found:', response.data.msg)
-          }
-        } catch (error) {
-          console.error('Error fetching customer:', error)
-        }
-      }
+  const updateEMutation = useUpdateEmployeeMutation()
+  const insertEMutation = useInsertEmployeeMutation()
+  const deleteEMutation = useDeleteEmployeeMutation()
 
-      fetchEmployee()
-    }
-  }, [id, form])
+  const { data, isLoading, isError, error } = useGetEmployee(id)
+
+  useEffect(() => {
+    form.reset(data)
+  }, [data])
 
   async function onSubmit(data: any) {
     const id = getValues('id') // Check if data already exists
-    console.log('Form data:', data)
+    // console.log("Form data:", data);
 
     if (id) {
       // If `id` exists, fetch updated data and display it in frontend
@@ -123,27 +120,18 @@ const EmployeeForm = () => {
           dirtyValues[key] = data[key]
         }
 
-        console.log('Dirty Values (Fields to Update):', dirtyValues)
-
-        // Send update request
-        const response = await Axios.put(
-          `http://localhost:4000/employee/${id}`,
-          dirtyValues,
-        )
+        const resMutation = updateEMutation.mutate({ id, dirtyValues })
+        // console.log("Inserting new resMutation:", resMutation);
+        // console.log("Inserting new booking:", updateMutation);
 
         // Check if update was successful
-        if (response.data.success) {
+        if (!updateEMutation.isError) {
           toast({
             className: 'text-green-600',
             title: 'Employee',
             description: <span>Updated successfully.</span>,
             duration: 5000,
           })
-          console.log('Sewwandi mamai')
-          // Update the UI with the new data (you can handle this as per your frontend logic)
-          const updatedData = response.data.updatedEmployee
-          // Example: Set updated data into the form
-          reset(updatedData)
         }
       } catch (error) {
         console.error('Error updating employee:', error)
@@ -151,13 +139,11 @@ const EmployeeForm = () => {
     } else {
       // If no `id`, insert a new booking
       try {
-        console.log('Inserting new employee:', data)
+        const responseData = await insertEMutation.mutateAsync({ data })
 
-        const response = await Axios.post('http://localhost:4000/emp', data)
-        // console.log("object", data);
-
-        if (response.data.success) {
-          const newId = response.data.lastInsertRowid
+        if (responseData.success) {
+          const newId = responseData.lastInsertRowid
+          // console.log("first",responseData.lastInsertRowid)
 
           // Set the newly inserted id to avoid duplicate insertions
           setValue('id', newId, { shouldDirty: false })
@@ -169,12 +155,11 @@ const EmployeeForm = () => {
             duration: 2000,
           })
 
-          // Optionally navigate to the customer detail page after successful insert
           navigate(`/employee/${newId}`)
 
           // Fetch the newly inserted booking and display it in the UI
-          const newEmployee = response.data.newEmployee
-          reset(newEmployee) // Reset the form with new booking data
+          const newBooking = data.newBooking
+          form.reset(newBooking) // Reset the form with new booking data
         }
       } catch (error) {
         console.error('Error inserting employee:', error)
@@ -185,12 +170,9 @@ const EmployeeForm = () => {
   const deleteAction = async (id) => {
     if (id) {
       try {
-        console.log('Deleting employee with id:', id)
+        // console.log("Deleting booking with id:", id);
+        const resMutation = deleteEMutation.mutate({ id })
 
-        // Make the DELETE request to the backend API
-        await Axios.delete(`http://localhost:4000/deleteemploye/${id}`)
-
-        // Show success toast notification
         toast({
           className: 'text-red-600',
           title: 'Employee',
@@ -198,8 +180,8 @@ const EmployeeForm = () => {
           duration: 3000,
         })
 
-        // Navigate to the customer list after deletion
-        navigate('/booking/add')
+        // Navigate to the booking list after deletion
+        navigate('/employee/add')
       } catch (error) {
         // Handle any error that occurs during the delete process
         console.error('Error deleting employee:', error)
@@ -213,26 +195,244 @@ const EmployeeForm = () => {
     }
   }
 
+  const {
+    data: prevItem,
+    isLoading: prevLoading,
+    error: prevError,
+  } = useGetPrevEmployee(id)
+  console.log('prevvvvvvvvvvvvvvvvvvvvvvvv', prevItem)
+  const getPrevItem = () => {
+    if (prevItem && Object.keys(prevItem).length !== 0) {
+      navigate(`/employee/${prevItem.id}`)
+    } else {
+      toast({
+        className: 'text-blue-600',
+        title: 'Document Traverse',
+        description: <span>Reached Start of Employee ID</span>,
+        duration: 2000,
+      })
+    }
+  }
+
+  const { data: nextItem } = useGetNextEmployee(id)
+  const getNextItem = () => {
+    if (nextItem && Object.keys(nextItem).length !== 0) {
+      navigate(`/employee/${nextItem.id}`)
+    } else {
+      toast({
+        className: 'text-blue-600',
+        title: 'Document Traverse',
+        description: <span>Reached End of Employee ID</span>,
+        duration: 2000,
+      })
+    }
+  }
+
   return (
     <div>
-      <div className="flex items-center justify-between mt-5 ml-10">
-        <h1 className="text-2xl font-bold ">Add Employee {id}</h1>
+      <div className="flex items-center  justify-between ml-10 mt-5">
+        {!id && <h1 className="text-2xl font-bold ">Add Employee </h1>}
+        {id && <h1 className="text-2xl font-bold ">Update Employee </h1>}
         {/* <NavLink to={"list"}>View List</NavLink> */}
-        {id && <Button onClick={() => navigate('/booking/add')}>Add</Button>}
+        <div className="gap-5 flex">
+          <Button
+            onClick={() => navigate('/bookings')}
+            className="bg-green-600"
+          >
+            View List
+          </Button>
+          {id && (
+            <div className="gap-5 flex">
+              <Button
+                className="  bg-green-600"
+                type="button"
+                onClick={getPrevItem}
+              >
+                previous
+              </Button>
+              <Button
+                className="  bg-green-600"
+                type="button"
+                onClick={getNextItem}
+              >
+                next
+              </Button>
+            </div>
+          )}
+        </div>
+        {!id && (
+          <Button
+            onClick={() => navigate('/booking/add')}
+            className="bg-green-600"
+          >
+            + Add
+          </Button>
+        )}
       </div>
-      <hr className="mt-5 ml-10 border-2 border-green-300"></hr>
+      <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
 
-      <div className="w-full p-10 mt-5 bg-green-100 border border-green-300 rounded h-2/3 ">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 ">
-            <div className="flex flex-col space-y-8 ">
-              <div className="grid w-full grid-cols-4 gap-4 ">
+      {isLoading || updateEMutation.isPending || prevLoading ? (
+        <div> loading...</div>
+      ) : (
+        <div className="mt-5 w-full h-2/3 bg-green-100 rounded border border-green-300 p-10 ">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 ">
+              <div className="flex flex-col space-y-8 ">
+                <div className="grid w-full grid-cols-4 gap-4 ">
+                  <FormField
+                    control={form.control}
+                    name="emname"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            className="bg-white border-2 border-green-600 rounded"
+                            placeholder=""
+                            {...field}
+                          />
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="ememail"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            className="bg-white border-2 border-green-600 rounded"
+                            placeholder=""
+                            {...field}
+                          />
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="emmobile"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mobile</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            className="bg-white border-2 border-green-600 rounded"
+                            placeholder=""
+                            {...field}
+                          />
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="emdesignation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Designation</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            className="bg-white border-2 border-green-600 rounded"
+                            placeholder=""
+                            {...field}
+                          />
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="emdepartment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Department</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            className="bg-white border-2 border-green-600 rounded"
+                            placeholder=""
+                            {...field}
+                          />
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="emhiredate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Hire Date</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            className="bg-white border-2 border-green-600 rounded"
+                            placeholder=""
+                            {...field}
+                            value={
+                              field.value
+                                ? new Date(field.value)
+                                    .toISOString()
+                                    .split('T')[0]
+                                : ''
+                            }
+                          />
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="emaddress"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            className="bg-white border-2 border-green-600 rounded"
+                            placeholder=""
+                            {...field}
+                          />
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
-                  name="emname"
+                  name="emsalary"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel>Salary</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
@@ -249,110 +449,10 @@ const EmployeeForm = () => {
 
                 <FormField
                   control={form.control}
-                  name="ememail"
+                  name="emstatus"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          className="bg-white border-2 border-green-600 rounded"
-                          placeholder=""
-                          {...field}
-                        />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="emmobile"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mobile</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          className="bg-white border-2 border-green-600 rounded"
-                          placeholder=""
-                          {...field}
-                        />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="emdesignation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Designation</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          className="bg-white border-2 border-green-600 rounded"
-                          placeholder=""
-                          {...field}
-                        />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="emdepartment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Department</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          className="bg-white border-2 border-green-600 rounded"
-                          placeholder=""
-                          {...field}
-                        />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="emhiredate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Hire Date</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="date"
-                          className="bg-white border-2 border-green-600 rounded"
-                          placeholder=""
-                          {...field}
-                        />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="emaddress"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address</FormLabel>
+                      <FormLabel>Status</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
@@ -368,90 +468,48 @@ const EmployeeForm = () => {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="emsalary"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Salary</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        className="bg-white border-2 border-green-600 rounded"
-                        placeholder=""
-                        {...field}
-                      />
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="emstatus"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        className="bg-white border-2 border-green-600 rounded"
-                        placeholder=""
-                        {...field}
-                      />
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="flex space-x-3">
-              <Button type="submit">Save</Button>
-              <Button type="button">Close</Button>
-              {id && (
-                <div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button className="ml-5 bg-green-600 bg-destructive">
-                        Delete
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Are you sure you want to delete this employee?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently
-                          delete your data and remove your data from our
-                          servers.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          className="bg-red-600"
-                          onClick={() => {
-                            deleteAction(id)
-                          }}
-                        >
+              <div className="flex space-x-3">
+                <Button type="submit">Save</Button>
+                <Button type="button">Close</Button>
+                {id && (
+                  <div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button className="ml-5 bg-green-600 bg-destructive">
                           Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              )}
-            </div>
-          </form>
-        </Form>
-
-        <div></div>
-      </div>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Are you sure you want to delete this employee?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently
+                            delete your data and remove your data from our
+                            servers.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-red-600"
+                            onClick={() => {
+                              deleteAction(id)
+                            }}
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
+              </div>
+            </form>
+          </Form>
+        </div>
+      )}
     </div>
   )
 }
