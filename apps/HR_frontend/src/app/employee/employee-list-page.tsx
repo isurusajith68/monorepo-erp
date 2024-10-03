@@ -55,7 +55,7 @@ export default function EmployeeListPage() {
   const handleEdit = (id: number) => {
     navigate(`/employee/${id}`)
   }
-
+  console.log('object')
   return (
     <div>
       <div className="flex items-center justify-between mt-5 ml-10">
