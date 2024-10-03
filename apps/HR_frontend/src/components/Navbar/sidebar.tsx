@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom'
 import {
   Home,
   LineChart,
@@ -6,16 +6,16 @@ import {
   Package2,
   ShoppingCart,
   Users,
-} from "lucide-react";
+} from 'lucide-react'
 
-import { FaUserEdit, FaUserPlus } from "react-icons/fa";
-import { FaUserPen } from "react-icons/fa6";
-import { FaHospitalUser } from "react-icons/fa6";
-import { IoHome } from "react-icons/io5";
-import { FaUsersCog } from "react-icons/fa";
+import { FaUserEdit, FaUserPlus } from 'react-icons/fa'
+import { FaUserPen } from 'react-icons/fa6'
+import { FaHospitalUser } from 'react-icons/fa6'
+import { IoHome } from 'react-icons/io5'
+import { FaUsersCog } from 'react-icons/fa'
 
 export const description =
-  "A products dashboard with a sidebar navigation and a main content area. The dashboard has a header with a search input and a user menu. The sidebar has a logo, navigation links, and a card with a call to action. The main content area shows an empty state with a call to action.";
+  'A products dashboard with a sidebar navigation and a main content area. The dashboard has a header with a search input and a user menu. The sidebar has a logo, navigation links, and a card with a call to action. The main content area shows an empty state with a call to action.'
 
 const Sidebar = () => {
   return (
@@ -45,7 +45,7 @@ const Sidebar = () => {
               className="flex items-center gap-3 px-3 py-2 transition-all rounded-lg hover:text-primary"
             >
               <FaUserPlus className="w-5 h-5" />
-             Employees
+              Employees
             </Link>
             <Link
               to="bookings"
@@ -72,7 +72,7 @@ const Sidebar = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Sidebar;
+export default Sidebar

@@ -7,11 +7,11 @@
     <NavLink to="list">List Invoice</NavLink>
      */
 }
-import React from "react";
-import { Outlet } from "react-router-dom";
-import Navbar from "../components/Navbar/navbar";
-import Sidebar from "../components/Navbar/sidebar";
-import { Toaster } from "@/components/ui/toaster"
+import React from 'react'
+import { Outlet } from 'react-router-dom'
+import Navbar from '../components/Navbar/navbar'
+import Sidebar from '../components/Navbar/sidebar'
+import { Toaster } from '@/components/ui/toaster'
 
 export default function RootLayout() {
   return (
@@ -44,5 +44,5 @@ export default function RootLayout() {
         <Toaster />
       </div>
     </div>
-  );
+  )
 }

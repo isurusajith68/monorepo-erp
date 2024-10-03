@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom'
 import {
   CircleUser,
   Home,
@@ -8,10 +8,10 @@ import {
   Package2,
   ShoppingCart,
   Users,
-} from "lucide-react";
+} from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
 import {
   DropdownMenu,
@@ -20,12 +20,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu'
 
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 export const description =
-  "A products dashboard with a sidebar navigation and a main content area. The dashboard has a header with a search input and a user menu. The sidebar has a logo, navigation links, and a card with a call to action. The main content area shows an empty state with a call to action.";
+  'A products dashboard with a sidebar navigation and a main content area. The dashboard has a header with a search input and a user menu. The sidebar has a logo, navigation links, and a card with a call to action. The main content area shows an empty state with a call to action.'
 
 const Navbar = () => {
   return (
@@ -105,7 +105,7 @@ const Navbar = () => {
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

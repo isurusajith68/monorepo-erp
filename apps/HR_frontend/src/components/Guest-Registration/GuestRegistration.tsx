@@ -1,9 +1,9 @@
-import React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import React from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -12,56 +12,56 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { NavLink } from "react-router-dom";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { NavLink } from 'react-router-dom'
 
 const formSchema = z.object({
   id: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   fullname: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   address: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   email: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   telephone: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   city: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   province: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   country: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
   postalcode: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: 'Username must be at least 2 characters.',
   }),
-});
+})
 export default function GuestRegistration() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullname: "",
+      fullname: '',
     },
-  });
+  })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    console.log(values)
   }
 
   return (
     <div>
       <div className="flex items-center  justify-between ml-10 mt-5">
         <h1 className="text-2xl font-bold ">Guest Registration</h1>
-        <NavLink to={"list"}>View List</NavLink>
+        <NavLink to={'list'}>View List</NavLink>
         {/* <Button>View List</Button> */}
       </div>
       <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
@@ -238,5 +238,5 @@ export default function GuestRegistration() {
         <div></div>
       </div>
     </div>
-  );
+  )
 }

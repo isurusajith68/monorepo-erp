@@ -1,10 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import * as React from "react"
-
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import * as React from 'react'
 
 function Dashboard() {
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [date, setDate] = React.useState<Date | undefined>(new Date())
   return (
     <div>
       <div className="flex ml-20">
@@ -21,24 +20,24 @@ function Dashboard() {
       </div>
       <div className="ml-20 mt-10 ">
         <h1 className="text-xl font-bold">Booked Dates</h1>
-        
-          <div className="w-1/3 items-center bg-green-100 justify-center">
+
+        <div className="w-1/3 items-center bg-green-100 justify-center">
           <h1 className="text-center font-medium bg-green-400">Calendar</h1>
-          
+
           <Calendar
             mode="single"
             selected={date}
             onSelect={setDate}
             className="rounded-md border"
           />
-          
-          <Button className='bg-green-400 rounded 'variant="outline">Button</Button>
 
-          </div>
-        
+          <Button className="bg-green-400 rounded " variant="outline">
+            Button
+          </Button>
+        </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default Dashboard;
+export default Dashboard

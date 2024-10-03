@@ -3,10 +3,10 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/accordion'
+import { Button } from '@/components/ui/button'
+import { Form } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -15,51 +15,51 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
-import React, { useState } from "react";
+} from '@/components/ui/table'
+import { Textarea } from '@/components/ui/textarea'
+import React, { useState } from 'react'
 
-export default function ServiceForm({ serviceFormData, onFormDataChange }: any) {
-  const [serviceRows, setServiceRows] = useState([serviceFormData]);
+export default function ServiceForm({
+  serviceFormData,
+  onFormDataChange,
+}: any) {
+  const [serviceRows, setServiceRows] = useState([serviceFormData])
 
   // Handle change in the form and pass the updated data to the parent
-  const handleChange = (index :any, e:any) => {
-    const { name, files, value } = e.target;
-    const updatedServices = [...serviceRows];
+  const handleChange = (index: any, e: any) => {
+    const { name, files, value } = e.target
+    const updatedServices = [...serviceRows]
     updatedServices[index] = {
       ...updatedServices[index],
       [name]: value,
-    };
+    }
 
-    if (name === "image" && files.length > 0) {
-      const file = files[0];
-      const imageUrl = URL.createObjectURL(file); // Create a preview URL
+    if (name === 'image' && files.length > 0) {
+      const file = files[0]
+      const imageUrl = URL.createObjectURL(file) // Create a preview URL
 
       updatedServices[index] = {
         ...updatedServices[index],
         image: file,
         imageUrl: imageUrl,
-      };
+      }
     }
 
-    setServiceRows(updatedServices);
-    onFormDataChange(updatedServices); // Pass updated services to parent
-  };
+    setServiceRows(updatedServices)
+    onFormDataChange(updatedServices) // Pass updated services to parent
+  }
 
   // Add a new service row
   const addServiceRow = () => {
-    setServiceRows([
-      ...serviceRows,
-      { serviceFormData },
-    ]);
-  };
+    setServiceRows([...serviceRows, { serviceFormData }])
+  }
 
   // Remove a service row by index
-  const removeServiceRow = (index:any) => {
-    const updatedServices = serviceRows.filter((_, i) => i !== index);
-    setServiceRows(updatedServices);
-    onFormDataChange(updatedServices); // Pass updated services to parent
-  };
+  const removeServiceRow = (index: any) => {
+    const updatedServices = serviceRows.filter((_, i) => i !== index)
+    setServiceRows(updatedServices)
+    onFormDataChange(updatedServices) // Pass updated services to parent
+  }
 
   return (
     <div>
@@ -140,5 +140,5 @@ export default function ServiceForm({ serviceFormData, onFormDataChange }: any) 
         </AccordionItem>
       </Accordion>
     </div>
-  );
+  )
 }
