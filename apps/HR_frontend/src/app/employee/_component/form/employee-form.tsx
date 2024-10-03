@@ -139,7 +139,7 @@ const EmployeeForm = () => {
             description: <span>Updated successfully.</span>,
             duration: 5000,
           })
-
+          console.log('Sewwandi mamai')
           // Update the UI with the new data (you can handle this as per your frontend logic)
           const updatedData = response.data.updatedEmployee
           // Example: Set updated data into the form
