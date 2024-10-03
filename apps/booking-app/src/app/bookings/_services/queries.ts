@@ -15,6 +15,19 @@ export function useGetBooking(id: string | undefined) {
     },
   })
 }
+export function useGetAllBooking() {
+  // const bapi = import.meta.env.VITE_API_BOOKINGAPI
+  // console.log("first",id)
+  return useQuery({
+    queryKey: ['allbookings'],
+    queryFn: async () => {
+      let data1
+      data1 = await Axios.get(`http://localhost:4000/allbookings`)
+      // data1 = await Axios.get(`http://localhost:4000/bookings/28`);
+      return data1.data.data
+    },
+  })
+}
 export function useGetPrevBooking(id: string | undefined) {
   const bapi = import.meta.env.VITE_API_BOOKINGAPI
   // console.log("qqqqqqqqqqqqqqqqqqqqqqqqq",id)

@@ -23,70 +23,114 @@ import {
 import { useNavigate } from 'react-router-dom'
 import Axios from 'axios'
 import { useToast } from '@/hooks/use-toast'
+import { useGetAllBooking } from './_services/queries'
+import { useDeleteBookingMutation } from './_services/mutation'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function BookingListPage() {
   const { toast } = useToast()
   const [booking, setBooking] = useState([])
   const navigate = useNavigate()
+  const deleteMutation = useDeleteBookingMutation()
+  const queryClient = useQueryClient()
 
-  const fetchBooking = async () => {
+  const { data, isSuccess } = useGetAllBooking()
+
+  // const fetchBooking = async () => {
+  //   try {
+  //     // Make API request to get booking data by ID
+  //     const response = await Axios.get(`http://localhost:4000/allbookings`)
+  //     if (response.data.success) {
+  //       // Reset the form with booking data
+  //       console.log('id', response.data.data)
+  //       const sortedData = response.data.data.sort(
+  //         (a: any, b: any) => b.id - a.id,
+  //       )
+  //       setBooking(sortedData)
+  //       // form.reset(response.data.data);
+  //     } else {
+  //       console.error('booking not found:', response.data.msg)
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching booking:', error)
+  //   }
+  // }
+  useEffect(() => {
+    // Fetch booking data from the backend
     try {
-      // Make API request to get booking data by ID
-      const response = await Axios.get(`http://localhost:4000/allbookings`)
-      if (response.data.success) {
-        // Reset the form with booking data
-        console.log('id', response.data.data)
-        const sortedData = response.data.data.sort(
-          (a: any, b: any) => b.id - a.id,
-        )
+      if (isSuccess) {
+        console.log('id', data)
+        const sortedData = data.sort((a: any, b: any) => b.id - a.id)
         setBooking(sortedData)
-        // form.reset(response.data.data);
       } else {
-        console.error('booking not found:', response.data.msg)
+        console.error('booking not found:', data.msg)
       }
     } catch (error) {
       console.error('Error fetching booking:', error)
     }
-  }
-  useEffect(() => {
-    // Fetch booking data from the backend
-
-    fetchBooking()
-  }, [])
+  }, [data, isSuccess])
 
   const handleEdit = (id: number) => {
     navigate(`/booking/${id}`)
   }
 
-  const deleteAction = async (id) => {
+  const deleteAction = async (id: number) => {
     if (id) {
       try {
-        console.log('Deleting booking with id:', id)
+        // Trigger delete mutation
+        await deleteMutation.mutateAsync({ id })
 
-        // Make the DELETE request to the backend API
-        await Axios.delete(`http://localhost:4000/deletebooking/${id}`)
+        // Invalidate the query to refetch the data
+        queryClient.invalidateQueries('getAllBooking') // Replace with the actual query key used in `useGetAllBooking`
 
         // Show success toast notification
         toast({
           className: 'text-red-600',
           title: 'Booking',
-          description: <span>Deleted successfully..</span>,
+          description: <span>Deleted successfully.</span>,
           duration: 3000,
         })
-
-        fetchBooking()
       } catch (error) {
         // Handle any error that occurs during the delete process
         console.error('Error deleting booking:', error)
         toast({
           className: 'text-red-600',
           title: 'Error',
-          description: <span>Failed to delete the booking..</span>,
+          description: <span>Failed to delete the booking.</span>,
           duration: 3000,
         })
       }
     }
   }
+  // const deleteAction = async (id) => {
+  //   if (id) {
+  //     try {
+  //       // console.log('Deleting booking with id:', id)
+  //       const resMutation = deleteMutation.mutate({ id })
+
+  //       // Make the DELETE request to the backend API
+  //       // await Axios.delete(`http://localhost:4000/deletebooking/${id}`)
+
+  //       // Show success toast notification
+  //       toast({
+  //         className: 'text-red-600',
+  //         title: 'Booking',
+  //         description: <span>Deleted successfully..</span>,
+  //         duration: 3000,
+  //       })
+
+  //     } catch (error) {
+  //       // Handle any error that occurs during the delete process
+  //       console.error('Error deleting booking:', error)
+  //       toast({
+  //         className: 'text-red-600',
+  //         title: 'Error',
+  //         description: <span>Failed to delete the booking..</span>,
+  //         duration: 3000,
+  //       })
+  //     }
+  //   }
+  // }
 
   return (
     <div>
