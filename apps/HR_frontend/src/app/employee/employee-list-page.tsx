@@ -173,7 +173,7 @@ export default function EmployeeListPage() {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         className="bg-red-600"
-                        onClick={() => deleteAction(employee.id)}
+                        onClick={() => deleteAction(employees.id)}
                       >
                         Delete
                       </AlertDialogAction>
