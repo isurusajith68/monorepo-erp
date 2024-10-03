@@ -22,6 +22,8 @@ import RegistrationListPage from './registrations/registration-list-page'
 import AddRegistrationPage from './registrations/add/page'
 import RegistrationViewPage from './registrations/[id]/page'
 import ViewReport from './reports/page'
+import BookedRooms from './reports/bookedrooms/page'
+import RoomAvailability from './reports/roomavailability/page'
 
 // const getRoutes = (children: any[]) => {
 //    const res =  children &&
@@ -48,7 +50,10 @@ export const router = createBrowserRouter(
         <Route path="add" element={<AddRegistrationPage />} />
         <Route path=":id" element={<RegistrationViewPage />} />
       </Route>
-      <Route path="reports" element={<ViewReport />} />
+      <Route path="reports">
+        <Route path="booked-rooms" element={<BookedRooms />} />
+        <Route path="room-availability" element={<RoomAvailability />} />
+      </Route>
 
       {/* <Route path="view-booking" element={<ViewBooking />} />
       <Route path="guest-registration" element={<GuestRegistration />} />

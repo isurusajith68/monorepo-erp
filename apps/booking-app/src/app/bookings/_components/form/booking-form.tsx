@@ -200,7 +200,7 @@ const BookingForm = () => {
       toast({
         className: 'text-blue-600',
         title: 'Document Traverse',
-        description: <span>Reached Start of Customer ID</span>,
+        description: <span>Reached Start of Booking ID</span>,
         duration: 2000,
       })
     }
@@ -214,7 +214,7 @@ const BookingForm = () => {
       toast({
         className: 'text-blue-600',
         title: 'Document Traverse',
-        description: <span>Reached End of Customer ID</span>,
+        description: <span>Reached End of Booking ID</span>,
         duration: 2000,
       })
     }
