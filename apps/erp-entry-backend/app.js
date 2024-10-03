@@ -204,7 +204,7 @@ const createSessionToken = (userId) => {
 }
 
 app.post('/addrole', (req, res) => {
-  console.log('name', req.body.purchasedetails)
+  console.log('name', req.body)
 
   req.body.purchasedetails.map(async (r) => {
     try {
@@ -224,6 +224,11 @@ app.post('/addrole', (req, res) => {
       ])
 
       console.log('insrtedData', insrtedData)
+
+      return res.send({
+        success: true,
+        message: 'Role added successfully',
+      })
     } catch (err) {
       console.log('error is ', err)
       res.send({ success: false, message: err.message })

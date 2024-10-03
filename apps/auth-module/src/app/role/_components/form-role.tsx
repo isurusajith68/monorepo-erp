@@ -8,13 +8,6 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   Table,
   TableBody,
   TableCell,
@@ -29,7 +22,8 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Textarea } from '@/components/ui/textarea'
 import Axios from 'axios'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import useMuate from '../_services/mutation'
 
 export const detailRowSchema = z.object({
   name: z.string().min(2, {
@@ -59,62 +53,17 @@ export default function FormRole() {
     control: form.control,
   })
 
-  // const { data:dataa, isLoading, isError, error } = useQuery({
-  //   queryKey: ["booking"],
-  //   queryFn: async () => {
-  //     let data1;
-  //     data1 = await Axios.get('http://localhost:10000/getData');
-  //     console.log("response",data1)
-  //     return data1.data;
-  //   }})
-
-  // const fetchData = async () => {
-  //   const response = await Axios.get('http://localhost:10000/getData');
-  //   return response.data;
-  // };
-
-  // const { data, isLoading, isError, error } = useQuery({
-  //   queryKey: ['getData'],
-  //   queryFn: fetchData,
-  // });
-
-  // if (isLoading) {
-  //   return <div>Loading...</div>;
-  // }
-
-  // if (isError) {
-  //   return <div>Error: {error.message}</div>;
-  // }
+  const { mutate, data: datamute } = useMuate()
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log('data', data)
 
-    // const addRole=async()=>{
-
-    //     const response=await Axios.post("http://localhost:10000/addrole",data)
-    //     console.log(response)
-
-    // }
-    // addRole();
-
-    const {
-      data: dataa,
-      isLoading,
-      isError,
-      error,
-    } = useQuery({
-      queryKey: ['booking'],
-      queryFn: async () => {
-        let data1
-        data1 = await Axios.get('http://localhost:10000/getData')
-        console.log('response', data1)
-        return data1.data
-      },
-    })
+    mutate(data)
   }
   return (
     <div>
       {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
+      <p>data mute{JSON.stringify(datamute)}</p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="border-2 rounded-lg border-green-300 p-4 bg-green-100 ">
@@ -199,6 +148,16 @@ export default function FormRole() {
             <Button className="bg-green-600 mt-2" type="submit">
               Save
             </Button>
+
+            {/* <Button
+              className="bg-green-600 mt-2"
+              type="button"
+              onClick={() => {
+                mutate({ a: 'kala' })
+              }}
+            >
+              mutate
+            </Button> */}
           </div>
         </form>
       </Form>
@@ -206,21 +165,71 @@ export default function FormRole() {
   )
 }
 
-// const { data, isLoading, isError, error } = useQuery({
-//   queryKey: ["booking", id],
-//   queryFn: async () => {
-//     let data1;
-//     data1 = await Axios.get('http://localhost:10000/getData');
-//     return data1.data.data;
+/////////////////////////////////////
+////1.Axios exaple////////////////
 
-// const getData = async () => {
-//   const response = await Axios.get('http://localhost:10000/getData', {
-//     withCredentials: true, // This ensures cookies are sent with the request
-//   })
-//   console.log('first')
-//   setData(response.data)
+// const addRole=async()=>{
+
+//     const response=await Axios.post("http://localhost:10000/addrole",data)
+//     console.log(response)
+
+// }
+// addRole();
+
+/////////////////////////////////////
+////1.useQuery exmple////////////////
+
+// const { data:dataa, isLoading, isError, error } = useQuery({
+// queryKey: ["booking"],
+// queryFn: async () => {
+//   let data1;
+//   data1 = await Axios.get('http://localhost:10000/getData');
+//   console.log("response",data1)
+//   return data1.data;
+// }})
+
+//////////////////////////////////////////
+///////2.useQuery exmple2/////////////////
+
+// const fetchData = async () => {
+//   const response = await Axios.get('http://localhost:10000/getData')
+//   return response.data //this data asign to the useQuery data variable
 // }
 
-// useEffect(() => {
-//   getData()
-// }, [])
+// const { data, isLoading, isError, error } = useQuery({
+//   queryKey: ['getData'],
+//   queryFn: fetchData,
+// })
+
+// if (isLoading) {
+//   return <div>Loading...</div>
+// }
+
+// if (isError) {
+//   return <div>Error: {error.message}</div>
+// }
+
+//  <pre>{JSON.stringify(data, null, 2)}</pre>
+
+//////////////////////////////////////////
+/////////////3.mutate/////////////////////
+
+// const { mutate, data: datamute } = useMutation({
+//   mutationFn: async (newRole: any) => {
+//     const response = await Axios.post('http://localhost:10000/addrole', newRole)
+//     console.log(response)
+//     return response.data
+//   },
+// })
+
+// <p> data mute{JSON.stringify(datamute)} </p>
+
+//<Button
+//className="bg-green-600 mt-2"
+//type="button"
+//onClick={() => {
+//  mutate({ a: 'kala' })
+//}}
+//>
+//mutate
+//</Button>
