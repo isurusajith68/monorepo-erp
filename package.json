@@ -11,12 +11,14 @@
     "lint": "pnpm exec nx run-many --target=lint",
     "tsc": "pnpm exec nx run-many --target=tsc",
     "validate": "pnpm format:write",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "preinstall": "if [ ! -f pnpm-lock.yaml ]; then echo 'Please use pnpm to install dependencies.' && exit 1; fi"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@erp/common": "workspace:^",
     "@erp/sample-lib": "workspace:^"
   },
   "devDependencies": {
