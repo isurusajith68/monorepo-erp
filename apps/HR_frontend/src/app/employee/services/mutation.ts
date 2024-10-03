@@ -57,14 +57,18 @@ export const useInsertEmployeeMutation = () => {
 }
 
 export const useDeleteEmployeeMutation = () => {
-  const bapi = import.meta.env.VITE_API_EMPLOYEEAPI
-  // console.log("aaaqqq",bapi)
+  // const bapi = import.meta.env.VITE_API_EMPLOYEEAPI
+
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (data: any) => {
+      console.log('ishara', data)
       try {
-        const res = await axios.delete(`${bapi}delete/${data.id}`, data.id)
+        const res = await axios.delete(
+          `http://localhost:4000/deleteemploye/${data.id}`,
+          data.id,
+        )
 
         return res.data
       } catch (error) {
