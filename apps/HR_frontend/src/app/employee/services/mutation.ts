@@ -9,7 +9,7 @@ import {
 import axios from 'axios'
 
 export const useUpdateEmployeeMutation = () => {
-  const bapi = import.meta.env.VITE_API_EMPLOYEEAPI
+  // const bapi = import.meta.env.VITE_API_EMPLOYEEAPI
   const queryClient = useQueryClient()
   console.log('sewwwwwwwwwwwwwwwwwwwwwwwwww')
 
