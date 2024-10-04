@@ -521,4 +521,4 @@ app.get('/booking-by-phone/:phone', async (req, res) => {
   }
 })
 
-app.listen(4000, () => console.log('server is running on port 4000'))
+app.listen(8000, () => console.log('server is running on port 4000'))
