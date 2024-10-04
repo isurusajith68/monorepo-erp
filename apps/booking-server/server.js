@@ -383,13 +383,11 @@ app.delete('/deleteRegistration/:id', async (req, res) => {
 
     // Check if any row was deleted
     if (result.rowCount > 0) {
-      res
-        .status(200)
-        .json({
-          success: true,
-          msg: 'registration deleted successfully',
-          data: {},
-        })
+      res.status(200).json({
+        success: true,
+        msg: 'registration deleted successfully',
+        data: {},
+      })
     } else {
       res
         .status(404)
