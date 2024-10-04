@@ -1,5 +1,5 @@
 {
-  "name": "@erp/booking-server",
+  "name": "@erp/hr_backend",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
