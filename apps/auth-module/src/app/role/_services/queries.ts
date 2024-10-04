@@ -7,7 +7,7 @@ export const useGetRoles = () => {
   return useQuery({
     queryKey: ['roles'],
     queryFn: async () => {
-      const response = await Axios.get(`${apiUrl}getData`)
+      const response = await Axios.get(`${apiUrl}getroles`)
       console.log('response', response)
       return response.data
     },

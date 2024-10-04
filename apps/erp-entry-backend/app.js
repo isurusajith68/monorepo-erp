@@ -206,16 +206,17 @@ const createSessionToken = (userId) => {
 }
 
 /////////////////////////////////////////////////////////////////////
-////////////////////////////ADD ROLE/////////////////////////////////
+////////////////////////////ROLES////////////////////////////////////
 
 app.post('/addrole', (req, res) => {
   console.log('name', req.body)
 
-  req.body.purchasedetails.map(async (r) => {
+  let fun = async (r) => {
     try {
+      console.log('hello')
       const sqlCheck = `SELECT 1 as role FROM userroles WHERE role = $1 `
 
-      const res1 = await pool.query(sqlCheck, [r.name])
+      const res1 = await pool.query(sqlCheck, [r.role])
       console.log('res', res1)
 
       if (res1.rows.length > 0) {
@@ -224,7 +225,7 @@ app.post('/addrole', (req, res) => {
 
       const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
       const insrtedData = await pool.query(sqlInsert, [
-        r.name,
+        r.role,
         r.description ?? 0,
       ])
 
@@ -237,6 +238,53 @@ app.post('/addrole', (req, res) => {
     } catch (err) {
       console.log('error is ', err)
       res.send({ success: false, message: err.message })
+    }
+  }
+
+  for (let a = 0; req.body.roledetails.length > a; a++) {
+    let r = req.body.roledetails[a]
+
+    console.log('r', r)
+    fun(r)
+  }
+
+  // req.body.roledetails.map(async (r) => {
+  //   try {
+  //     console.log("hello")
+  //     const sqlCheck = `SELECT 1 as role FROM userroles WHERE role = $1 `
+
+  //     const res1 = await pool.query(sqlCheck, [r.role])
+  //     console.log('res', res1)
+
+  //     if (res1.rows.length > 0) {
+  //       return res.send({ success: false, message: 'User already exists' })
+  //     }
+
+  //     const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
+  //     const insrtedData = await pool.query(sqlInsert, [
+  //       r.role,
+  //       r.description ?? 0,
+  //     ])
+
+  //     console.log('insrtedData', insrtedData)
+
+  //     return res.send({
+  //       success: true,
+  //       message: 'Role added successfully',
+  //     })
+  //   } catch (err) {
+  //     console.log('error is ', err)
+  //     res.send({ success: false, message: err.message })
+  //   }
+  // })
+})
+
+app.get('/getroles', (req, res) => {
+  const dbquery = `SELECT * FROM userroles;`
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      const roles = { rows: dbres.rows }
+      res.send({ success: true, roles: roles })
     }
   })
 })

@@ -25,47 +25,98 @@ import Axios from 'axios'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import useMuate from '../_services/mutation'
 import { useGetRoles } from '../_services/queries'
+import { useEffect } from 'react'
 
 export const detailRowSchema = z.object({
-  name: z.string().min(2, {
-    message: 'name must be at least 2 characters.',
+  role: z.string().min(2, {
+    message: 'Role must be at least 2 characters.',
   }),
   description: z.any().optional(),
 })
 
 const FormSchema = z.object({
-  purchasedetails: z.array(detailRowSchema),
+  roledetails: z.array(detailRowSchema),
 })
 
 export default function FormRole() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      purchasedetails: [
+      roledetails: [
         {
-          name: 'admin',
+          role: 'admin',
+          description: '',
         },
       ],
     },
   })
 
+  const {
+    formState: { isDirty, dirtyFields },
+    setValue,
+    reset,
+  } = form
+
   const { fields, append, remove } = useFieldArray({
-    name: 'purchasedetails',
+    name: 'roledetails',
     control: form.control,
   })
 
   const { mutate, data: datamute } = useMuate()
-  const { data: rolesDAta } = useGetRoles()
+  const { data: roles } = useGetRoles()
+
+  // useEffect(() => {
+  //   form.reset(roles)
+  //   console.log("roles roe",roles.roles.rows)
+  // }, [roles])
+
+  useEffect(() => {
+    if (roles) {
+      const formattedRoles = roles.roles.rows.map((role) => ({
+        role: role.role,
+        description: role.description,
+      }))
+
+      form.reset({ roledetails: formattedRoles })
+    }
+  }, [roles])
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log('data', data)
+    //  console.log('dirtyFields',  dirtyFields.roledetails.entries())
+    console.log('dirtyFields', dirtyFields.roledetails)
+    reset({}, { keepValues: true })
+    //mutate(data)
 
-    mutate(data)
+    const iter = dirtyFields.roledetails.entries()
+    let result = iter.next()
+    while (!result.done) {
+      console.log(result.value) // 1 3 5 7 9
+      result = iter.next()
+    }
+    //const r = dirtyValues(dirtyFields,data)
+    //console.log("dddd",r);
   }
+
+  function dirtyValues(
+    dirtyFields: object | boolean,
+    allValues: object,
+  ): object {
+    // If *any* item in an array was modified, the entire array must be submitted, because there's no way to indicate
+    // "placeholders" for unchanged elements. `dirtyFields` is `true` for leaves.
+    if (dirtyFields === true || Array.isArray(dirtyFields)) return allValues
+    // Here, we have an object
+    return Object.fromEntries(
+      Object.keys(dirtyFields).map((key) => [
+        key,
+        dirtyValues(dirtyFields[key], allValues[key]),
+      ]),
+    )
+  }
+
   return (
     <div>
-      <pre>{JSON.stringify(rolesDAta)}</pre>
-      <p>data mute{JSON.stringify(datamute)}</p>
+      {/* <pre>{JSON.stringify(roles)}</pre> */}
+      {/* <p>data mute{JSON.stringify(datamute)}</p> */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="border-2 rounded-lg border-green-300 p-4 bg-green-100 ">
@@ -87,7 +138,7 @@ export default function FormRole() {
                     <TableCell className="">
                       <FormField
                         control={form.control}
-                        name={`purchasedetails.${index}.name`}
+                        name={`roledetails.${index}.role`}
                         render={({ field }) => (
                           <FormItem className="">
                             <FormControl>
@@ -106,7 +157,7 @@ export default function FormRole() {
                     <TableCell>
                       <FormField
                         control={form.control}
-                        name={`purchasedetails.${index}.description`}
+                        name={`roledetails.${index}.description`}
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
