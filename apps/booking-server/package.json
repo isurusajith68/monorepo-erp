@@ -1,5 +1,5 @@
 {
-  "name": "@erp/hr_backend",
+  "name": "booking-app-server",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "booking-app-server": "workspace:^",
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "pg": "^8.13.0"

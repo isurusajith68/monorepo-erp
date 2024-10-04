@@ -1,54 +1,56 @@
 import { useQuery } from '@tanstack/react-query'
-import { getBookings } from './api'
 import Axios from 'axios'
 
-export function useGetBooking(id: string | undefined) {
-  const bapi = import.meta.env.VITE_API_BOOKINGAPI
-  // console.log("first",id)
+export function useGetRegistrations(id: any | undefined) {
   return useQuery({
-    queryKey: ['booking', id],
+    queryKey: ['registration', id],
     queryFn: async () => {
       let data1
-      data1 = await Axios.get(`${bapi}${id ?? 0}`)
-      // data1 = await Axios.get(`http://localhost:4000/bookings/28`);
+      data1 = await Axios.get(`http://localhost:4000/registration/${id ?? 0}`)
       return data1.data.data
     },
   })
 }
-export function useGetAllBooking() {
+
+export function useGetAllRegisrations() {
   // const bapi = import.meta.env.VITE_API_BOOKINGAPI
   // console.log("first",id)
   return useQuery({
-    queryKey: ['allbookings'],
+    queryKey: ['allregistration'],
     queryFn: async () => {
       let data1
-      data1 = await Axios.get(`http://localhost:4000/allbookings`)
+      data1 = await Axios.get(`http://localhost:4000/allregistration`)
       // data1 = await Axios.get(`http://localhost:4000/bookings/28`);
       return data1.data.data
     },
   })
 }
-export function useGetPrevBooking(id: string | undefined) {
+
+export function useGetPrevRegistration(id: string | undefined) {
   const bapi = import.meta.env.VITE_API_BOOKINGAPI
   // console.log("qqqqqqqqqqqqqqqqqqqqqqqqq",id)
   return useQuery({
     queryKey: ['prev', id],
     queryFn: async () => {
       let data1
-      data1 = await Axios.get(`${bapi}prev/${id ?? 0}`)
+      data1 = await Axios.get(
+        `http://localhost:4000/registration/prev/${id ?? 0}`,
+      )
       // data1 = await Axios.get(`http://localhost:4000/bookings/28`);
       return data1.data.data
     },
   })
 }
-export function useGetNextBooking(id: string | undefined) {
+export function useGetNextRegistraion(id: string | undefined) {
   const bapi = import.meta.env.VITE_API_BOOKINGAPI
   // console.log("qqqqqqqqqqqqqqqqqqqqqqqqq",id)
   return useQuery({
     queryKey: ['next', id],
     queryFn: async () => {
       let data1
-      data1 = await Axios.get(`${bapi}next/${id ?? 0}`)
+      data1 = await Axios.get(
+        `http://localhost:4000/registration/next/${id ?? 0}`,
+      )
       // data1 = await Axios.get(`http://localhost:4000/bookings/28`);
       return data1.data.data
     },
