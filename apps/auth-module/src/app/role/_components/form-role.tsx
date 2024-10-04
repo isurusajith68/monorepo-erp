@@ -24,6 +24,7 @@ import { Textarea } from '@/components/ui/textarea'
 import Axios from 'axios'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import useMuate from '../_services/mutation'
+import { useGetRoles } from '../_services/queries'
 
 export const detailRowSchema = z.object({
   name: z.string().min(2, {
@@ -54,6 +55,7 @@ export default function FormRole() {
   })
 
   const { mutate, data: datamute } = useMuate()
+  const { data: rolesDAta } = useGetRoles()
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log('data', data)
@@ -62,7 +64,7 @@ export default function FormRole() {
   }
   return (
     <div>
-      {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
+      <pre>{JSON.stringify(rolesDAta)}</pre>
       <p>data mute{JSON.stringify(datamute)}</p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">

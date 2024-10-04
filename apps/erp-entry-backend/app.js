@@ -34,7 +34,8 @@ app.get('/getData', (req, res) => {
   res.send('car data is stored in cookies')
 })
 
-/////////////////////////////////////////////////////add user//////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+//////////////////////////ADD USER///////////////////////////////
 
 app.post('/registerUser', async (req, res) => {
   const { email, password, role, username } = req.body
@@ -90,15 +91,13 @@ app.post('/registerUser', async (req, res) => {
   }
 })
 
-///////////////////////////////////////////////////login//////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+//////////////////////////LOGIN//////////////////////////////////
 
 // app.post("/login",requireAuth, (req, res1) => {
 app.post('/login', (req, res1) => {
   const { email, password } = req.body
   console.log('Received data:', { password, email })
-
-  // const insert=`INSERT INTO login (email, password)
-  // VALUES ('${email}','${password}');`
 
   const select = `SELECT *
                   FROM users
@@ -173,6 +172,9 @@ app.post('/login', (req, res1) => {
     )
 })
 
+/////////////////////////////////////////////////////////////////
+//////////////////////////LOGOUT/////////////////////////////////
+
 app.get('/logout', (req, res) => {
   try {
     // const cookie = serialize("authToken", "", {
@@ -202,6 +204,9 @@ const createSessionToken = (userId) => {
   console.log(jwt.sign(payload, process.env.JWT_SECRET, options))
   return jwt.sign(payload, process.env.JWT_SECRET, options)
 }
+
+/////////////////////////////////////////////////////////////////////
+////////////////////////////ADD ROLE/////////////////////////////////
 
 app.post('/addrole', (req, res) => {
   console.log('name', req.body)
