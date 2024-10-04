@@ -488,7 +488,7 @@ const RegistrationForm = () => {
                         <AlertDialogAction
                           className="bg-red-600"
                           onClick={() => {
-                            deleteAction(id)
+                            deleteAction(Number(id))
                           }}
                         >
                           Delete
