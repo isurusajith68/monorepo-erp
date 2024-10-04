@@ -5,9 +5,9 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import axios from 'axios'
+const bapi = import.meta.env.VITE_API_BOOKINGAPI
 
 export const useUpdateBookingMutation = () => {
-  const bapi = import.meta.env.VITE_API_BOOKINGAPI
   // console.log("aaaqqq",bapi)
   const queryClient = useQueryClient()
 
@@ -29,7 +29,6 @@ export const useUpdateBookingMutation = () => {
 }
 
 export const useInsertBookingMutation = () => {
-  const bapi = import.meta.env.VITE_API_BOOKINGAPI
   // console.log("aaaqqq",bapi)
   const queryClient = useQueryClient()
 
@@ -51,7 +50,6 @@ export const useInsertBookingMutation = () => {
 }
 
 export const useDeleteBookingMutation = () => {
-  const bapi = import.meta.env.VITE_API_BOOKINGAPI
   // console.log("aaaqqq",bapi)
   const queryClient = useQueryClient()
 

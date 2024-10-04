@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { getBookings } from './api'
 import Axios from 'axios'
+const bapi = import.meta.env.VITE_API_BOOKINGAPI
 
 export function useGetBooking(id: string | undefined) {
-  const bapi = import.meta.env.VITE_API_BOOKINGAPI
   // console.log("first",id)
   return useQuery({
     queryKey: ['booking', id],
@@ -16,7 +16,6 @@ export function useGetBooking(id: string | undefined) {
   })
 }
 export function useGetAllBooking() {
-  const bapi = import.meta.env.VITE_API_BOOKINGAPI
   // console.log("first",id)
   return useQuery({
     queryKey: ['allbookings'],
@@ -29,7 +28,6 @@ export function useGetAllBooking() {
   })
 }
 export function useGetPrevBooking(id: string | undefined) {
-  const bapi = import.meta.env.VITE_API_BOOKINGAPI
   // console.log("qqqqqqqqqqqqqqqqqqqqqqqqq",id)
   return useQuery({
     queryKey: ['prev', id],
@@ -42,7 +40,6 @@ export function useGetPrevBooking(id: string | undefined) {
   })
 }
 export function useGetNextBooking(id: string | undefined) {
-  const bapi = import.meta.env.VITE_API_BOOKINGAPI
   // console.log("qqqqqqqqqqqqqqqqqqqqqqqqq",id)
   return useQuery({
     queryKey: ['next', id],
