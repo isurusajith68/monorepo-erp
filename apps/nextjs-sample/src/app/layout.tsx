@@ -32,7 +32,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className="flex flex-col w-full h-screen ">
+      <body className="flex flex-col w-full h-screen bg-gray-50">
         {' '}
         <NavBar items={items} logo={logo} activeItem={currentPath} use={use} />
         <div className="flex w-full h-full">
@@ -73,7 +73,7 @@ export default function RootLayout({
               activeItem={currentPath}
             />
           </div>
-          <div className="flex w-full min-h-[100%] bg bg-blue-100">
+          <div className="flex w-full min-h-[100%] bg ">
             <div>{children}</div>
           </div>
         </div>
