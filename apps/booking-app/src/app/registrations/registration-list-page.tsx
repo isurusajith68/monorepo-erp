@@ -22,69 +22,47 @@ import { useEffect, useState } from 'react'
 import Axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '@/hooks/use-toast'
+import { useGetAllRegisrations } from './services/queries'
+import { useDeleteRegistrationMutation } from './services/mutation'
+import { useQueryClient } from '@tanstack/react-query'
 
 const RegistrationListPage = () => {
   const { toast } = useToast()
   const [registration, setRegistration] = useState([])
-  //   const [searchId, setSearchId] = useState("");
-  //   const [selectedCustomerType, setselectedCustomerType] = useState("all");
-  //   const [searchName, setSearchName] = useState("");
-  const navigate = useNavigate()
 
-  const fetchRegistration = async () => {
+  const navigate = useNavigate()
+  const { data, isSuccess } = useGetAllRegisrations()
+  const deleteMutation = useDeleteRegistrationMutation()
+  const queryClient = useQueryClient()
+
+  useEffect(() => {
+    // Fetch registration data from the backend
     try {
-      // Make API request to get registration data by ID
-      const response = await Axios.get(`http://localhost:4000/allregistration`)
-      if (response.data.success) {
-        // Reset the form with registration data
-        console.log('id', response.data.data)
-        const sortedData = response.data.data.sort(
-          (a: any, b: any) => b.id - a.id,
-        )
+      if (isSuccess) {
+        // console.log('id', data)
+        const sortedData = data.sort((a: any, b: any) => b.id - a.id)
         setRegistration(sortedData)
-        // form.reset(response.data.data);
       } else {
-        console.error('Registration not found:', response.data.msg)
+        console.error('registration not found:', data.msg)
       }
     } catch (error) {
       console.error('Error fetching registration:', error)
     }
-  }
-  useEffect(() => {
-    // Fetch registration data from the backend
-
-    fetchRegistration()
-  }, [])
+  }, [data, isSuccess])
 
   const handleEdit = (id: number) => {
     navigate(`/registration/${id}`)
   }
 
-  //   const filteredInvoices = customers.filter((customer: any) => {
-  //     const matchesId = customer.id
-  //       .toString()
-  //       .toLowerCase()
-  //       .includes(searchId.toLowerCase());
-  //     const matchesName = customer.cname
-  //       .toLowerCase()
-  //       .includes(searchName.toLowerCase());
-
-  //     const matchesProjectType =
-  //       selectedCustomerType === "all" ||
-  //       customer.ctype.toLowerCase() === selectedCustomerType.toLowerCase();
-
-  //     return matchesId && matchesName && matchesProjectType;
-  //   });
-  // customer delete function
-
-  const deleteAction = async (id) => {
+  const deleteAction = async (id: number) => {
     if (id) {
       try {
         console.log('Deleting registration with id:', id)
 
         // Make the DELETE request to the backend API
-        await Axios.delete(`http://localhost:4000/deleteregistration/${id}`)
+        await deleteMutation.mutateAsync({ id })
 
+        queryClient.invalidateQueries()
         // Show success toast notification
         toast({
           className: 'text-red-600',
@@ -93,7 +71,7 @@ const RegistrationListPage = () => {
           duration: 3000,
         })
 
-        fetchRegistration()
+        // Navigate to the registration list after deletion
       } catch (error) {
         // Handle any error that occurs during the delete process
         console.error('Error deleting registration:', error)
