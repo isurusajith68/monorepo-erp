@@ -64,10 +64,10 @@ export default function RootLayout({
                 name: 'Sajith',
                 email: 'sajith68@gmail.com',
                 profileImage:
-                  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvPjv1lHEIpzgDk_e3Sm-e4EVOzggYdb5aHA&s',
+                  'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=600',
               }}
               sideBarHeight="90vh"
-              sideBarWidth="18vw"
+              sideBarWidth="20vw"
               handleLogout={() => alert('Logout')}
               use={use}
               activeItem={currentPath}

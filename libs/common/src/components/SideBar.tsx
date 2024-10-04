@@ -57,7 +57,7 @@ const SideBar = ({
             />
             <div
               style={{
-                minWidth: '200px',
+                width: '200px',
                 overflow: 'hidden',
               }}
               className="flex flex-col gap-1 text-white"
