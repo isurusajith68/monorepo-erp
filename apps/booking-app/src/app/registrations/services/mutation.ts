@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
+const bapi = import.meta.env.VITE_API_BOOKINGAPI
 
 export const useUpdateRegistrationMutation = () => {
   const queryClient = useQueryClient()
@@ -8,7 +9,7 @@ export const useUpdateRegistrationMutation = () => {
     mutationFn: async (params: any) => {
       try {
         const res = await axios.put(
-          `http://localhost:4000/registrations/${params.id}`,
+          `${bapi}registrations/${params.id}`,
           params.dirtyValues,
         )
         // console.log("ressssssssssssssssssssssss",res)
@@ -27,10 +28,7 @@ export const useInsertRegistrationMutation = () => {
   return useMutation({
     mutationFn: async (data: any) => {
       try {
-        const res = await axios.post(
-          `http://localhost:4000/registration`,
-          data.data,
-        )
+        const res = await axios.post(`${bapi}registration`, data.data)
         // console.log("ressssssssssssssssssssssss",res.data)
         return res.data
       } catch (error) {
@@ -51,7 +49,7 @@ export const useDeleteRegistrationMutation = () => {
 
       try {
         const res = await axios.delete(
-          `http://localhost:4000/deleteRegistration/${data.id}`,
+          `${bapi}deleteRegistration/${data.id}`,
           data.id,
         )
         // console.log("ressssssssssssssssssssssss",res.data)
