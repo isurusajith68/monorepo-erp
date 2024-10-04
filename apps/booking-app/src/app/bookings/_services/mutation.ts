@@ -14,7 +14,10 @@ export const useUpdateBookingMutation = () => {
   return useMutation({
     mutationFn: async (params: any) => {
       try {
-        const res = await axios.put(`${bapi}${params.id}`, params.dirtyValues)
+        const res = await axios.put(
+          `${bapi}bookings/${params.id}`,
+          params.dirtyValues,
+        )
         // console.log("ressssssssssssssssssssssss",res)
         return res
       } catch (error) {
@@ -36,7 +39,7 @@ export const useInsertBookingMutation = () => {
       // console.log("geeth",bapi + params.data.id)
 
       try {
-        const res = await axios.post(`${bapi}`, data.data)
+        const res = await axios.post(`${bapi}bookings`, data.data)
         // console.log("ressssssssssssssssssssssss",res.data)
         return res.data
       } catch (error) {
@@ -58,7 +61,10 @@ export const useDeleteBookingMutation = () => {
       // console.log("geeth",bapi + params.data.id)
 
       try {
-        const res = await axios.delete(`${bapi}delete/${data.id}`, data.id)
+        const res = await axios.delete(
+          `${bapi}bookings/delete/${data.id}`,
+          data.id,
+        )
         // console.log("ressssssssssssssssssssssss",res.data)
         return res.data
       } catch (error) {
