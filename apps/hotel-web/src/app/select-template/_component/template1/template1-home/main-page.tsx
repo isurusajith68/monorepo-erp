@@ -1,70 +1,84 @@
-'use client'
+"use client";
 
-import React, { useEffect, useState } from 'react'
-import Home from './home-page'
-import AboutUsPage from './about-us-page'
-import ServicePage from './service-page'
-import RoomPage from './room-page'
-import ContactPage from './contact-page'
-import FooterPage from './footer-page'
-import ProfileForm from './user-inputs/home-page-userinput'
-import AboutProfileForm from './user-inputs/about-page-userinput'
-import ServiceForm from './user-inputs/service-page-inputs'
-import RoomForm from './user-inputs/room-page-inputs'
-import ContactForm from './user-inputs/contact-page-inputs'
-import { Button } from '@/components/ui/button'
-import { InsertHotelData } from './user-inputs/user-input-action'
+import React, { useEffect, useState } from "react";
+import Home from "./home-page";
+import AboutUsPage from "./about-us-page";
+import ServicePage from "./service-page";
+import RoomPage from "./room-page";
+import ContactPage from "./contact-page";
+import FooterPage from "./footer-page";
+import ProfileForm from "./user-inputs/home-page-userinput";
+import AboutProfileForm from "./user-inputs/about-page-userinput";
+import ServiceForm from "./user-inputs/service-page-inputs";
+import RoomForm from "./user-inputs/room-page-inputs";
+import ContactForm from "./user-inputs/contact-page-inputs";
+import { Button } from "@/components/ui/button";
+import { InsertHotelData } from "./user-inputs/user-input-action";
+
+
 
 function MainPage() {
   // State to hold the data from the form
-  const [formData, setFormData] = useState({
-    name: '{GREEN VALLY}',
-    phone: '{+94 775518779}',
-    email: '{abc@gmail.com}',
-    title: '{Discover A Brand Luxurious Hotel}',
-    fileRecords: [],
-  })
+  const [formData, setFormData] = useState(
+    {
+      name: "{GREEN VALLY}",
+      phone: "{+94 775518779}",
+      email: "{abc@gmail.com}",
+      title: "{Discover A Brand Luxurious Hotel}",
+      fileRecords: [],
+    },
+  );
 
-  const [aboutFormData, setAboutFormData] = useState({
-    description:
-      '{It was time to get rid of the vines. Oh God, let it be Gods pain. Some backyard will be backyard and them. There was a great deal of pain in the two parts of the body}',
-    aboutimages: [], // Holds the actual file objects
-    room: '{50}',
-    staff: '{120}',
-    client: '{450}',
-  })
+  const [aboutFormData, setAboutFormData] = useState(
+    {
+      description:
+        "{It was time to get rid of the vines. Oh God, let it be Gods pain. Some backyard will be backyard and them. There was a great deal of pain in the two parts of the body}",
+      aboutimages: [], // Holds the actual file objects
+      room: "{50}",
+      staff: "{120}",
+      client: "{450}",
+    }
+  );
 
   const [serviceFormData, setServiceFormData] = useState([
     {
-      servicetitle: '{Service Title}',
-      servicedescription: '{Service Description}',
+      servicetitle: "{Service Title}",
+      servicedescription: "{Service Description}",
       serviceimage: [],
     },
-  ])
+  ]);
 
   const [roomsFormData, setRoomsFormData] = useState([
     {
-      roomtitle: '{Room Title}',
-      roomprice: '{Room Price}',
-      roombeds: '{03}',
-      roombath: '{02}',
-      otherfacility: '{Wifi}',
-      roomsdescription: '{Room Description}',
+      roomtitle: "{Room Title}",
+      roomprice: "{Room Price}",
+      roombeds: "{03}",
+      roombath: "{02}",
+      otherfacility: "{Wifi}",
+      roomsdescription: "{Room Description}",
       roomimage: [],
     },
-  ])
+  ]);
 
   const [contactdata, setContactData] = useState({
-    bookingemail: '{book@example.com}',
-    generaleemail: '{info@example.com}',
-    technicalemail: '{tech@example.com}',
-    address: '{colombo 07, Sri Lanka}',
-  })
+    bookingemail: "{book@example.com}",
+    generaleemail: "{info@example.com}",
+    technicalemail: "{tech@example.com}",
+    address: "{colombo 07, Sri Lanka}",
+  });
 
   // Function to handle form data change
   const handleFormDataChange = (newData: any) => {
-    setFormData(newData)
-  }
+    setFormData(newData);
+  };
+
+  useEffect(() => {
+    console.log("set unada", serviceFormData);
+  }, [serviceFormData]);
+
+  useEffect(() => {
+    console.log("room set unada", roomsFormData);
+  }, [roomsFormData]);
 
   useEffect(() => {
     console.log('set unada', serviceFormData)
@@ -78,48 +92,48 @@ function MainPage() {
     console.log('image set unada', aboutFormData)
   }, [aboutFormData])
 
-  // Function to handle form data change
+    // Function to handle form data change
   const handleAboutFormDataChange = (newData: any) => {
-    setAboutFormData(newData)
-  }
+    setAboutFormData(newData);
+  };
 
   // Function to handle form data change
   const handleServiceFormDataChange = (newData: any) => {
-    setServiceFormData(newData)
-  }
+    setServiceFormData(newData);
+  };
 
   // Function to handle form data change
   const handleRoomsFormDataChange = (newData: any) => {
-    setRoomsFormData(newData)
-  }
+    setRoomsFormData(newData);
+  };
 
   // Function to handle form data change
   const handleContactFormDataChange = (newData: any) => {
-    setContactData(newData)
-  }
+    setContactData(newData);
+  };
 
   const handleImage = () => {
     if (formData.fileRecords) {
-      const formDataa = new FormData()
+      const formDataa = new FormData();
       formData.fileRecords.map((filer: any, index: any) => {
-        formDataa.append(index.toString(), filer.file)
-      })
-      console.log('formData11111111111', formDataa)
-      return formDataa
+        formDataa.append(index.toString(), filer.file);
+      });
+      console.log("formData11111111111", formDataa);
+      return formDataa;
     } else {
-      return null
+      return null;
     }
-  }
+  };
   const handleaboutImage = () => {
     if (aboutFormData.aboutimages) {
-      const formDataa = new FormData()
+      const formDataa = new FormData();
       aboutFormData.aboutimages.map((filer: any, index: any) => {
-        formDataa.append(index.toString(), filer.file)
-      })
-      console.log('formData222222222', formDataa)
-      return formDataa
+        formDataa.append(index.toString(), filer.file);
+      });
+      console.log("formData222222222", formDataa);
+      return formDataa;
     } else {
-      return null
+      return null;
     }
   }
 
@@ -129,6 +143,7 @@ function MainPage() {
     let imgKey = 0
     serviceFormData.forEach((service, index) => {
       // Append each image file for this service
+
 
       service.serviceimage.forEach((imageFile, imgIndex) => {
         formData.append(`${imgKey}`, imageFile)
@@ -222,6 +237,7 @@ function MainPage() {
         <FooterPage
           formData={formData}
           aboutFormData={aboutFormData}
+          aboutFormData={aboutFormData}
           contactdata={contactdata}
           services={serviceFormData}
         />
@@ -264,7 +280,7 @@ function MainPage() {
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
-export default MainPage
+export default MainPage;

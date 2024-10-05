@@ -1,38 +1,36 @@
-import PayBillForm, { FileRecord } from '@/app/imageSave/page'
+import PayBillForm, { FileRecord } from "@/app/imageSave/page";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion'
-import { Form } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import React, { useEffect, useState } from 'react'
+} from "@/components/ui/accordion";
+import { Form } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import React, { useEffect, useState } from "react";
 
-export default function ProfileForm({
-  formData,
-  setParentFormDataChange,
-}: any) {
+export default function ProfileForm({ formData, setParentFormDataChange }: any) {
   // Handle change in the form and pass the updated data to the parent
-  const [fileRecords, setFileRecords] = useState<FileRecord[]>([])
+  const [fileRecords, setFileRecords] = useState<FileRecord[]>([]);
 
   const handleChange = (e) => {
-    const { name, files, value } = e.target
+    const { name, files, value } = e.target;
+    
+      setParentFormDataChange({
+        ...formData,
+        [name]: value,
+        fileRecords:fileRecords
+      });
+    }
+ 
+    useEffect(()=>{
+      setParentFormDataChange({
+        ...formData,
+        fileRecords:fileRecords
+      });
+    },[fileRecords])
 
-    setParentFormDataChange({
-      ...formData,
-      [name]: value,
-      fileRecords: fileRecords,
-    })
-  }
-
-  useEffect(() => {
-    setParentFormDataChange({
-      ...formData,
-      fileRecords: fileRecords,
-    })
-  }, [fileRecords])
-
+    
   return (
     <div>
       <Accordion type="single" collapsible>
@@ -95,10 +93,8 @@ export default function ProfileForm({
                       onChange={handleChange} // No value binding for file input
                     /> */}
 
-                    <PayBillForm
-                      invoiceid={8}
-                      setParentFileRecords={setFileRecords}
-                    />
+           <PayBillForm invoiceid={8} setParentFileRecords={setFileRecords} />
+
                   </div>
                   {/* <div>
                     {formData.imageUrl && (
@@ -118,5 +114,5 @@ export default function ProfileForm({
         </AccordionItem>
       </Accordion>
     </div>
-  )
+  );
 }

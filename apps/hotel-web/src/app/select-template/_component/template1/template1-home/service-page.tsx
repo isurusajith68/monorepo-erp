@@ -1,6 +1,7 @@
-'use client'
+"use client";
 
 function ServicePage({ services }: any) {
+
   return (
     <div>
       <section className="py-16 bg-gray-100">
@@ -22,14 +23,14 @@ function ServicePage({ services }: any) {
                 className="bg-white rounded-lg shadow-lg p-6 hover:bg-yellow-500 hover:text-white transition-all duration-300"
               >
                 <div className="flex flex-wrap justify-center gap-2">
-                  <img
-                    key={index}
-                    src={service.imageUrl}
-                    alt={`Service Image ${index + 1}`}
-                    width={60}
-                    height={60}
-                    className="rounded-lg"
-                  />
+                    <img
+                      key={index}
+                      src={service.imageUrl}
+                      alt={`Service Image ${index + 1}`}
+                      width={60}
+                      height={60}
+                      className="rounded-lg"
+                    />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 mt-4">
                   {service.servicetitle}
@@ -43,7 +44,7 @@ function ServicePage({ services }: any) {
         </div>
       </section>
     </div>
-  )
+  );
 }
 
-export default ServicePage
+export default ServicePage;

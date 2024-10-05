@@ -1,39 +1,37 @@
-'use clinet'
+"use clinet"
 
-import PayBillForm, { FileRecord } from '@/app/imageSave/page'
+import PayBillForm, { FileRecord } from "@/app/imageSave/page";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion'
-import { Form } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import React, { useEffect, useState } from 'react'
+} from "@/components/ui/accordion";
+import { Form } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import React, { useEffect, useState } from "react";
 
-export default function AboutProfileForm({
-  aboutFormData,
-  handleAboutFormDataChange,
-}: any) {
-  const [aboutimages, setFileRecords] = useState<FileRecord[]>([])
+export default function AboutProfileForm({ aboutFormData, handleAboutFormDataChange }: any) {
+
+  const [aboutimages, setFileRecords] = useState<FileRecord[]>([]);
 
   const handleChange = (e) => {
-    const { name, files, value } = e.target
-
-    handleAboutFormDataChange({
-      ...aboutFormData,
-      [name]: value,
-      aboutimages: aboutimages,
-    })
-  }
-
-  useEffect(() => {
-    handleAboutFormDataChange({
-      ...aboutFormData,
-      aboutimages: aboutimages,
-    })
-  }, [aboutimages])
+    const { name, files, value } = e.target;
+    
+      handleAboutFormDataChange({
+        ...aboutFormData,
+        [name]: value,
+        aboutimages:aboutimages
+      });
+    }
+ 
+    useEffect(()=>{
+      handleAboutFormDataChange({
+        ...aboutFormData,
+        aboutimages:aboutimages
+      });
+    },[aboutimages])
 
   return (
     <div>
@@ -86,11 +84,8 @@ export default function AboutProfileForm({
                 <div>
                   <label>Hotel Images</label>
 
-                  <PayBillForm
-                    invoiceid={8}
-                    setParentFileRecords={setFileRecords}
-                  />
-
+                  <PayBillForm invoiceid={8} setParentFileRecords={setFileRecords} />
+                  
                   {/* <Input
                     type="file"
                     name="aboutimages"
@@ -114,12 +109,12 @@ export default function AboutProfileForm({
                         )}
                       </div>
                     )}*/}
-                </div>
+                </div> 
               </form>
             </Form>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
     </div>
-  )
+  );
 }
