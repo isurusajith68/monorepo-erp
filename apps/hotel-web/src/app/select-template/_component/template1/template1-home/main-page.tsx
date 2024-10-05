@@ -81,16 +81,8 @@ function MainPage() {
   }, [roomsFormData]);
 
   useEffect(() => {
-    console.log('set unada', serviceFormData)
-  }, [serviceFormData])
-
-  useEffect(() => {
-    console.log('room set unada', roomsFormData)
-  }, [roomsFormData])
-
-  useEffect(() => {
-    console.log('image set unada', aboutFormData)
-  }, [aboutFormData])
+    console.log("image set unada", aboutFormData);
+  }, [aboutFormData]);
 
     // Function to handle form data change
   const handleAboutFormDataChange = (newData: any) => {
@@ -135,84 +127,84 @@ function MainPage() {
     } else {
       return null;
     }
-  }
+  };
 
   ////////
-  const handlserviceImage = () => {
-    const formData = new FormData()
-    let imgKey = 0
+  const handlserviceImage =  () => {
+    const formData = new FormData();
+  let imgKey = 0
     serviceFormData.forEach((service, index) => {
       // Append each image file for this service
 
-
       service.serviceimage.forEach((imageFile, imgIndex) => {
-        formData.append(`${imgKey}`, imageFile)
-      })
+        formData.append(`${imgKey}`, imageFile);
+      });
       imgKey++
-    })
-    return formData
+    });
+    return formData;
   }
-
+  
   const handleroomImage = () => {
-    const formData = new FormData()
-    let imgKey = 0
-
+    const formData = new FormData();
+    let imgKey = 0;
+  
     // Iterate over the serviceFormData to append service details and images
     roomsFormData.forEach((room, index) => {
       // Append each image file for this service
       room.roomimage.forEach((imageFile, imgIndex) => {
-        formData.append(`${imgKey}`, imageFile) // Append each image with a unique key
-        imgKey++ // Increment imgKey for each image
-      })
-    })
-
-    return formData
-  }
-
+        formData.append(`${imgKey}`, imageFile); // Append each image with a unique key
+        imgKey++; // Increment imgKey for each image
+      });
+    });
+  
+    return formData;
+  };
+  
   ////////Submit function ////////////
 
-  const handleSubmit = async (event: any) => {
-    event.preventDefault()
-
-    try {
-      // Update serviceFormData with serviceimage set to null
-      const updatedServiceFormData = serviceFormData.map((service) => ({
-        ...service,
-        serviceimage: null, // Set serviceimage to null
-        imageUrl: null,
-      }))
-      // Update roomsFormData with roomimage set to null
-      const updatedroomsFormData = roomsFormData.map((rooms) => ({
-        ...rooms,
-        roomimage: null, // Set serviceimage to null
-        imageUrl: null,
-      }))
-
-      // Call InsertHotelData with the updated serviceFormData
-      const response = await InsertHotelData({
-        data: { ...formData, fileRecords: null }, // Send sanitized formData
-        aboutFormData: { ...aboutFormData, aboutimages: null },
-        serviceFormData: updatedServiceFormData, // Use the updated serviceFormData
-        roomsFormData: updatedroomsFormData,
-        contactdata: contactdata,
-        imageData: handleImage(), // File data for image uploads
-        aboutImageData: handleaboutImage(), // File data for about image uploads
-        roomImageData: handleroomImage(), // File data for room image uploads
-        serviceImageData: handlserviceImage(), // File data for service image uploads
-      })
-
-      if (response.success) {
-        alert(
-          'Hotel data inserted successfully with ID: ' +
-            response.lastInsertRowid,
-        )
-      } else {
-        alert('Error: ' + response.msg)
+    const handleSubmit = async (event: any) => {
+      event.preventDefault();
+    
+      try {
+        // Update serviceFormData with serviceimage set to null
+        const updatedServiceFormData = serviceFormData.map(service => ({
+          ...service,
+          serviceimage: null, // Set serviceimage to null
+          imageUrl: null
+        }));
+         // Update roomsFormData with roomimage set to null
+         const updatedroomsFormData = roomsFormData.map(rooms => ({
+          ...rooms,
+          roomimage: null, // Set serviceimage to null
+          imageUrl: null
+        }));
+    
+        // Call InsertHotelData with the updated serviceFormData
+        const response = await InsertHotelData({
+          data: { ...formData, fileRecords: null }, // Send sanitized formData
+          aboutFormData: { ...aboutFormData, aboutimages: null },
+          serviceFormData: updatedServiceFormData, // Use the updated serviceFormData
+          roomsFormData: updatedroomsFormData,
+          contactdata: contactdata,
+          imageData: handleImage(), // File data for image uploads
+          aboutImageData: handleaboutImage(), // File data for about image uploads
+          roomImageData: handleroomImage(), // File data for room image uploads
+          serviceImageData: handlserviceImage(), // File data for service image uploads
+        });
+    
+        if (response.success) {
+          alert(
+            "Hotel data inserted successfully with ID: " +
+              response.lastInsertRowid
+          );
+        } else {
+          alert("Error: " + response.msg);
+        }
+      } catch (error) {
+        console.error("Error inserting hotel data:", error);
       }
-    } catch (error) {
-      console.error('Error inserting hotel data:', error)
-    }
-  }
+    };
+    
 
   return (
     <div className="flex flex-col md:flex-row">
@@ -236,7 +228,6 @@ function MainPage() {
         {/* Footer Content */}
         <FooterPage
           formData={formData}
-          aboutFormData={aboutFormData}
           aboutFormData={aboutFormData}
           contactdata={contactdata}
           services={serviceFormData}
