@@ -26,6 +26,19 @@ type SideBarProps = {
   handleLogout?: () => void
 }
 
+/**
+ * SideBar component
+ *
+ * @param {NavItem[]} [sideBarItems] - Nav items to be displayed in the sidebar
+ * @param {UserInfo} userInfo - User information
+ * @param {string} [sideBarHeight] - Height of the sidebar
+ * @param {string} [sideBarWidth] - Width of the sidebar
+ * @param {() => void} [handleLogout] - Function to be called when the logout button is clicked
+ * @param {'next' | 'react'} [use] - Which framework to use for linking
+ * @param {string} [activeItem] - The currently active item
+ *
+ * @returns {JSX.Element} A JSX element representing the sidebar
+ */
 const SideBar = ({
   sideBarItems,
   userInfo,
