@@ -6,17 +6,6 @@ import { SlSocialFacebook, SlSocialLinkedin, SlSocialTwitter, SlSocialYoutube } 
 import { IoIosArrowForward } from "react-icons/io";
 
 function FooterPage({ formData ,aboutFormData , contactdata , services }:{formData:any,aboutFormData:any,contactdata:any,services:any}) {
-function FooterPage({
-  formData,
-  aboutFormData,
-  contactdata,
-  services,
-}: {
-  formData: any
-  aboutFormData: any
-  contactdata: any
-  services: any
-}) {
   return (
     <div>
         <footer className="bg-gray-900 text-white py-12">
@@ -44,33 +33,6 @@ function FooterPage({
             {aboutFormData.description}
           </p>
         </div>
-      <footer className="bg-gray-900 text-white py-12">
-        {/* Newsletter Section */}
-        <div className="max-w-7xl mx-auto px-4 mb-8">
-          <div className="bg-white text-center p-6 rounded shadow-lg">
-            <h2 className="text-2xl font-bold mb-4">
-              Subscribe Our <span className="text-yellow-500">NEWSLETTER</span>
-            </h2>
-            <div className="flex justify-center items-center">
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                className="p-2 w-1/2 border border-gray-300 rounded-l focus:outline-none"
-              />
-              <Button className="bg-yellow-500 text-white px-4 py-2 rounded-r hover:bg-yellow-600 ml-5">
-                SUBMIT
-              </Button>
-            </div>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Hotelier Section */}
-          <div className="col-span-1">
-            <h3 className="text-2xl font-bold text-yellow-500 mb-4">
-              {formData.name}
-            </h3>
-            <p className="text-gray-400 mb-4">{aboutFormData.description}</p>
-          </div>
 
         {/* Contact Section */}
         <div className="col-span-1">
@@ -127,21 +89,6 @@ function FooterPage({
           </ul>
         </div>
       </div>
-          {/* Services Section */}
-          <div className="col-span-1">
-            <h3 className="text-xl font-bold mb-4">SERVICES</h3>
-            <ul className="space-y-2 text-gray-400">
-              {services.map((services: any, index: any) => (
-                <div className="hover:text-yellow-500 flex space-x-1">
-                  <IoIosArrowForward />
-                  <li key={index}>
-                    <a href="#">{services.servicetitle}</a>
-                  </li>
-                </div>
-              ))}
-            </ul>
-          </div>
-        </div>
 
       {/* Footer Bottom */}
       <div className="max-w-7xl mx-auto px-4 mt-8 text-center text-gray-500">
