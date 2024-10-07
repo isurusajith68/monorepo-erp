@@ -69,11 +69,6 @@ export default function FormRole() {
   const { mutate, data: datamute } = useMuate()
   const { data: roles } = useGetRoles()
 
-  // useEffect(() => {
-  //   form.reset(roles)
-  //   console.log("roles roe",roles.roles.rows)
-  // }, [roles])
-
   useEffect(() => {
     if (roles) {
       const formattedRoles = roles.roles.rows.map((role) => ({
@@ -104,9 +99,15 @@ export default function FormRole() {
     console.log('data', data)
 
     console.log('Dirty Fields:', dirtyFields)
-    getDirtyValues(dirtyFields, data, [
+
+    const out = getDirtyValues(dirtyFields, data, [
       { arrayName: 'roledetails', pkName: 'rid' },
     ])
+
+    console.log('out', out?.roledetails?.inserts)
+
+    mutate(out?.roledetails?.inserts)
+
     reset({}, { keepValues: true })
     // const editedRows = fields.filter((_, index) => {
     //   return dirtyFields.roledetails?.[index]?.role || dirtyFields.roledetails?.[index]?.description!== undefined;
@@ -136,7 +137,7 @@ export default function FormRole() {
     console.log('allValues1', allValues)
     console.log('dirtyFields1', dirtyFields)
     Object.keys(dirtyFields).map((key) => {
-      console.log('key11', key, allValues)
+      // console.log('key11', key, allValues)
       if (Array.isArray(dirtyFields[key])) {
         // if array we add a prop (named key) to dirtyValues with object having inserts:[row1,row2...],updtaes:[row1,row2...],delets:[pk1,pk2..]
         const arr = Array.from(dirtyFields[key])
@@ -193,10 +194,6 @@ export default function FormRole() {
       return
     }
   }
-  // const handleAddRow = () => {
-  //   // Append an empty row without marking it as dirty
-  //   append({ role: '', description: '' })
-  // }
 
   return (
     <div>
