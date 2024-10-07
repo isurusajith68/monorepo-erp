@@ -52,3 +52,14 @@ export function useGetNextRegistraion(id: string | undefined) {
     },
   })
 }
+
+export function useGetPhoneNumber(id: any | undefined) {
+  return useQuery({
+    queryKey: ['phone', id],
+    queryFn: async () => {
+      let data1
+      data1 = await Axios.get(`${bapi}booking-by-phone/${id ?? 0}`)
+      return data1.data.data
+    },
+  })
+}
