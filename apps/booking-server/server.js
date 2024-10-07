@@ -628,4 +628,25 @@ app.get('/roomdetails/:id', (req, res) => {
     })
 })
 
+// get all roomdetails
+
+app.get('/allroomdetails', (req, res) => {
+  const getAllRoomDetailsQuery = `SELECT * FROM roomdetails WHERE maintenance=false`
+
+  pool
+    .query(getAllRoomDetailsQuery)
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const roomData = response.rows // Get all rows
+        res.json({ success: true, msg: '', data: roomData })
+      } else {
+        res.json({ success: false, msg: 'No booking found', data: [] })
+      }
+    })
+    .catch((err) => {
+      console.error('Error fetching booking:', err)
+      res.json({ success: false, msg: 'Error fetching booking', data: [] })
+    })
+})
+
 app.listen(4000, () => console.log('server is running on port 4000'))

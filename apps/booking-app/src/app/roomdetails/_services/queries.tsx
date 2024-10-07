@@ -15,12 +15,13 @@ export function useGetRoomDetails(id: string | undefined) {
   })
 }
 export function useGetAllRoomDetails() {
-  // console.log("first",id)
+  //   console.log("check")
   return useQuery({
     queryKey: ['allroomdetails'],
     queryFn: async () => {
       let data1
-      data1 = await Axios.get(`${bapi}roomdetails`)
+      data1 = await Axios.get(`${bapi}allroomdetails`)
+      //   console.log("dataaaaaaaa",data1)
       // data1 = await Axios.get(`http://localhost:4000/bookings/28`);
       return data1.data.data
     },
