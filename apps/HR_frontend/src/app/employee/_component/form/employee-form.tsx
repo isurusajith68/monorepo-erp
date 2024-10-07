@@ -230,11 +230,11 @@ const EmployeeForm = () => {
 
   return (
     <div>
-      <div className="flex items-center  justify-between ml-10 mt-5">
+      <div className="flex items-center justify-between mt-5 ml-10">
         {!id && <h1 className="text-2xl font-bold ">Add Employee </h1>}
         {id && <h1 className="text-2xl font-bold ">Update Employee </h1>}
         {/* <NavLink to={"list"}>View List</NavLink> */}
-        <div className="gap-5 flex">
+        <div className="flex gap-5">
           <Button
             onClick={() => navigate('/bookings')}
             className="bg-green-600"
@@ -242,16 +242,16 @@ const EmployeeForm = () => {
             View List
           </Button>
           {id && (
-            <div className="gap-5 flex">
+            <div className="flex gap-5">
               <Button
-                className="  bg-green-600"
+                className="bg-green-600 "
                 type="button"
                 onClick={getPrevItem}
               >
                 previous
               </Button>
               <Button
-                className="  bg-green-600"
+                className="bg-green-600 "
                 type="button"
                 onClick={getNextItem}
               >
@@ -269,12 +269,12 @@ const EmployeeForm = () => {
           </Button>
         )}
       </div>
-      <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
+      <hr className="mt-5 ml-10 border-2 border-green-300"></hr>
 
       {isLoading || updateEMutation.isPending || prevLoading ? (
         <div> loading...</div>
       ) : (
-        <div className="mt-5 w-full h-2/3 bg-green-100 rounded border border-green-300 p-10 ">
+        <div className="w-full p-10 mt-5 bg-green-100 border border-green-300 rounded h-2/3 ">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 ">
               <div className="flex flex-col space-y-8 ">
