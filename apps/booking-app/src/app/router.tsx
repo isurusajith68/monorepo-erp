@@ -21,7 +21,13 @@ import BookingListPage from './bookings/booking-list-page'
 import RegistrationListPage from './registrations/registration-list-page'
 import AddRegistrationPage from './registrations/add/page'
 import RegistrationViewPage from './registrations/[id]/page'
-import ViewReport from './reports/page'
+
+import BookedRooms from './reports/bookedrooms/page'
+import RoomAvailability from './reports/roomavailability/page'
+import AvailableRooms from './bookings/roomcheck/page'
+import AvailableRoomsRoute from './bookings/roomcheck/page'
+import AddRoomdetailsPage from './roomdetails/add/page'
+import RoomDetailsViewPage from './roomdetails/[id]/page'
 
 // const getRoutes = (children: any[]) => {
 //    const res =  children &&
@@ -41,6 +47,7 @@ export const router = createBrowserRouter(
       <Route path="bookings" element={<BookingListPage />} />
       <Route path="booking">
         <Route path="add" element={<AddBookingPage />} />
+        <Route path="available-rooms" element={<AvailableRoomsRoute />} />
         <Route path=":id" element={<BookingViewPge />} />
       </Route>
       <Route path="registrations" element={<RegistrationListPage />} />
@@ -48,7 +55,14 @@ export const router = createBrowserRouter(
         <Route path="add" element={<AddRegistrationPage />} />
         <Route path=":id" element={<RegistrationViewPage />} />
       </Route>
-      <Route path="reports" element={<ViewReport />} />
+      <Route path="reports">
+        <Route path="booked-rooms" element={<BookedRooms />} />
+        <Route path="room-availability" element={<RoomAvailability />} />
+      </Route>
+      <Route path="roomdetails">
+        <Route path="add" element={<AddRoomdetailsPage />} />
+        <Route path=":id" element={<RoomDetailsViewPage />} />
+      </Route>
 
       {/* <Route path="view-booking" element={<ViewBooking />} />
       <Route path="guest-registration" element={<GuestRegistration />} />

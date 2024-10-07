@@ -36,18 +36,11 @@ export default function BookingListPage() {
 
   const { data, isSuccess } = useGetAllBooking()
 
-  // const fetchBooking = async () => {
-  //   try {
-  //     // Make API request to get booking data by ID
-  //     const response = await Axios.get(`http://localhost:4000/allbookings`)
-  //     if (response.data.success) {
-  //       // Reset the form with booking data
-
   useEffect(() => {
     // Fetch booking data from the backend
     try {
       if (isSuccess) {
-        console.log('id', data)
+        // console.log('id', data)
         const sortedData = data.sort((a: any, b: any) => b.id - a.id)
         setBooking(sortedData)
       } else {
@@ -69,7 +62,7 @@ export default function BookingListPage() {
         await deleteMutation.mutateAsync({ id })
 
         // Invalidate the query to refetch the data
-        queryClient.invalidateQueries('getAllBooking') // Replace with the actual query key used in `useGetAllBooking`
+        queryClient.invalidateQueries() // Replace with the actual query key used in `useGetAllBooking`
 
         // Show success toast notification
         toast({
@@ -90,39 +83,10 @@ export default function BookingListPage() {
       }
     }
   }
-  // const deleteAction = async (id) => {
-  //   if (id) {
-  //     try {
-  //       // console.log('Deleting booking with id:', id)
-  //       const resMutation = deleteMutation.mutate({ id })
-
-  //       // Make the DELETE request to the backend API
-  //       // await Axios.delete(`http://localhost:4000/deletebooking/${id}`)
-
-  //       // Show success toast notification
-  //       toast({
-  //         className: 'text-red-600',
-  //         title: 'Booking',
-  //         description: <span>Deleted successfully..</span>,
-  //         duration: 3000,
-  //       })
-
-  //     } catch (error) {
-  //       // Handle any error that occurs during the delete process
-  //       console.error('Error deleting booking:', error)
-  //       toast({
-  //         className: 'text-red-600',
-  //         title: 'Error',
-  //         description: <span>Failed to delete the booking..</span>,
-  //         duration: 3000,
-  //       })
-  //     }
-  //   }
-  // }
 
   return (
     <div>
-      <div className="flex items-center  justify-between ml-10 mt-5">
+      <div className="flex items-center justify-between mt-5 ml-10">
         <h1 className="text-2xl font-bold ">View Booking</h1>
         {/* <NavLink to={'list'}>View List</NavLink> */}
         <Button
@@ -132,10 +96,10 @@ export default function BookingListPage() {
           + Add
         </Button>
       </div>
-      <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
+      <hr className="mt-5 ml-10 border-2 border-green-300"></hr>
 
-      <Table className="rounded-xl overflow-hidden mt-10">
-        <TableHeader className="bg-green-300 text-center">
+      <Table className="mt-10 overflow-hidden rounded-xl">
+        <TableHeader className="text-center bg-green-300">
           <TableRow>
             <TableHead className="text-center">ID</TableHead>
             <TableHead className="text-center">Room No</TableHead>
@@ -172,9 +136,9 @@ export default function BookingListPage() {
                 {booking.bookingdate}
               </TableCell>
               <TableCell className="text-center">{booking.roomprice}</TableCell>
-              <TableCell className="text-center flex">
+              <TableCell className="flex text-center">
                 <Button
-                  className="bg-green-600 ml-5"
+                  className="ml-5 bg-green-600"
                   onClick={() => handleEdit(booking.id)}
                   type="button"
                 >

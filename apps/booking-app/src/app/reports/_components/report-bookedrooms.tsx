@@ -9,15 +9,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useNavigate } from 'react-router-dom'
 
-const Report = () => {
+const ReportBookedRooms = () => {
+  const navigate = useNavigate()
   return (
     <>
       <div className="flex items-center  justify-between ml-10 mt-5">
         <h1 className="text-2xl font-bold ">Room Availability Summary</h1>
       </div>
       <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
-      <div className="mt-5 flex items-center ml-10 ">
+      <div className="mt-5 flex items-center ml-10 gap-8">
         <div>
           <h1>Search By Room Number</h1>
           <Input
@@ -26,11 +28,17 @@ const Report = () => {
             placeholder=""
           />
         </div>
-        <Button>Export Report</Button>
-        <Button>Booked Rooms</Button>
+        <div>
+          <Button>Export Report</Button>
+        </div>
+        <div>
+          <Button onClick={() => navigate('/reports/room-availability')}>
+            Booked Rooms
+          </Button>
+        </div>
       </div>
       <div>
-        <Table>
+        <Table className="mt-6">
           <TableHeader>
             <TableRow>
               <TableHead className="text-center">Room No</TableHead>
@@ -45,13 +53,13 @@ const Report = () => {
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell className="text-center">INV001</TableCell>
-              <TableCell className="text-center">Paid</TableCell>
-              <TableCell className="text-center">Credit Card</TableCell>
-              <TableCell className="text-center">$250.00</TableCell>
-              <TableCell className="text-center">INV001</TableCell>
-              <TableCell className="text-center">Paid</TableCell>
-              <TableCell className="text-center">Credit Card</TableCell>
+              <TableCell className="text-center">034</TableCell>
+              <TableCell className="text-center">Deluxe</TableCell>
+              <TableCell className="text-center">Ocean</TableCell>
+              <TableCell className="text-center">2000 LKR</TableCell>
+              <TableCell className="text-center">3000 LKR</TableCell>
+              <TableCell className="text-center">6000 LKR</TableCell>
+              <TableCell className="text-center">12000 LKR</TableCell>
               {/* <TableCell className="text-center">$250.00</TableCell> */}
             </TableRow>
           </TableBody>
@@ -61,4 +69,4 @@ const Report = () => {
   )
 }
 
-export default Report
+export default ReportBookedRooms
