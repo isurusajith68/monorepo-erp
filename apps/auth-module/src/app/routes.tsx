@@ -8,6 +8,7 @@ import {
 import RootLayout from './layout'
 import HomePage from './homepage/page'
 import Role from './role/page'
+import Test from './testfile/page'
 
 // create a browserRouter
 export const router = createBrowserRouter(
@@ -20,7 +21,7 @@ export const router = createBrowserRouter(
       {/* <Route path="/login" element={<Login />}></Route>
         <Route path="/signup" element={<SignUp />}></Route> */}
       <Route path="/role" element={<Role />}></Route>
-
+      <Route path="/test" element={<Test />}></Route>
       {/* this is a public route */}
       <Route path="*" element={<Navigate to="/" />}></Route>
     </Route>,
