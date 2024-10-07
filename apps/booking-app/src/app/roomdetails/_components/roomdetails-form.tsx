@@ -83,7 +83,9 @@ const RoomDetailsForm = () => {
   const navigate = useNavigate()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
+    defaultValues: {
+      maintenance: false,
+    },
   })
   const {
     control,
