@@ -236,7 +236,7 @@ const EmployeeForm = () => {
         {/* <NavLink to={"list"}>View List</NavLink> */}
         <div className="flex gap-5">
           <Button
-            onClick={() => navigate('/bookings')}
+            onClick={() => navigate('/employee')}
             className="bg-green-600"
           >
             View List
@@ -262,7 +262,7 @@ const EmployeeForm = () => {
         </div>
         {!id && (
           <Button
-            onClick={() => navigate('/booking/add')}
+            onClick={() => navigate('/employee/add')}
             className="bg-green-600"
           >
             + Add
