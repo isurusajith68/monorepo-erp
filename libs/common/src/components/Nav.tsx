@@ -29,7 +29,7 @@ type NavBarProps = {
  * @param {string} [activeItem] - The path of the currently active item.
  * @param {string} [use] - The framework to use for linking. Either 'next' or 'react'. If not specified, links will be rendered as regular HTML links.
  */
-export default function NavBar({ items, logo, activeItem, use }: NavBarProps) {
+export const NavBar = ({ items, logo, activeItem, use }: NavBarProps) => {
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleMenu = () => {

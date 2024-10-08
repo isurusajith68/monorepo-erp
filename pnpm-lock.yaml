@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@erp/common':
-        specifier: workspace:^
-        version: link:libs/common
       '@erp/sample-lib':
         specifier: workspace:^
         version: link:libs/sample-lib

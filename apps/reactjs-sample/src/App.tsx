@@ -1,8 +1,8 @@
 import { BrowserRouter } from 'react-router-dom'
-import NavBar from '@erp/common/src/components/Nav'
-import SideBar from '@erp/common/src/components/SideBar'
 import { HiAcademicCap, HiAnnotation, HiArrowCircleRight } from 'react-icons/hi'
 import { HiArchiveBox } from 'react-icons/hi2'
+import SideBar from '@erp/common/src/components/SideBar'
+import { NavBar } from '@erp/common/src/index'
 
 function App() {
   const items = [
@@ -50,16 +50,18 @@ function App() {
 
   return (
     <BrowserRouter>
-      <NavBar items={items} logo={logo} use={use} />
+      <div className="">
+        <NavBar items={items} logo={logo} use={use} />
 
-      <SideBar
-        sideBarItems={sideBarItems}
-        userInfo={userInfo}
-        sideBarHeight="90vh"
-        sideBarWidth="18vw"
-        handleLogout={() => alert('Logout')}
-        use={use}
-      />
+        <SideBar
+          sideBarItems={sideBarItems}
+          userInfo={userInfo}
+          sideBarHeight="90vh"
+          sideBarWidth="18vw"
+          handleLogout={() => alert('Logout')}
+          use={use}
+        />
+      </div>
     </BrowserRouter>
   )
 }
