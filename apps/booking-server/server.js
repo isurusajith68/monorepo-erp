@@ -128,7 +128,7 @@ app.put('/bookings/:id', (req, res) => {
 
 // get booking details by id
 app.get('/bookings/:id', (req, res) => {
-  const { id } = req.params
+  const { id } = req.params 
 
   const getBookingQuery = `SELECT * FROM booking WHERE id = $1`
 

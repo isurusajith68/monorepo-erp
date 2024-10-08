@@ -195,6 +195,11 @@ const EmployeeForm = () => {
     }
   }
 
+
+
+
+  
+
   const {
     data: prevItem,
     isLoading: prevLoading,
@@ -228,6 +233,10 @@ const EmployeeForm = () => {
     }
   }
 
+
+
+  
+
   return (
     <div>
       <div className="flex items-center justify-between mt-5 ml-10">
@@ -236,7 +245,7 @@ const EmployeeForm = () => {
         {/* <NavLink to={"list"}>View List</NavLink> */}
         <div className="flex gap-5">
           <Button
-            onClick={() => navigate('/employee')}
+            onClick={() => navigate('/employees')}
             className="bg-green-600"
           >
             View List
