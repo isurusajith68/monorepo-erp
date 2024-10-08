@@ -38,6 +38,7 @@ import {
   useGetNextBooking,
   useGetPrevBooking,
 } from '../../_services/queries'
+import RoomSelectionDialog from '../RoomSelectionDialog'
 
 const formSchema = z.object({
   roomnumber: z.coerce.number().min(2, {
@@ -276,25 +277,6 @@ const BookingForm = () => {
                 <div className=" w-full grid grid-cols-3 gap-4 ">
                   <FormField
                     control={form.control}
-                    name="roomnumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Room Number</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            className="rounded border-2 border-green-600 bg-white"
-                            placeholder=""
-                            {...field}
-                          />
-                        </FormControl>
-
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
                     name="checkin"
                     render={({ field }) => (
                       <FormItem>
@@ -345,9 +327,29 @@ const BookingForm = () => {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="roomnumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Room Number</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            className="rounded border-2 border-green-600 bg-white"
+                            placeholder=""
+                            {...field}
+                          />
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
                 <div className="w-full grid grid-cols-3 gap-4">
-                  <FormField
+                  {/* <FormField
                     control={form.control}
                     name="adultcount"
                     render={({ field }) => (
@@ -365,8 +367,8 @@ const BookingForm = () => {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
-                  <FormField
+                  /> */}
+                  {/* <FormField
                     control={form.control}
                     name="childrencount"
                     render={({ field }) => (
@@ -384,7 +386,7 @@ const BookingForm = () => {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                  /> */}
                   <FormField
                     control={form.control}
                     name="bookingdate"
@@ -411,8 +413,6 @@ const BookingForm = () => {
                       </FormItem>
                     )}
                   />
-                </div>
-                <div className="w-full grid grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
                     name="telephone"
@@ -451,7 +451,9 @@ const BookingForm = () => {
                       </FormItem>
                     )}
                   />
-                  <FormField
+                </div>
+                <div className="w-full grid grid-cols-3 gap-4">
+                  {/* <FormField
                     control={form.control}
                     name="roomprice"
                     render={({ field }) => (
@@ -469,7 +471,7 @@ const BookingForm = () => {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                  /> */}
                 </div>
               </div>
 

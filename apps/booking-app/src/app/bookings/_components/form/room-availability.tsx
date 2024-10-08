@@ -19,11 +19,17 @@ import {
 } from '@/components/ui/select'
 import { useGetAllRoomDetails } from '@/app/roomdetails/_services/queries'
 import { CloudDownload } from 'lucide-react'
+import BookingForm from './booking-form'
+import { useState } from 'react'
 
 const AvailableRooms = () => {
   const navigate = useNavigate()
   const { data, isLoading } = useGetAllRoomDetails()
+  const [selectedRooms, setSelectedRooms] = useState<string[]>([])
   console.log('pasindu', data)
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
 
   return (
     <>
@@ -125,6 +131,11 @@ const AvailableRooms = () => {
           </TableBody>
         </Table>
       </div>
+      {/* Add BookingForm with selectedRooms */}
+      <BookingForm
+        selectedRooms={selectedRooms}
+        onRoomSelect={setSelectedRooms} // Callback to handle selected rooms
+      />
     </>
   )
 }
