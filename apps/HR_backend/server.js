@@ -199,3 +199,64 @@ app.delete('/deleteemploye/:id', async (req, res) => {
 
 
 app.listen(4000, () => console.log('server is running on port 4000'))
+
+
+
+//get previous employee
+
+app.get('/bookings/prev/:id?', async (req, res) => {
+  const { id } = req.params // Assuming 'id' is passed as a URL parameter
+  try {
+    let prevRow
+
+    if (id) {
+      const prevIdQuery = `SELECT * FROM booking WHERE id < $1 ORDER BY id DESC LIMIT 1`
+      const prevResult = await pool.query(prevIdQuery, [id])
+      prevRow = prevResult.rows[0]
+    } else {
+      const prevIdQuery2 = `SELECT * FROM booking ORDER BY id DESC LIMIT 1`
+      const prevResult2 = await pool.query(prevIdQuery2)
+      prevRow = prevResult2.rows[0]
+    }
+
+    if (prevRow) {
+      res.json({ success: true, msg: '', data: prevRow })
+    } else {
+      res.json({ success: true, msg: '', data: {} })
+    }
+  } catch (error) {
+    console.error('Error in getPrevMaterialItem API:', error)
+    res.json({ success: false, msg: error.message, data: {} })
+  }
+})
+
+
+
+//get next employee
+
+
+app.get('/bookings/next/:id?', async (req, res) => {
+  const { id } = req.params // Assuming 'id' is passed as a URL parameter
+  try {
+    let nextRow
+
+    if (id) {
+      const nextIdQuery = `SELECT * FROM booking WHERE id > $1 ORDER BY id ASC LIMIT 1`
+      const nextResult = await pool.query(nextIdQuery, [id])
+      nextRow = nextResult.rows[0]
+    } else {
+      const nextIdQuery2 = `SELECT * FROM booking ORDER BY id ASC LIMIT 1`
+      const nextResult2 = await pool.query(nextIdQuery2)
+      nextRow = nextResult2.rows[0]
+    }
+
+    if (nextRow) {
+      res.json({ success: true, msg: '', data: nextRow })
+    } else {
+      res.json({ success: true, msg: 'This is the last ID', data: {} })
+    }
+  } catch (error) {
+    console.error('Error in getNextMaterialItem API:', error)
+    res.json({ success: false, msg: error.message, data: {} })
+  }
+})
