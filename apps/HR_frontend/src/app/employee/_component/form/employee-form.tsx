@@ -208,7 +208,7 @@ const EmployeeForm = () => {
   console.log('prevvvvvvvvvvvvvvvvvvvvvvvv', prevItem)
   const getPrevItem = () => {
     if (prevItem && Object.keys(prevItem).length !== 0) {
-      navigate(`/employee/${prevItem.id}`)
+      navigate(`/employees/${prevItem.id}`)
     } else {
       toast({
         className: 'text-blue-600',
@@ -222,7 +222,7 @@ const EmployeeForm = () => {
   const { data: nextItem } = useGetNextEmployee(id)
   const getNextItem = () => {
     if (nextItem && Object.keys(nextItem).length !== 0) {
-      navigate(`/employee/${nextItem.id}`)
+      navigate(`/employees/${nextItem.id}`)
     } else {
       toast({
         className: 'text-blue-600',
@@ -271,7 +271,7 @@ const EmployeeForm = () => {
         </div>
         {!id && (
           <Button
-            onClick={() => navigate('/employee/add')}
+            onClick={() => navigate('/employees/id')}
             className="bg-green-600"
           >
             + Add
