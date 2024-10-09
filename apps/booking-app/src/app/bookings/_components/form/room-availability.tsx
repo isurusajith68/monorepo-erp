@@ -132,10 +132,6 @@ const AvailableRooms = () => {
         </Table>
       </div>
       {/* Add BookingForm with selectedRooms */}
-      <BookingForm
-        selectedRooms={selectedRooms}
-        onRoomSelect={setSelectedRooms} // Callback to handle selected rooms
-      />
     </>
   )
 }

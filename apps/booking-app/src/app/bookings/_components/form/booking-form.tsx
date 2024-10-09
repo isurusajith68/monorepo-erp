@@ -39,6 +39,11 @@ import {
   useGetPrevBooking,
 } from '../../_services/queries'
 import RoomSelectionDialog from '../RoomSelectionDialog'
+// import 'react-component-library/dist/style.css';
+import { MyButtonComponent } from 'react-component-library'
+//  import 'booking-form/dist/style.css';
+
+import { BookingTest } from 'booking-form'
 
 const formSchema = z.object({
   roomnumber: z.coerce.number().min(2, {
@@ -224,6 +229,8 @@ const BookingForm = () => {
 
   return (
     <div>
+      <BookingTest />
+      <MyButtonComponent />
       <div className="flex items-center  justify-between ml-10 mt-5">
         {!id && <h1 className="text-2xl font-bold ">Add Booking </h1>}
         {id && <h1 className="text-2xl font-bold ">Update Booking </h1>}

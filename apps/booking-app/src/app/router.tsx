@@ -28,6 +28,7 @@ import AvailableRooms from './bookings/roomcheck/page'
 import AvailableRoomsRoute from './bookings/roomcheck/page'
 import AddRoomdetailsPage from './roomdetails/add/page'
 import RoomDetailsViewPage from './roomdetails/[id]/page'
+import LoginForm from './bookings/_components/form/tanstack'
 
 // const getRoutes = (children: any[]) => {
 //    const res =  children &&
@@ -47,6 +48,7 @@ export const router = createBrowserRouter(
       <Route path="bookings" element={<BookingListPage />} />
       <Route path="booking">
         <Route path="add" element={<AddBookingPage />} />
+        <Route path="tanstack" element={<LoginForm />} />
         <Route path="available-rooms" element={<AvailableRoomsRoute />} />
         <Route path=":id" element={<BookingViewPge />} />
       </Route>
