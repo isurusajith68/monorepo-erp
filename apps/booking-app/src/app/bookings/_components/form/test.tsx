@@ -12,19 +12,19 @@ const BookingForm = () => {
       console.log(value)
     },
   })
-  // const [formData, setFormData] = useState({
-  //   name: '',
-  //   email: '',
-  //   password: '',
-  // })
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  })
 
-  // const handleChange = (e: any) => {
-  //   const { name, value } = e.target
-  //   setFormData({
-  //     ...formData,
-  //     [name]: value,
-  //   })
-  // }
+  const handleChange = (e: any) => {
+    const { name, value } = e.target
+    setFormData({
+      ...formData,
+      [name]: value,
+    })
+  }
 
   // const handleSubmit = (e: any) => {
   //   e.preventDefault()
