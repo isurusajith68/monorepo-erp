@@ -32,11 +32,18 @@ import {
   useInsertBookingMutation,
   useUpdateBookingMutation,
 } from '../../_services/mutation'
+
 import {
   useGetBooking,
   useGetNextBooking,
   useGetPrevBooking,
 } from '../../_services/queries'
+import RoomSelectionDialog from '../RoomSelectionDialog'
+// import 'react-component-library/dist/style.css';
+import { MyButtonComponent } from 'react-component-library'
+//  import 'booking-form/dist/style.css';
+
+import { BookingTest } from 'booking-form'
 
 const formSchema = z.object({
   roomnumber: z.coerce.number().min(2, {
@@ -222,6 +229,8 @@ const BookingForm = () => {
 
   return (
     <div>
+      <BookingTest />
+      <MyButtonComponent />
       <div className="flex items-center  justify-between ml-10 mt-5">
         {!id && <h1 className="text-2xl font-bold ">Add Booking </h1>}
         {id && <h1 className="text-2xl font-bold ">Update Booking </h1>}
@@ -275,25 +284,6 @@ const BookingForm = () => {
                 <div className=" w-full grid grid-cols-3 gap-4 ">
                   <FormField
                     control={form.control}
-                    name="roomnumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Room Number</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            className="rounded border-2 border-green-600 bg-white"
-                            placeholder=""
-                            {...field}
-                          />
-                        </FormControl>
-
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
                     name="checkin"
                     render={({ field }) => (
                       <FormItem>
@@ -344,9 +334,29 @@ const BookingForm = () => {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="roomnumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Room Number</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            className="rounded border-2 border-green-600 bg-white"
+                            placeholder=""
+                            {...field}
+                          />
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
                 <div className="w-full grid grid-cols-3 gap-4">
-                  <FormField
+                  {/* <FormField
                     control={form.control}
                     name="adultcount"
                     render={({ field }) => (
@@ -364,8 +374,8 @@ const BookingForm = () => {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
-                  <FormField
+                  /> */}
+                  {/* <FormField
                     control={form.control}
                     name="childrencount"
                     render={({ field }) => (
@@ -383,7 +393,7 @@ const BookingForm = () => {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                  /> */}
                   <FormField
                     control={form.control}
                     name="bookingdate"
@@ -410,8 +420,6 @@ const BookingForm = () => {
                       </FormItem>
                     )}
                   />
-                </div>
-                <div className="w-full grid grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
                     name="telephone"
@@ -450,7 +458,9 @@ const BookingForm = () => {
                       </FormItem>
                     )}
                   />
-                  <FormField
+                </div>
+                <div className="w-full grid grid-cols-3 gap-4">
+                  {/* <FormField
                     control={form.control}
                     name="roomprice"
                     render={({ field }) => (
@@ -468,7 +478,7 @@ const BookingForm = () => {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                  /> */}
                 </div>
               </div>
 

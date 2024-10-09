@@ -95,7 +95,9 @@ app.put('/bookings/:id', (req, res) => {
   }
 
   // Construct the SQL query
-  const updateSQL = `UPDATE booking SET ${colDefs.join(', ')} WHERE id = $${colDefs.length + 1} RETURNING *`
+  const updateSQL = `UPDATE booking SET ${colDefs.join(', ')} WHERE id = $${
+    colDefs.length + 1
+  } RETURNING *`
 
   // Execute the update query
   pool
@@ -301,7 +303,9 @@ app.put('/registrations/:id', (req, res) => {
   }
 
   // Construct the SQL query
-  const updateSQL = `UPDATE registration SET ${colDefs.join(', ')} WHERE id = $${colDefs.length + 1} RETURNING *`
+  const updateSQL = `UPDATE registration SET ${colDefs.join(
+    ', ',
+  )} WHERE id = $${colDefs.length + 1} RETURNING *`
 
   // Execute the update query
   pool
@@ -521,4 +525,128 @@ app.get('/booking-by-phone/:phone', async (req, res) => {
   }
 })
 
-app.listen(8000, () => console.log('server is running on port 4000'))
+// add booking
+app.post('/roomdetails', (req, res) => {
+  const { roomnumber, roomtype, selectedprice, price, maintenance, roomview } =
+    req.body
+
+  const insertSTMT = `
+      INSERT INTO roomdetails (roomnumber, roomtype, selectedprice, price, maintenance, roomview) 
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id;`
+
+  pool
+    .query(insertSTMT, [
+      roomnumber,
+      roomtype,
+      selectedprice,
+      price,
+      maintenance,
+      roomview,
+    ])
+    .then((response) => {
+      const lastInsertRowid = response.rows[0].id
+      console.log('Room Details saved', lastInsertRowid)
+      res.json({ success: true, msg: '', lastInsertRowid })
+    })
+    .catch((err) => {
+      console.error('Insert failed', err)
+      res.json({
+        success: false,
+        msg: `Insert failed- ${err}`,
+        lastInsertRowid: 0,
+      })
+    })
+})
+
+app.put('/roomdetails/:id', (req, res) => {
+  const { id } = req.params
+  const dirtyfields = req.body
+  console.log('dirtyfields', dirtyfields, id)
+  // Prepare column definitions and values from dirtyfields
+  const colDefs = Object.keys(dirtyfields).map(
+    (field, index) => `${field} = $${index + 1}`,
+  )
+  const values = Object.values(dirtyfields)
+
+  if (colDefs.length === 0) {
+    // No changes to be made, exit early
+    return res.json({ success: false, msg: 'No fields to update' })
+  }
+
+  // Construct the SQL query
+  const updateSQL = `UPDATE roomdetails SET ${colDefs.join(', ')} WHERE id = $${
+    colDefs.length + 1
+  } RETURNING *`
+
+  // Execute the update query
+  pool
+    .query(updateSQL, [...values, id])
+    .then((response) => {
+      if (response.rowCount > 0) {
+        res.json({
+          success: true,
+          msg: 'Room Details updated successfully',
+          updatedBooking: response.rows[0],
+        })
+      } else {
+        res.json({
+          success: false,
+          msg: 'Room Details not found or no changes made',
+        })
+      }
+    })
+    .catch((err) => {
+      console.error('Error executing update query:', err)
+      res.json({
+        success: false,
+        msg: 'Error updating booking',
+        error: err.message,
+      })
+    })
+})
+
+// get booking details by id
+app.get('/roomdetails/:id', (req, res) => {
+  const { id } = req.params
+
+  const getBookingQuery = `SELECT * FROM roomdetails WHERE id = $1`
+
+  pool
+    .query(getBookingQuery, [id])
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const bookingData = response.rows[0]
+        res.json({ success: true, msg: '', data: bookingData })
+      } else {
+        res.json({ success: false, msg: 'Room Details not found', data: {} })
+      }
+    })
+    .catch((err) => {
+      console.error('Error fetching Room Details:', err)
+      res.json({ success: false, msg: 'Error fetching Room Details', data: {} })
+    })
+})
+
+// get all roomdetails
+
+app.get('/allroomdetails', (req, res) => {
+  const getAllRoomDetailsQuery = `SELECT * FROM roomdetails WHERE maintenance=false`
+
+  pool
+    .query(getAllRoomDetailsQuery)
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const roomData = response.rows // Get all rows
+        res.json({ success: true, msg: '', data: roomData })
+      } else {
+        res.json({ success: false, msg: 'No booking found', data: [] })
+      }
+    })
+    .catch((err) => {
+      console.error('Error fetching booking:', err)
+      res.json({ success: false, msg: 'Error fetching booking', data: [] })
+    })
+})
+
+app.listen(4000, () => console.log('server is running on port 4000'))
