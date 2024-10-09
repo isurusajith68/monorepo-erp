@@ -10,6 +10,7 @@ import HomePage from './homepage/page'
 import Role from './role/page'
 import Test from './testfile/page'
 import TanstackForm from './role/_components/form-role-tan'
+import NewFormRole from './role/_components/form-role-new'
 
 // create a browserRouter
 export const router = createBrowserRouter(
@@ -24,6 +25,7 @@ export const router = createBrowserRouter(
       <Route path="/role" element={<Role />}></Route>
       <Route path="/test" element={<Test />}></Route>
       <Route path="/tform" element={<TanstackForm />}></Route>
+      <Route path="/newform" element={<NewFormRole />}></Route>
       {/* this is a public route */}
       <Route path="*" element={<Navigate to="/" />}></Route>
     </Route>,

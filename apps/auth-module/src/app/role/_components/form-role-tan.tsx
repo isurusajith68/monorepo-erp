@@ -28,6 +28,7 @@ import { useGetRoles } from '../_services/queries'
 import { useEffect } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { Label } from '@/components/ui/label'
+import { X } from 'lucide-react'
 
 export const detailRowSchema = z.object({
   rid: z.any().optional(),
@@ -45,6 +46,7 @@ export default function TanstackForm() {
   const form = useForm({
     defaultValues: {
       username: '',
+      interests: [] as { id: string; role: string; description: string }[],
       //   password: '',
       //   confirmPassword: '',
       //   interests: [] as string[],
@@ -80,20 +82,72 @@ export default function TanstackForm() {
           form.handleSubmit()
         }}
       >
-        <form.Field
-          name="username"
-          children={(field) => (
-            <>
-              <Label htmlFor="username">First Name</Label>
-              <Input
-                type="text"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
+        <div className="border-2 rounded-lg border-green-300 p-4 bg-green-100 ">
+          <Table className="">
+            <TableHeader className="rounded-lg border-green-600 gap-0">
+              <TableRow>
+                {/* <TableHead className="text-center">ID</TableHead> */}
+                <TableHead className="text-center">ID</TableHead>
+                <TableHead className="text-center ">ROLE NAME</TableHead>
+                <TableHead className="text-center">DESCRIPTION</TableHead>
+                <TableHead className="text-center">ACTIONS</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              <form.Field
+                name="interests"
+                mode="array"
+                children={(field) => (
+                  <>
+                    {field.state.value.map((_, index) => (
+                      <div key={index} className="flex gap-2 my-2">
+                        <TableRow>
+                          <form.Field
+                            name={`interests[${index}].id`}
+                            children={(subField) => (
+                              <TableCell className="">
+                                <Input
+                                  type="text"
+                                  value={subField.state.value}
+                                  autoFocus
+                                  onChange={(e) =>
+                                    subField.handleChange(e.target.value)
+                                  }
+                                />
+                              </TableCell>
+                            )}
+                          />
+
+                          <Button
+                            variant={'destructive'}
+                            onClick={() => field.removeValue(index)}
+                          >
+                            <X />
+                          </Button>
+                        </TableRow>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant={'outline'}
+                      onClick={() => field.pushValue('')}
+                    >
+                      Add
+                    </Button>
+                  </>
+                )}
               />
-            </>
-          )}
-        />
-        <Button onClick={form.handleSubmit}>Submit</Button>
+
+              {/* ))} */}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="flex justify-end">
+          <Button className="bg-green-600 mt-2" type="submit">
+            Save
+          </Button>
+        </div>
       </form>
     </div>
   )
