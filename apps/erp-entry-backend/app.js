@@ -10,6 +10,8 @@ import { jwtVerify } from 'jose'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import { requireAuth } from './middleware/authMiddleware.js'
+import getUpdateQuery from './utils.js'
+// import { client_encoding } from 'pg/lib/defaults.js'
 
 dotenv.config()
 
@@ -209,18 +211,26 @@ const createSessionToken = (userId) => {
 ////////////////////////////ROLES////////////////////////////////////
 
 app.post('/addrole', (req, res) => {
-  console.log('name', req.body)
+  console.log('name', req.body?.roledetails)
 
-  let fun = async (r) => {
+  const inserts = req.body?.roledetails?.inserts
+  const updates = req.body?.roledetails?.updates
+  const deletes = req.body?.roledetails?.deletes
+  const ignoredRoles = []
+  const insertedRoles = []
+  const updatedRoles = []
+
+  let insert = async (r) => {
     try {
       console.log('hello')
       const sqlCheck = `SELECT 1 as role FROM userroles WHERE role = $1 `
-
       const res1 = await pool.query(sqlCheck, [r.role])
-      console.log('res', res1)
 
       if (res1.rows.length > 0) {
-        return res.send({ success: false, message: 'User already exists' })
+        ignoredRoles.push(r.role)
+        console.log('ignoredRoles', ignoredRoles)
+        console.log(r.role, 'Role already exists')
+        return
       }
 
       const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
@@ -228,55 +238,69 @@ app.post('/addrole', (req, res) => {
         r.role,
         r.description ?? 0,
       ])
-
-      console.log('insrtedData', insrtedData)
-
-      return res.send({
-        success: true,
-        message: 'Role added successfully',
-      })
+      insertedRoles.push(r.role)
     } catch (err) {
       console.log('error is ', err)
       res.send({ success: false, message: err.message })
     }
   }
 
-  for (let a = 0; req.body.roledetails.length > a; a++) {
-    let r = req.body.roledetails[a]
+  let update = async (r) => {
+    try {
+      console.log('hello')
 
-    console.log('r', r)
-    fun(r)
+      const [sqlUpdate, vals] = getUpdateQuery(r, 'roles', 'rid')
+      // 'UPDATE table_name SET role = $1, description = $2, WHERE rid=$3'
+      console.log('sqlUpdate', sqlUpdate)
+      console.log('vals', vals)
+
+      const res1 = await pool.query(sqlUpdate, [r.role])
+
+      // if (res1.rows.length > 0) {
+      //   ignoredRoles.push(r.role)
+      //   console.log('ignoredRoles', ignoredRoles)
+      //   console.log(r.role, 'Role already exists')
+      //   return
+      // }
+
+      // const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
+      // const insrtedData = await pool.query(sqlInsert, [
+      //   r.role,
+      //   r.description ?? 0,
+      // ])
+      // insertedRoles.push(r.role)
+    } catch (err) {
+      console.log('error is ', err)
+      //res.send({ success: false, message: err.message })
+    }
   }
 
-  // req.body.roledetails.map(async (r) => {
-  //   try {
-  //     console.log("hello")
-  //     const sqlCheck = `SELECT 1 as role FROM userroles WHERE role = $1 `
+  async function processInsert() {
+    if (inserts != undefined) {
+      for (let a = 0; inserts.length > a; a++) {
+        let r = inserts[a]
+        await insert(r)
+      }
 
-  //     const res1 = await pool.query(sqlCheck, [r.role])
-  //     console.log('res', res1)
+      return res.send({
+        success: true,
+        ignoredRoles: ignoredRoles,
+        insertedRoles: insertedRoles,
+        message: 'Role added successfully',
+      })
+    }
+  }
+  processInsert()
 
-  //     if (res1.rows.length > 0) {
-  //       return res.send({ success: false, message: 'User already exists' })
-  //     }
-
-  //     const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
-  //     const insrtedData = await pool.query(sqlInsert, [
-  //       r.role,
-  //       r.description ?? 0,
-  //     ])
-
-  //     console.log('insrtedData', insrtedData)
-
-  //     return res.send({
-  //       success: true,
-  //       message: 'Role added successfully',
-  //     })
-  //   } catch (err) {
-  //     console.log('error is ', err)
-  //     res.send({ success: false, message: err.message })
-  //   }
-  // })
+  async function processUpdate() {
+    if (updates != undefined) {
+      for (let a = 0; updates.length > a; a++) {
+        let r = updates[a]
+        await update(r)
+      }
+    }
+  }
+  processUpdate()
 })
 
 app.get('/getroles', (req, res) => {

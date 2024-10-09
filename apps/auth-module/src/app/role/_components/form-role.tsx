@@ -59,12 +59,30 @@ export default function FormRole() {
     formState: { isDirty, dirtyFields },
     setValue,
     reset,
+    watch,
   } = form
 
   const { fields, append, remove } = useFieldArray({
     name: 'roledetails',
     control: form.control,
   })
+  const watchFields = watch('roledetails')
+
+  useEffect(() => {
+    // const dirtyFields = { ...customDirtyFields }
+
+    watchFields.forEach((field, index) => {
+      // Example custom logic: If the name has changed from the default, mark it as dirty
+      // if (field.name !== fields[index]?.name) {
+      //   dirtyFields[index] = true
+      // } else {
+      //   delete dirtyFields[index] // If it's not dirty, remove it from the dirtyFields object
+      // }
+      console.log('fieldsss', field)
+    })
+
+    //setCustomDirtyFields(dirtyFields)
+  }, [watchFields])
 
   const { mutate, data: datamute } = useMuate()
   const { data: roles } = useGetRoles()
@@ -104,9 +122,9 @@ export default function FormRole() {
       { arrayName: 'roledetails', pkName: 'rid' },
     ])
 
-    console.log('out', out?.roledetails?.inserts)
+    //console.log('out', out?.roledetails?.inserts)
 
-    mutate(out?.roledetails?.inserts)
+    mutate(out)
 
     reset({}, { keepValues: true })
     // const editedRows = fields.filter((_, index) => {
@@ -183,11 +201,10 @@ export default function FormRole() {
       }
     })
 
-    console.log('dirtyValues', dirtyValues)
     if (rootPkName && Object.keys(dirtyValues).length > 0) {
       dirtyValues[rootPkName] = allValues[rootPkName]
     }
-
+    console.log('dirtyValues-last', dirtyValues)
     if (Object.keys(dirtyValues).length > 0) {
       return dirtyValues
     } else {
