@@ -17,9 +17,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useGetAllRoomDetails } from '@/app/roomdetails/_services/queries'
+import { CloudDownload } from 'lucide-react'
+import BookingForm from './booking-form'
+import { useState } from 'react'
 
 const AvailableRooms = () => {
   const navigate = useNavigate()
+  const { data, isLoading } = useGetAllRoomDetails()
+  const [selectedRooms, setSelectedRooms] = useState<string[]>([])
+  console.log('pasindu', data)
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
   return (
     <>
       <div className="flex items-center  justify-between ml-10 mt-5">
@@ -101,19 +112,26 @@ const AvailableRooms = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell className="text-center">034</TableCell>
-              <TableCell className="text-center">Deluxe</TableCell>
-              <TableCell className="text-center">Ocean</TableCell>
-              <TableCell className="text-center">FB Price</TableCell>
-              <TableCell className="text-center">1200 LKR</TableCell>
-              <TableCell className="text-center">none</TableCell>
-              {/* <TableCell className="text-center">Credit Card</TableCell> */}
-              {/* <TableCell className="text-center">$250.00</TableCell> */}
-            </TableRow>
+            {data?.map((room) => (
+              <TableRow>
+                <TableCell className="text-center">{room.roomnumber}</TableCell>
+                <TableCell className="text-center">{room.roomtype}</TableCell>
+                <TableCell className="text-center">{room.roomview}</TableCell>
+                <TableCell className="text-center">
+                  {room.selectedprice}
+                </TableCell>
+                <TableCell className="text-center">{room.price}</TableCell>
+                <TableCell className="text-center">
+                  {room.maintenance || 'none'}
+                </TableCell>
+                {/* <TableCell className="text-center">Credit Card</TableCell> */}
+                {/* <TableCell className="text-center">$250.00</TableCell> */}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
+      {/* Add BookingForm with selectedRooms */}
     </>
   )
 }
