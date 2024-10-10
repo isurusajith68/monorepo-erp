@@ -30,7 +30,8 @@
     "react-dom": "^18.2.0",
     "react-icons": "^5.3.0",
     "tailwind-merge": "^2.5.3",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "test-booking": "workspace:^"
   },
   "devDependencies": {
     "@remix-run/dev": "^2.12.1",
