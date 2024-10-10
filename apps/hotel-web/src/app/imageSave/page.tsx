@@ -1,40 +1,39 @@
+'use client'
 
-"use client";
-
-import { useForm, Controller } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
-import { insertPurchase } from "./_actions/action";
+import { useForm, Controller } from 'react-hook-form'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { useState, useEffect } from 'react'
+import { insertPurchase } from './_actions/action'
 // import {
 //   DeletePurchaseImage,
 //   getImage,
 // } from "@/components/features/purchase/purchase-action";
 
 export type FileRecord = {
-  id?: number;
-  file?: File | null;
-  title?: string | null;
-};
+  id?: number
+  file?: File | null
+  title?: string | null
+}
 
 export default function PayBillForm({
   invoiceid,
   setParentFileRecords,
 }: {
-  invoiceid: number | null;
-  setParentFileRecords: any;
+  invoiceid: number | null
+  setParentFileRecords: any
 }) {
-  const { handleSubmit, control, reset } = useForm();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [fileRecords, setFileRecords] = useState<FileRecord[]>([]);
-  const [previewImages, setPreviewImages] = useState<any>([]);
-  const [previewImageUrl, setPreviewImageUrl] = useState<string | null[]>([]); // State for preview
+  const { handleSubmit, control, reset } = useForm()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [fileRecords, setFileRecords] = useState<FileRecord[]>([])
+  const [previewImages, setPreviewImages] = useState<any>([])
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null[]>([]) // State for preview
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState<number | null>(
-    null
-  ); // State for currently viewed image
-  const [imageId, setImageId] = useState<number | null>(null);
+    null,
+  ) // State for currently viewed image
+  const [imageId, setImageId] = useState<number | null>(null)
 
   //this working only file selecting
 
@@ -42,76 +41,74 @@ export default function PayBillForm({
     //set valuse for the current component
     if (event.target.files) {
       //console.log("event.target.value", event.target.value);
-      const selectedFiles = Array.from(event.target.files); //get selected files
-      setFileRecords((prevRecords:any) => [
+      const selectedFiles = Array.from(event.target.files) //get selected files
+      setFileRecords((prevRecords: any) => [
         //adding previous selected items to new selected items
         ...prevRecords,
-        ...selectedFiles.map((file) => ({ id: null, file, title: "" })),
-      ]);
+        ...selectedFiles.map((file) => ({ id: null, file, title: '' })),
+      ])
 
-      setParentFileRecords((prevRecords:any) => [
+      setParentFileRecords((prevRecords: any) => [
         //setvalues for the parent componet
         ...prevRecords,
-        ...selectedFiles.map((file) => ({ id: null, file, title: "" })),
-      ]);
+        ...selectedFiles.map((file) => ({ id: null, file, title: '' })),
+      ])
     }
-  };
+  }
 
   useEffect(() => {
     //this intialy work but not showing image.y-> no any selected images
     const imageUrls = fileRecords //getting image urls by maping filerecords
       .map((fileRecord) => {
-        console.log("ppp", fileRecord.file?.type);
-        return fileRecord.file?.type.startsWith("image/")
+        console.log('ppp', fileRecord.file?.type)
+        return fileRecord.file?.type.startsWith('image/')
           ? URL.createObjectURL(fileRecord.file)
-          : null;
-      });
-    console.log("imageUrlsqqq", fileRecords);
-    setPreviewImages(imageUrls); //set priew image list of array
+          : null
+      })
+    console.log('imageUrlsqqq', fileRecords)
+    setPreviewImages(imageUrls) //set priew image list of array
     //console.log("fileRecs", fileRecords);
     // Clean up object URLs on component unmount
     return () => {
-      previewImages.forEach((url) => URL.revokeObjectURL(url)); //make image urls for each image
-    };
-  }, [fileRecords]);
+      previewImages.forEach((url) => URL.revokeObjectURL(url)) //make image urls for each image
+    }
+  }, [fileRecords])
 
   const removeImage = async (index: number) => {
-    const delID = fileRecords[index].id;
+    const delID = fileRecords[index].id
     if (delID) {
-      const del = await DeletePurchaseImage(delID);
+      const del = await DeletePurchaseImage(delID)
       if (del.success) {
         setPreviewImages((prevImages) => [
           ...prevImages.slice(0, index),
           ...prevImages.slice(index + 1),
-        ]);
+        ])
         setFileRecords((prevRecords) => [
           ...prevRecords.slice(0, index),
           ...prevRecords.slice(index + 1),
-        ]);
+        ])
       }
     } else {
       setPreviewImages((prevImages) => [
         ...prevImages.slice(0, index),
         ...prevImages.slice(index + 1),
-      ]);
+      ])
       setFileRecords((prevRecords) => [
         ...prevRecords.slice(0, index),
         ...prevRecords.slice(index + 1),
-      ]);
+      ])
     }
-  };
+  }
 
   const openModal = (index: number) => {
-    setCurrentImageIndex(index); // Set the index of the image to be viewed
-    setIsModalOpen(true);
-  };
+    setCurrentImageIndex(index) // Set the index of the image to be viewed
+    setIsModalOpen(true)
+  }
 
   const closeModal = () => {
-    setIsModalOpen(false);
-    setCurrentImageIndex(null); // Reset current image index
-  };
-
-
+    setIsModalOpen(false)
+    setCurrentImageIndex(null) // Reset current image index
+  }
 
   // useEffect(() => {
   //   if (imageId !== null) {
@@ -190,30 +187,30 @@ export default function PayBillForm({
 
   useEffect(() => {
     //testing
-    console.log("previewImageUrl", previewImages);
-  }, [previewImages]);
+    console.log('previewImageUrl', previewImages)
+  }, [previewImages])
 
   const ontitleChange = (e: any, index: any) => {
     //console.log("index", e, index);
 
     setFileRecords((p) => {
-      const newfr = { ...p[index], title: e.target.value };
+      const newfr = { ...p[index], title: e.target.value }
       if (fileRecords.length == 0) {
-        return [newfr];
+        return [newfr]
       } else {
-        return [...p.slice(0, index), newfr, ...p.slice(index + 1)];
+        return [...p.slice(0, index), newfr, ...p.slice(index + 1)]
       }
-    });
+    })
 
     setParentFileRecords((p) => {
-      const newfr = { ...p[index], title: e.target.value };
+      const newfr = { ...p[index], title: e.target.value }
       if (fileRecords.length == 0) {
-        return [newfr];
+        return [newfr]
       } else {
-        return [...p.slice(0, index), newfr, ...p.slice(index + 1)];
+        return [...p.slice(0, index), newfr, ...p.slice(index + 1)]
       }
-    });
-  };
+    })
+  }
 
   return (
     <>
@@ -266,5 +263,5 @@ export default function PayBillForm({
         </div>
       )}
     </>
-  );
+  )
 }

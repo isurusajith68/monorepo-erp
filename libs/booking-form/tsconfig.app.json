@@ -7,7 +7,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./lib/*"]
+      "@/*": ["./src/*"]
     },
 
     /* Bundler mode */
@@ -24,5 +24,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["lib"]
+  "include": ["src"]
 }

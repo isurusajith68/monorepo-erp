@@ -1,20 +1,23 @@
-import React from 'react';
-import { FaBinoculars, FaSwimmingPool, FaCompass, FaMapMarkedAlt } from 'react-icons/fa';
+import React from 'react'
+import {
+  FaBinoculars,
+  FaSwimmingPool,
+  FaCompass,
+  FaMapMarkedAlt,
+} from 'react-icons/fa'
 
 interface Service {
-  id: number;
-  imageUrl: string;
-  serviceTitle: string;
-  serviceDescription: string;
+  id: number
+  imageUrl: string
+  serviceTitle: string
+  serviceDescription: string
 }
 
 interface ServicePageProps {
-  services: Service[];
+  services: Service[]
 }
 
-export default function FacilitiesSection({services}: ServicePageProps) {
-  
-
+export default function FacilitiesSection({ services }: ServicePageProps) {
   return (
     <section className="bg-gray-100 py-16">
       <div className="container mx-auto text-center mb-12">
@@ -26,15 +29,15 @@ export default function FacilitiesSection({services}: ServicePageProps) {
         {services.map((facility, index) => (
           <div key={index} className="flex items-center">
             <div className="text-yellow-600 mr-4">
-            <div className="">
-                  <img
-                    src={facility.imageUrl}
-                    alt="icon"
-                    width={30}
-                    height={30}
-                    className="ml-[45%]"
-                  />
-                </div>
+              <div className="">
+                <img
+                  src={facility.imageUrl}
+                  alt="icon"
+                  width={30}
+                  height={30}
+                  className="ml-[45%]"
+                />
+              </div>
             </div>
             <div>
               <h3 className="text-xl font-semibold">{facility.serviceTitle}</h3>
@@ -44,5 +47,5 @@ export default function FacilitiesSection({services}: ServicePageProps) {
         ))}
       </div>
     </section>
-  );
+  )
 }

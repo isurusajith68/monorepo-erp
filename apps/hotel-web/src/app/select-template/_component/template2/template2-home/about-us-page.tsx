@@ -1,5 +1,5 @@
-import React from "react";
-import Image from "next/image";
+import React from 'react'
+import Image from 'next/image'
 
 function AboutUsPage({ formData }: { formData: any }) {
   return (
@@ -35,8 +35,8 @@ function AboutUsPage({ formData }: { formData: any }) {
                   alt={`Preview ${index + 1}`}
                   className={`object-cover rounded-lg transition-transform duration-300 ease-in-out hover:scale-105 ${
                     index === 0
-                      ? "col-span-2 row-span-2 w-full h-full"
-                      : "w-full h-full"
+                      ? 'col-span-2 row-span-2 w-full h-full'
+                      : 'w-full h-full'
                   }`}
                 />
               ))}
@@ -44,7 +44,7 @@ function AboutUsPage({ formData }: { formData: any }) {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default AboutUsPage;
+export default AboutUsPage

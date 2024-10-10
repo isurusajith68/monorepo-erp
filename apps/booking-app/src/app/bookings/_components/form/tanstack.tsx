@@ -20,8 +20,8 @@ export default function LoginForm() {
       username: '',
       password: '',
     },
-    onSubmit: ({ values }) => {
-      console.log(values)
+    onSubmit: ({ value }) => {
+      console.log(value)
     },
   })
   return (
@@ -78,10 +78,12 @@ export default function LoginForm() {
         </form>
       </CardContent>
       <CardFooter className="justify-between">
-        <Button onClick={form.handleSubmit} className="w-1/3">
+        <Button onClick={form.reset} className="w-1/3">
           Reset
         </Button>
-        <Button className="w-1/3">Sign in</Button>
+        <Button onClick={form.handleSubmit} className="w-1/3">
+          Sign in
+        </Button>
       </CardFooter>
     </Card>
   )

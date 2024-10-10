@@ -5,8 +5,9 @@
     "**/.server/**/*.ts",
     "**/.server/**/*.tsx",
     "**/.client/**/*.ts",
-    "**/.client/**/*.tsx"
-, "app/routes/home/_component/check-availability.tsx"  ],
+    "**/.client/**/*.tsx",
+    "app/routes/home/_component/check-availability.tsx"
+  ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["@remix-run/node", "vite/client"],

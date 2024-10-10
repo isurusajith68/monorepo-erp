@@ -1,22 +1,22 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 
 const Home = ({ data, image }: any) => {
-  const Data = data;
-  console.log("Hotel Data:", Data);
+  const Data = data
+  console.log('Hotel Data:', Data)
 
-  const Image = image;
-  console.log("Image Data:", Image);
+  const Image = image
+  console.log('Image Data:', Image)
 
   return (
     <div>
@@ -29,25 +29,39 @@ const Home = ({ data, image }: any) => {
               <div className="container mx-auto flex justify-between py-4 items-center">
                 <div className="flex items-center">
                   <h1 className="text-2xl font-bold text-yellow-400 ml-10">
-                    {hotel.data.data?.name || "Hotel Name"}
+                    {hotel.data.data?.name || 'Hotel Name'}
                   </h1>
                 </div>
                 <div className="hidden md:flex space-x-4">
-          <a href="#" className="hover:text-yellow-400">Home</a>
-          <a href="#" className="hover:text-yellow-400">About</a>
-          <a href="#" className="hover:text-yellow-400">Services</a>
-          <a href="#" className="hover:text-yellow-400">Rooms</a>
-          <a href="#" className="hover:text-yellow-400">Contact</a>
-        </div>
-        <button />
-      </div>
-      <div className="bg-gray-100 py-2 text-center">
-        <p className="text-blue-900">
-          <i className="fa fa-envelope mr-2">{hotel.data.data?.phone}</i> |
-          <i className="fa fa-phone-alt ml-4 mr-2">{hotel.data.data?.email}</i>
-        </p>
-      </div>
-
+                  <a href="#" className="hover:text-yellow-400">
+                    Home
+                  </a>
+                  <a href="#" className="hover:text-yellow-400">
+                    About
+                  </a>
+                  <a href="#" className="hover:text-yellow-400">
+                    Services
+                  </a>
+                  <a href="#" className="hover:text-yellow-400">
+                    Rooms
+                  </a>
+                  <a href="#" className="hover:text-yellow-400">
+                    Contact
+                  </a>
+                </div>
+                <button />
+              </div>
+              <div className="bg-gray-100 py-2 text-center">
+                <p className="text-blue-900">
+                  <i className="fa fa-envelope mr-2">
+                    {hotel.data.data?.phone}
+                  </i>{' '}
+                  |
+                  <i className="fa fa-phone-alt ml-4 mr-2">
+                    {hotel.data.data?.email}
+                  </i>
+                </p>
+              </div>
 
               {/* Background Image Section */}
               {Image.length > 0 && Image[0].image && (
@@ -63,7 +77,7 @@ const Home = ({ data, image }: any) => {
                       Luxury Living
                     </p>
                     <h1 className="text-5xl font-bold mb-6">
-                    {hotel.data.data?.title}
+                      {hotel.data.data?.title}
                     </h1>
                     <div className="flex space-x-4">
                       <button className="bg-yellow-500 text-black px-6 py-3 rounded-lg hover:bg-yellow-600">
@@ -137,7 +151,7 @@ const Home = ({ data, image }: any) => {
         <p>No hotel data found.</p>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home

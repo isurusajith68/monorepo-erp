@@ -1,20 +1,20 @@
-"use clinet";
+'use clinet'
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react'
 
 function AboutUsPage({ aboutFormData }: any) {
-  const [aboutimage, setimgUrl] = useState<any[]>([]);
+  const [aboutimage, setimgUrl] = useState<any[]>([])
 
   useEffect(() => {
     if (aboutFormData?.aboutimages?.length > 0) {
       const imageUrls = aboutFormData.aboutimages.map((image: any) =>
-        URL.createObjectURL(image.file)
-      );
-      setimgUrl(imageUrls);
+        URL.createObjectURL(image.file),
+      )
+      setimgUrl(imageUrls)
     }
-  }, [aboutFormData]);
+  }, [aboutFormData])
 
-  console.log("yyyyyyyyyyyyy", aboutimage);
+  console.log('yyyyyyyyyyyyy', aboutimage)
   return (
     <section className="py-16 bg-gray-100">
       <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10 mr-5">
@@ -25,7 +25,8 @@ function AboutUsPage({ aboutFormData }: any) {
             <div className="bg-yellow-500 w-16 h-0.5 mt-3 ml-2"></div>
           </div>
           <h2 className="text-3xl font-bold text-gray-800 mb-4">
-            Welcome to <span className="text-yellow-500">{aboutFormData.name}</span>
+            Welcome to{' '}
+            <span className="text-yellow-500">{aboutFormData.name}</span>
           </h2>
           <p className="text-gray-600 mb-6">{aboutFormData.description}</p>
 
@@ -69,19 +70,19 @@ function AboutUsPage({ aboutFormData }: any) {
                 alt={`Preview ${index + 1}`}
                 className={`object-cover rounded-lg ${
                   index === 0
-                    ? "w-[100%] h-[110%] mt-10"
+                    ? 'w-[100%] h-[110%] mt-10'
                     : index === 1
-                    ? "w-[120%] h-[120%] mr-5"
+                    ? 'w-[120%] h-[120%] mr-5'
                     : index === 2
-                    ? "w-[80%] h-[80%] mt-20 ml-10"
-                    : "w-[80%] h-[80%] mt-10"
+                    ? 'w-[80%] h-[80%] mt-20 ml-10'
+                    : 'w-[80%] h-[80%] mt-10'
                 }`}
               />
             ))}
         </div>
       </div>
     </section>
-  );
+  )
 }
 
-export default AboutUsPage;
+export default AboutUsPage

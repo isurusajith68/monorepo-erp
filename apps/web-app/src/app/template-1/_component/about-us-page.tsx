@@ -1,6 +1,6 @@
 function AboutUsPage({ data, image }: any) {
-  const Image = image;
-  console.log("Image Data:", Image);
+  const Image = image
+  console.log('Image Data:', Image)
 
   return (
     <section className="py-16 bg-gray-100">
@@ -17,11 +17,11 @@ function AboutUsPage({ data, image }: any) {
                   <div className="bg-yellow-500 w-16 h-0.5 mt-3 ml-2"></div>
                 </div>
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">
-                  Welcome to{" "}
+                  Welcome to{' '}
                   <span className="text-yellow-500">{item.data.data.name}</span>
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  {" "}
+                  {' '}
                   {item.data.aboutFormData.description}
                 </p>
 
@@ -55,37 +55,36 @@ function AboutUsPage({ data, image }: any) {
                   </button>
                 </div>
               </div>
-            
 
-            {/* Check if there are any images */}
-            <div className="grid grid-cols-2 grid-rows-2 gap-4 mr-5">
-              {Image.length > 0 ? (
-                Image.map(
-                  (hotel: any, index: any) =>
-                    hotel.aboutimages && ( // Only render if aboutimage exists
-                      <img
-                        key={index}
-                        src={hotel.aboutimages}
-                        alt={`Preview ${index + 1}`}
-                        className={`object-cover rounded-lg ${
-                          index === 0
-                            ? "w-[90%] h-[110%] mt-10"
-                            : index === 1
-                            ? "w-[80%] h-[110%]"
-                            : index === 2
-                            ? "w-[60%] h-[60%] mt-20 -ml-10 "
-                            : index === 3
-                            ? "w-[70%] h-[100%] ml-16 mt-5"
-                            : "w-[70%] h-[100%]"
-                        }`}
-                      />
-                    )
-                )
-              ) : (
-                <p>No images found.</p>
-              )}
+              {/* Check if there are any images */}
+              <div className="grid grid-cols-2 grid-rows-2 gap-4 mr-5">
+                {Image.length > 0 ? (
+                  Image.map(
+                    (hotel: any, index: any) =>
+                      hotel.aboutimages && ( // Only render if aboutimage exists
+                        <img
+                          key={index}
+                          src={hotel.aboutimages}
+                          alt={`Preview ${index + 1}`}
+                          className={`object-cover rounded-lg ${
+                            index === 0
+                              ? 'w-[90%] h-[110%] mt-10'
+                              : index === 1
+                              ? 'w-[80%] h-[110%]'
+                              : index === 2
+                              ? 'w-[60%] h-[60%] mt-20 -ml-10 '
+                              : index === 3
+                              ? 'w-[70%] h-[100%] ml-16 mt-5'
+                              : 'w-[70%] h-[100%]'
+                          }`}
+                        />
+                      ),
+                  )
+                ) : (
+                  <p>No images found.</p>
+                )}
+              </div>
             </div>
-           </div>
             {/* <div className="grid grid-cols-2 grid-rows-2 gap-4 mr-5">
           {item.aboutFormData.aboutimageUrls &&
             item.aboutFormData.aboutimageUrls.map((imageUrl: any, index: any) => (
@@ -111,7 +110,7 @@ function AboutUsPage({ data, image }: any) {
         <p>No hotel data found.</p>
       )}
     </section>
-  );
+  )
 }
 
-export default AboutUsPage;
+export default AboutUsPage

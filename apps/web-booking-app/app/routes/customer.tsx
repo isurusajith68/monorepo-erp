@@ -1,6 +1,6 @@
 // app/routes/customer.tsx
 
-import { Outlet, Link } from "@remix-run/react";
+import { Outlet, Link } from '@remix-run/react'
 
 export default function CustomerLayout() {
   return (
@@ -16,9 +16,8 @@ export default function CustomerLayout() {
           </li>
         </ul>
       </nav>
-      
+
       {/* Renders nested routes */}
-    
     </div>
-  );
+  )
 }

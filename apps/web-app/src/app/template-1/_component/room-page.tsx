@@ -1,32 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react'
 
 function RoomPage({ data, image }: any) {
-  const [combinedData, setCombinedData] = useState([]); // State to store combined services and images
+  const [combinedData, setCombinedData] = useState([]) // State to store combined services and images
 
   useEffect(() => {
     if (data && data.length > 0 && image && image.length > 0) {
       // Extract serviceFormData from data
       const mappedServices = data
         .map((item: any) => item.data.roomsFormData || [])
-        .flat();
+        .flat()
 
       // Extract serviceimages from image and ensure each service has a corresponding image
       const mappedImages = image
         .map((hotel: any) => hotel.roomimages || [])
         .flat()
-        .filter((img: any) => img.length > 0);
+        .filter((img: any) => img.length > 0)
 
       // Combine services and images into a single array
       const combined = mappedServices.map((service: any, index: number) => ({
         ...service, // Spread service data
         roomimage: mappedImages[index] || null, // Add corresponding image or null if no image
-      }));
+      }))
 
-      setCombinedData(combined); // Set combined data to state
+      setCombinedData(combined) // Set combined data to state
     }
-  }, [data, image]);
+  }, [data, image])
 
-  console.log("nnnnnnnnnnnnnnroom", combinedData);
+  console.log('nnnnnnnnnnnnnnroom', combinedData)
 
   return (
     <div>
@@ -110,7 +110,7 @@ function RoomPage({ data, image }: any) {
         </div>
       </section>
     </div>
-  );
+  )
 }
 
-export default RoomPage;
+export default RoomPage

@@ -3,8 +3,8 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/accordion'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -13,70 +13,73 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import React, { useState, useEffect } from "react";
+} from '@/components/ui/table'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import React, { useState, useEffect } from 'react'
 
-export default function ServiceForm({serviceFormData, handleServiceFormDataChange,}: any) {
-  const [serviceRows, setServiceRows] = useState(serviceFormData || []);
+export default function ServiceForm({
+  serviceFormData,
+  handleServiceFormDataChange,
+}: any) {
+  const [serviceRows, setServiceRows] = useState(serviceFormData || [])
 
   // Update serviceRows whenever serviceFormData changes
   useEffect(() => {
-    setServiceRows(serviceFormData);
-  }, [serviceFormData]);
+    setServiceRows(serviceFormData)
+  }, [serviceFormData])
 
   // Handle change in the form and pass the updated data to the parent
   const handleChange = (
     index: number,
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    const { name, files, value } = event.target;
-    const updatedServices = [...serviceRows];
+    const { name, files, value } = event.target
+    const updatedServices = [...serviceRows]
 
     // Update the service field for text inputs
-    if (name !== "image") {
+    if (name !== 'image') {
       updatedServices[index] = {
         ...updatedServices[index],
         [name]: value,
-      };
+      }
     }
 
     // Handle file upload for the specific service
-    if (name === "image" && files) {
-      const selectedFiles = Array.from(files); // Get selected files
+    if (name === 'image' && files) {
+      const selectedFiles = Array.from(files) // Get selected files
 
       // Update the service row with the new files
       updatedServices[index] = {
         ...updatedServices[index],
         serviceimage: selectedFiles, // Store file info
         imageUrl: selectedFiles.map((file) => URL.createObjectURL(file)), // Create preview URLs
-      };
+      }
     }
 
-    setServiceRows(updatedServices);
-    handleServiceFormDataChange(updatedServices); // Pass updated services to the parent
-  };
+    setServiceRows(updatedServices)
+    handleServiceFormDataChange(updatedServices) // Pass updated services to the parent
+  }
 
   // Add a new service row
   const addServiceRow = () => {
     setServiceRows([
       ...serviceRows,
       {
-        servicetitle: "{Service Title}",
-        servicedescription: "{Service Description}",
+        servicetitle: '{Service Title}',
+        servicedescription: '{Service Description}',
         serviceimage: [], // Initialize as an empty array for new rows
         imageUrl: [], // Initialize as an empty array for new rows
       },
-    ]);
-  };
+    ])
+  }
 
   // Remove a service row by index
   const removeServiceRow = (index: number) => {
-    const updatedServices = serviceRows.filter((_, i) => i !== index);
-    setServiceRows(updatedServices);
-    handleServiceFormDataChange(updatedServices); // Pass updated services to the parent
-  };
+    const updatedServices = serviceRows.filter((_, i) => i !== index)
+    setServiceRows(updatedServices)
+    handleServiceFormDataChange(updatedServices) // Pass updated services to the parent
+  }
 
   return (
     <div>
@@ -104,7 +107,7 @@ export default function ServiceForm({serviceFormData, handleServiceFormDataChang
                       <Input
                         type="text"
                         name="servicetitle" // Ensure correct naming
-                        value={service.servicetitle || ""}
+                        value={service.servicetitle || ''}
                         placeholder="Service Title"
                         onChange={(e) => handleChange(index, e)}
                       />
@@ -112,7 +115,7 @@ export default function ServiceForm({serviceFormData, handleServiceFormDataChang
                     <TableCell>
                       <Textarea
                         name="servicedescription" // Ensure correct naming
-                        value={service.servicedescription || ""}
+                        value={service.servicedescription || ''}
                         placeholder="Service Description"
                         onChange={(e) => handleChange(index, e)}
                       />
@@ -160,5 +163,5 @@ export default function ServiceForm({serviceFormData, handleServiceFormDataChang
         </AccordionItem>
       </Accordion>
     </div>
-  );
+  )
 }
