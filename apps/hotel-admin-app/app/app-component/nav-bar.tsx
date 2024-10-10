@@ -30,7 +30,7 @@ export const description =
 
 const Navbar = () => {
   return (
-    <header className="sticky top-0 z-50 flex h-14 items-center gap-4 border-b  backdrop-blur-md px-4 lg:h-[60px] lg:px-6 bg-blue-400">
+    <header className="fixed top-0 z-50 flex h-14 items-center gap-4 border-b  backdrop-blur-md px-4 lg:h-[60px] lg:px-6 bg-blue-400 w-full">
       {' '}
       {/*bg-white/90*/}
     <div className='flex w-full'>
