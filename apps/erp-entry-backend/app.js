@@ -211,11 +211,11 @@ const createSessionToken = (userId) => {
 ////////////////////////////ROLES////////////////////////////////////
 
 app.post('/addrole', (req, res) => {
-  console.log('name', req.body?.roledetails)
+  console.log('name', req.body?.roles)
 
-  const inserts = req.body?.roledetails?.inserts
-  const updates = req.body?.roledetails?.updates
-  const deletes = req.body?.roledetails?.deletes
+  const inserts = req.body?.roles?.inserts
+  const updates = req.body?.roles?.updates
+  const deletes = req.body?.roles?.deletes
   const ignoredRoles = []
   const insertedRoles = []
   const updatedRoles = []
@@ -249,29 +249,22 @@ app.post('/addrole', (req, res) => {
     try {
       console.log('hello')
 
-      const [sqlUpdate, vals] = getUpdateQuery(r, 'roles', 'rid')
-      // 'UPDATE table_name SET role = $1, description = $2, WHERE rid=$3'
+      const [sqlUpdate, vals] = getUpdateQuery(r, 'userroles', 'rid')
       console.log('sqlUpdate', sqlUpdate)
       console.log('vals', vals)
 
-      const res1 = await pool.query(sqlUpdate, [r.role])
+      const res1 = await pool.query(sqlUpdate, vals)
 
-      // if (res1.rows.length > 0) {
-      //   ignoredRoles.push(r.role)
-      //   console.log('ignoredRoles', ignoredRoles)
-      //   console.log(r.role, 'Role already exists')
-      //   return
-      // }
+      console.log('res1', res1)
 
-      // const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
-      // const insrtedData = await pool.query(sqlInsert, [
-      //   r.role,
-      //   r.description ?? 0,
-      // ])
-      // insertedRoles.push(r.role)
+      if (res1.rowCount > 0) {
+        updatedRoles.push(r)
+        console.log('updatedRoles', updatedRoles)
+        return
+      }
     } catch (err) {
       console.log('error is ', err)
-      //res.send({ success: false, message: err.message })
+      res.send({ success: false, message: err.message })
     }
   }
 
@@ -282,15 +275,25 @@ app.post('/addrole', (req, res) => {
         await insert(r)
       }
 
-      return res.send({
-        success: true,
-        ignoredRoles: ignoredRoles,
-        insertedRoles: insertedRoles,
-        message: 'Role added successfully',
-      })
+      // return res.send({
+      //   success: true,
+      //   ignoredRoles: ignoredRoles,
+      //   insertedRoles: insertedRoles,
+      //   message: 'Role added successfully',
+      // })
     }
   }
   processInsert()
+
+  async function processUpdate() {
+    if (updates != undefined) {
+      for (let a = 0; updates.length > a; a++) {
+        let r = updates[a]
+        await update(r)
+      }
+    }
+  }
+  processUpdate()
 
   async function processUpdate() {
     if (updates != undefined) {

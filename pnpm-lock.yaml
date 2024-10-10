@@ -188,6 +188,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.56.2
         version: 5.56.2(react@18.3.1)
+      '@tanstack/zod-form-adapter':
+        specifier: ^0.33.0
+        version: 0.33.0(zod@3.23.8)
       axios:
         specifier: ^1.7.7
         version: 1.7.7
@@ -2627,6 +2630,11 @@ packages:
 
   '@tanstack/store@0.5.5':
     resolution: {integrity: sha512-EOSrgdDAJExbvRZEQ/Xhh9iZchXpMN+ga1Bnk8Nmygzs8TfiE6hbzThF+Pr2G19uHL6+DTDTHhJ8VQiOd7l4tA==}
+
+  '@tanstack/zod-form-adapter@0.33.0':
+    resolution: {integrity: sha512-vttDPKRb647UdOR3qUSN8bscj8wZibdYE6DR1eUbTmGdDT4OiwA1rDKOEpzmLQSsDbY1vLDAAfANQ1nApHoUFw==}
+    peerDependencies:
+      zod: ^3.x
 
   '@tootallnate/once@1.1.2':
     resolution: {integrity: sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==}
@@ -7915,6 +7923,11 @@ snapshots:
       use-sync-external-store: 1.2.2(react@18.3.1)
 
   '@tanstack/store@0.5.5': {}
+
+  '@tanstack/zod-form-adapter@0.33.0(zod@3.23.8)':
+    dependencies:
+      '@tanstack/form-core': 0.33.0
+      zod: 3.23.8
 
   '@tootallnate/once@1.1.2':
     optional: true
