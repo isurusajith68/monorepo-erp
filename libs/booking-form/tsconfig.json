@@ -7,7 +7,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./lib/*"] // This should be fine for your structure
+      "@/*": ["./src/*"] // This should be fine for your structure
     },
 
     "moduleResolution": "bundler",
@@ -24,6 +24,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["lib"],
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
