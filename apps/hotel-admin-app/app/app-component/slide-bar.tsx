@@ -41,7 +41,7 @@ const Sidebar = () => {
               Dashboard
             </Link>
             <Link
-              to="/hotel-info/20"
+              to="/hotel-info/23"
               className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
             >
               <NotebookPen className="h-4 w-4" />
@@ -69,14 +69,14 @@ const Sidebar = () => {
               Rooms
             </Link>
             <Link
-              to="reports/booked-rooms"
+              to="/room-price-list"
               className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
             >
               <TbReportAnalytics className="h-4 w-4" />
               Room Price
             </Link>
             <Link
-              to="roomdetails/add"
+              to="offers"
               className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
             >
               <TbReportAnalytics className="h-4 w-4" />
