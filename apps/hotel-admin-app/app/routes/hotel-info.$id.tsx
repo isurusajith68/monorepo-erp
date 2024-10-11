@@ -7,7 +7,7 @@ import { client } from "~/db.server";
 export let loader: LoaderFunction = async ({ params }) => {
   const { id } = params;
 
-  console.log("idh", id);
+  console.log("kasun", id);
 
   // Perform the query, using hotelid if needed (e.g., filtering by hotelid)
   const result = await client.query("SELECT * FROM hotelinfo WHERE id = $1",[id]);
@@ -20,16 +20,6 @@ export let loader: LoaderFunction = async ({ params }) => {
   }
    // Return the fetched data from the database
 };
-
-
-// // export async function loader({
-// //   params,
-// // }: LoaderFunctionArgs) {
-// //   params.hotelid; "123"
-// //   console.log("idh", params.hotelid)
-
-// //   return params.hotelid
-// }
 
 
 export async function action({
