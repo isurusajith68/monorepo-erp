@@ -10,6 +10,8 @@ import { jwtVerify } from 'jose'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import { requireAuth } from './middleware/authMiddleware.js'
+import getUpdateQuery from './utils.js'
+// import { client_encoding } from 'pg/lib/defaults.js'
 
 dotenv.config()
 
@@ -34,7 +36,8 @@ app.get('/getData', (req, res) => {
   res.send('car data is stored in cookies')
 })
 
-/////////////////////////////////////////////////////add user//////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+//////////////////////////ADD USER///////////////////////////////
 
 app.post('/registerUser', async (req, res) => {
   const { email, password, role, username } = req.body
@@ -90,15 +93,13 @@ app.post('/registerUser', async (req, res) => {
   }
 })
 
-///////////////////////////////////////////////////login//////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+//////////////////////////LOGIN//////////////////////////////////
 
 // app.post("/login",requireAuth, (req, res1) => {
 app.post('/login', (req, res1) => {
   const { email, password } = req.body
   console.log('Received data:', { password, email })
-
-  // const insert=`INSERT INTO login (email, password)
-  // VALUES ('${email}','${password}');`
 
   const select = `SELECT *
                   FROM users
@@ -173,6 +174,9 @@ app.post('/login', (req, res1) => {
     )
 })
 
+/////////////////////////////////////////////////////////////////
+//////////////////////////LOGOUT/////////////////////////////////
+
 app.get('/logout', (req, res) => {
   try {
     // const cookie = serialize("authToken", "", {
@@ -203,30 +207,111 @@ const createSessionToken = (userId) => {
   return jwt.sign(payload, process.env.JWT_SECRET, options)
 }
 
+/////////////////////////////////////////////////////////////////////
+////////////////////////////ROLES////////////////////////////////////
+
 app.post('/addrole', (req, res) => {
-  console.log('name', req.body.purchasedetails)
+  console.log('name', req.body?.roles)
 
-  req.body.purchasedetails.map(async (r) => {
+  const inserts = req.body?.roles?.inserts
+  const updates = req.body?.roles?.updates
+  const deletes = req.body?.roles?.deletes
+  const ignoredRoles = []
+  const insertedRoles = []
+  const updatedRoles = []
+
+  let insert = async (r) => {
     try {
+      console.log('hello')
       const sqlCheck = `SELECT 1 as role FROM userroles WHERE role = $1 `
-
-      const res1 = await pool.query(sqlCheck, [r.name])
-      console.log('res', res1)
+      const res1 = await pool.query(sqlCheck, [r.role])
 
       if (res1.rows.length > 0) {
-        return res.send({ success: false, message: 'User already exists' })
+        ignoredRoles.push(r.role)
+        console.log('ignoredRoles', ignoredRoles)
+        console.log(r.role, 'Role already exists')
+        return
       }
 
       const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
       const insrtedData = await pool.query(sqlInsert, [
-        r.name,
+        r.role,
         r.description ?? 0,
       ])
-
-      console.log('insrtedData', insrtedData)
+      insertedRoles.push(r.role)
     } catch (err) {
       console.log('error is ', err)
       res.send({ success: false, message: err.message })
+    }
+  }
+
+  let update = async (r) => {
+    try {
+      console.log('hello')
+
+      const [sqlUpdate, vals] = getUpdateQuery(r, 'userroles', 'rid')
+      console.log('sqlUpdate', sqlUpdate)
+      console.log('vals', vals)
+
+      const res1 = await pool.query(sqlUpdate, vals)
+
+      console.log('res1', res1)
+
+      if (res1.rowCount > 0) {
+        updatedRoles.push(r)
+        console.log('updatedRoles', updatedRoles)
+        return
+      }
+    } catch (err) {
+      console.log('error is ', err)
+      res.send({ success: false, message: err.message })
+    }
+  }
+
+  async function processInsert() {
+    if (inserts != undefined) {
+      for (let a = 0; inserts.length > a; a++) {
+        let r = inserts[a]
+        await insert(r)
+      }
+
+      // return res.send({
+      //   success: true,
+      //   ignoredRoles: ignoredRoles,
+      //   insertedRoles: insertedRoles,
+      //   message: 'Role added successfully',
+      // })
+    }
+  }
+  processInsert()
+
+  async function processUpdate() {
+    if (updates != undefined) {
+      for (let a = 0; updates.length > a; a++) {
+        let r = updates[a]
+        await update(r)
+      }
+    }
+  }
+  processUpdate()
+
+  async function processUpdate() {
+    if (updates != undefined) {
+      for (let a = 0; updates.length > a; a++) {
+        let r = updates[a]
+        await update(r)
+      }
+    }
+  }
+  processUpdate()
+})
+
+app.get('/getroles', (req, res) => {
+  const dbquery = `SELECT * FROM userroles;`
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      const roles = { rows: dbres.rows }
+      res.send({ success: true, roles: roles })
     }
   })
 })
