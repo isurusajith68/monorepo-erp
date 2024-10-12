@@ -160,9 +160,6 @@ export default function HotelInfoForm() {
               placeholder="Enter hotel name"
               required
               defaultValue={data.name}
-              onChange={(event) =>
-                console.log(`name changed to: ${event.target.value}`)
-              }
             />
           </div>
 
