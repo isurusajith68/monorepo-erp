@@ -2,9 +2,11 @@
 // import 'test-booking/dist/style.css';
 import {
   BookingPage,
+  CalendarScreen,
   Hello,
   Index,
   MyButtonComponent,
+  RoomSelection,
   Tests,
 } from 'test-booking'
 const Test = () => {
@@ -15,9 +17,10 @@ const Test = () => {
         <Tests/>
 
         <Hello/> */}
-
+      <RoomSelection />
+      <CalendarScreen />
       {/* <Index/> */}
-      <BookingPage />
+      {/* <BookingPage /> */}
       {/* <img src="/img/Capture.jpg" alt="Room" /> */}
     </div>
   )

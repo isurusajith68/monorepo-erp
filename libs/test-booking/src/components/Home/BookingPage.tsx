@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import RoomRates from './RoomRates'
+import GuestInformationForm from './GuestInformationForm'
 
 const rooms = [
   {
@@ -21,7 +22,7 @@ const rooms = [
   { name: 'Standard Rate', price: 'USD 131.00', viewRates: ['RO', 'BB'] },
 ]
 
-;<RoomRates viewRates={rooms[0].viewRates} />
+//  <RoomRates viewRates={rooms[0].viewRates} />
 
 export default function BookingPage() {
   const [expandedRoom, setExpandedRoom] = useState(null)
@@ -68,9 +69,7 @@ export default function BookingPage() {
                   View Rates
                 </button>
               </div>
-              {expandedRoom === room.name && (
-                <RoomRates viewRates={room.viewRates} />
-              )}
+              {expandedRoom === room.name && <RoomRates />}
             </div>
           ))}
         </div>
@@ -87,6 +86,9 @@ export default function BookingPage() {
             <img src="img/Capture7.jpg" alt="Room" />
           </div>
         </div>
+      </div>
+      <div>
+        <GuestInformationForm />
       </div>
     </div>
   )
