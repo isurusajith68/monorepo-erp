@@ -43,7 +43,7 @@ app.post('/registerUser', async (req, res) => {
   const { email, password, role, username } = req.body
 
   try {
-    const sqlCheck = `SELECT 1 as name FROM users WHERE email = $1 `
+    const sqlDelete = `SELECT 1 as name FROM users WHERE email = $1 `
 
     const res1 = await pool.query(sqlCheck, [email])
 
@@ -210,108 +210,108 @@ const createSessionToken = (userId) => {
 /////////////////////////////////////////////////////////////////////
 ////////////////////////////ROLES////////////////////////////////////
 
-app.post('/addrole', (req, res) => {
-  console.log('name', req.body?.roles)
-
+app.post('/addrole', async (req, res) => {
   const inserts = req.body?.roles?.inserts
   const updates = req.body?.roles?.updates
   const deletes = req.body?.roles?.deletes
   const ignoredRoles = []
   const insertedRoles = []
   const updatedRoles = []
-
-  let insert = async (r) => {
-    try {
-      console.log('hello')
+  const deletedRoles = []
+  try {
+    //inserts
+    for (let a = 0; inserts.length > a; a++) {
+      let r = inserts[a]
       const sqlCheck = `SELECT 1 as role FROM userroles WHERE role = $1 `
       const res1 = await pool.query(sqlCheck, [r.role])
 
       if (res1.rows.length > 0) {
         ignoredRoles.push(r.role)
-        console.log('ignoredRoles', ignoredRoles)
-        console.log(r.role, 'Role already exists')
-        return
+      } else {
+        const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
+        const insrtedData = await pool.query(sqlInsert, [
+          r.role,
+          r.description ?? 0,
+        ])
+        insertedRoles.push(r.role)
       }
-
-      const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
-      const insrtedData = await pool.query(sqlInsert, [
-        r.role,
-        r.description ?? 0,
-      ])
-      insertedRoles.push(r.role)
-    } catch (err) {
-      console.log('error is ', err)
-      res.send({ success: false, message: err.message })
     }
-  }
 
-  let update = async (r) => {
-    try {
-      console.log('hello')
+    //updates
 
+    for (let a = 0; updates.length > a; a++) {
+      let r = updates[a]
       const [sqlUpdate, vals] = getUpdateQuery(r, 'userroles', 'rid')
-      console.log('sqlUpdate', sqlUpdate)
-      console.log('vals', vals)
 
       const res1 = await pool.query(sqlUpdate, vals)
 
-      console.log('res1', res1)
-
       if (res1.rowCount > 0) {
         updatedRoles.push(r)
-        console.log('updatedRoles', updatedRoles)
-        return
-      }
-    } catch (err) {
-      console.log('error is ', err)
-      res.send({ success: false, message: err.message })
-    }
-  }
-
-  async function processInsert() {
-    if (inserts != undefined) {
-      for (let a = 0; inserts.length > a; a++) {
-        let r = inserts[a]
-        await insert(r)
-      }
-
-      // return res.send({
-      //   success: true,
-      //   ignoredRoles: ignoredRoles,
-      //   insertedRoles: insertedRoles,
-      //   message: 'Role added successfully',
-      // })
-    }
-  }
-  processInsert()
-
-  async function processUpdate() {
-    if (updates != undefined) {
-      for (let a = 0; updates.length > a; a++) {
-        let r = updates[a]
-        await update(r)
       }
     }
-  }
-  processUpdate()
 
-  async function processUpdate() {
-    if (updates != undefined) {
-      for (let a = 0; updates.length > a; a++) {
-        let r = updates[a]
-        await update(r)
+    //deletes
+
+    for (let a = 0; deletes.length > a; a++) {
+      let r = deletes[a]
+      const sqlDelete = `DELETE FROM userroles WHERE rid=$1; `
+      const res1 = await pool.query(sqlDelete, [r])
+
+      if (res1.rowCount > 0) {
+        deletedRoles.push(r)
       }
     }
+
+    res.send({
+      success: true,
+      message: '',
+      process: {
+        ignoredRoles: ignoredRoles,
+        insertedRoles: insertedRoles,
+        updatedRoles: updatedRoles,
+        deletedRoles: deletedRoles,
+      },
+    })
+  } catch (err) {
+    res.send({
+      success: false,
+      message: err.message,
+    })
   }
-  processUpdate()
 })
 
 app.get('/getroles', (req, res) => {
-  const dbquery = `SELECT * FROM userroles;`
+  const dbquery = `SELECT * FROM userroles ORDER BY rid;`
   pool.query(dbquery).then((dbres) => {
     if (dbres.rows.length > 0) {
       const roles = { rows: dbres.rows }
       res.send({ success: true, roles: roles })
+    }
+  })
+})
+
+/////////////////////////////////////////////////////////////////////
+////////////////////////////MODULES////////////////////////////////////
+
+app.get('/getmodules', (req, res) => {
+  const dbquery = `SELECT * FROM modules ORDER BY modid;`
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, modules: dbres.rows })
+    }
+  })
+})
+
+/////////////////////////////////////////////////////////////////////
+////////////////////////////DOCUMENTS////////////////////////////////////
+
+app.get('/getdocuments', (req, res) => {
+  // const dbquery = `SELECT * FROM documents ORDER BY docid;`
+  const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid ORDER BY documents.docid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, documents: dbres.rows })
     }
   })
 })

@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import Axios from 'axios'
 
-export const useGetRoles = () => {
+export const useGetDocuments = () => {
   const apiUrl = import.meta.env.VITE_API_URL
 
   return useQuery({
-    queryKey: ['roles'],
+    queryKey: ['documents'],
     queryFn: async () => {
-      const response = await Axios.get(`${apiUrl}getroles`)
+      const response = await Axios.get(`${apiUrl}getdocuments`)
       console.log('response', response)
       return response.data
     },
