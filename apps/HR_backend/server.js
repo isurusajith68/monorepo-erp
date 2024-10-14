@@ -254,38 +254,33 @@ app.get('/employee/next/:id?', async (req, res) => {
 })
 
 
-// add registration
-app.post('/registration', (req, res) => {
+
+
+
+// add attendance dates
+
+app.post('/attendancedate', (req, res) => {
   const {
-    fullname,
-    address,
-    email,
-    telephone,
-    city,
-    province,
-    country,
-    postalcode,
+    date,
+    type,
+    remark,  
   } = req.body
 
   const insertSTMT = `
-      INSERT INTO registration (fullname , address , email, telephone, city, province, country, postalcode ) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO attendancedate (date, type, remark) 
+      VALUES ($1, $2, $3)
       RETURNING id;`
 
   pool
     .query(insertSTMT, [
-      fullname,
-      address,
-      email,
-      telephone,
-      city,
-      province,
-      country,
-      postalcode,
+      date,
+      type,
+      remark,
     ])
+
     .then((response) => {
       const lastInsertRowid = response.rows[0].id
-      console.log('Booking saved')
+      console.log('Attendance date saved')
       res.json({ success: true, msg: '', lastInsertRowid })
     })
     .catch((err) => {
@@ -293,6 +288,37 @@ app.post('/registration', (req, res) => {
       res.json({ success: false, msg: 'Insert failed', lastInsertRowid: 0 })
     })
 })
+
+
+
+// get attendance date by id
+
+app.get('/attendancedate/:id', (req, res) => {
+  const { id } = req.params
+
+  const getAttendanceDateQuery = `SELECT * FROM attendancedate WHERE id = $1`
+
+  pool
+    .query(getAttendanceDateQuery, [id])
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const attendancedateData = response.rows[0]
+        res.json({ success: true, msg: '', data: attendancedateData })
+      } else {
+        res.json({ success: false, msg: 'Attendances date not found', data: {} })
+      }
+    })
+    .catch((err) => {
+      console.error('Error fetching attendance date:', err)
+      res.json({ success: false, msg: 'Error fetching attendance date', data: {} })
+    })
+})
+
+
+
+
+
+
 
 
 
