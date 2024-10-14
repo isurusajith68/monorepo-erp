@@ -53,7 +53,7 @@ export default function HomePage() {
                 { item: 'User Role List', route: 'newform' },
                 { item: 'Module List', route: 'modules' },
                 { item: 'Document List', route: 'documents' },
-                { item: 'Action List', route: '' },
+                { item: 'Action List', route: 'actions' },
                 { item: 'Permission', route: '' },
               ].map((item) => (
                 <Button

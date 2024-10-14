@@ -9,15 +9,20 @@ import {
 } from '@/components/ui/table'
 import { useGetDocuments } from '../_services/queries'
 import { FaUserCircle } from 'react-icons/fa'
+import { useEffect } from 'react'
 
 export default function ListDocements() {
   const { data } = useGetDocuments()
+
+  useEffect(() => {
+    console.log('datafun', data)
+  }, [data])
 
   return (
     <div className="mx-[10%] ">
       <div className="m-10 border-2 border-blue-200 rounded-lg shadow-lg ">
         <div className="flex justify-between items-center mb-4">
-          <p className="text-xl font-semibold ml-10 mt-6 w-[180px]">
+          <p className="text-2xl font-semibold ml-10 mt-6 w-[220px]">
             Docements List
           </p>
 
@@ -32,46 +37,58 @@ export default function ListDocements() {
             </div>
           </div>
         </div>
-        <div className="m-10 ">
-          <Table className="rounded-md overflow-hidden">
+        <div className="m-10  ">
+          <Table className="rounded-lg w-[100%]   ">
             <TableCaption className="pt-4">
               List of your sysem docements.
             </TableCaption>
-            <TableHeader className="bg-blue-400">
-              <TableRow className="justify-center">
-                <TableHead className="w-[10%] text-center text-black">
-                  ID
-                </TableHead>
-                <TableHead className="w-[30%] text-center text-black">
-                  DOCUMENT
-                </TableHead>
-                <TableHead className="w-[30%] text-center text-black">
-                  DESCRIPTION
-                </TableHead>
-                <TableHead className="w-[30%] text-center text-black">
-                  MODULE
-                </TableHead>
-              </TableRow>
-            </TableHeader>
 
             <TableBody>
               {data &&
-                data.documents.map((document, index) => (
-                  <TableRow key={document.docid}>
-                    <TableCell className="font-medium text-center">
-                      {document.docid}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {document.docname}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {document.description}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {document.modname}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                Object.keys(data).map((modname, index) => {
+                  const rows = data[modname]
+
+                  return (
+                    <div>
+                      <div key={index}>
+                        <p className="uppercaseb text-xl mb-6">{modname}</p>
+                        <TableHeader className="bg-blue-400  w-[200%]   ">
+                          <TableRow>
+                            <TableHead className="w-[30%]  text-center text-black">
+                              ID
+                            </TableHead>
+                            <TableHead className="w-[40%]   text-center text-black  ">
+                              DOCUMENT
+                            </TableHead>
+                            <TableHead className=" w-[30%]   text-center text-black">
+                              DESCRIPTION
+                            </TableHead>
+                            <TableHead className="w-[50%]    text-center text-black">
+                              MODULE
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+
+                        {rows.map((row) => (
+                          <TableRow key={row.docid} className=" ">
+                            <TableCell className="  font-medium text-center">
+                              {row.docid}
+                            </TableCell>
+                            <TableCell className="  text-center">
+                              {row.docname}
+                            </TableCell>
+                            <TableCell className=" text-center">
+                              {row.description}
+                            </TableCell>
+                            <TableCell className=" text-center">
+                              {row.modname}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
             </TableBody>
           </Table>
         </div>

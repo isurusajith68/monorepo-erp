@@ -1,6 +1,6 @@
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Outlet } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 import Logo from '../assets/group5.png'
 import { AiOutlineMenu } from 'react-icons/ai'
 import {
@@ -16,9 +16,15 @@ export default function RootLayout() {
       {/* <div className="w-full flex float-start "> */}
       <nav className="bg-blue-900 p-4 flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <div className="bg-green-500 w-10 h-10 rounded-md" />
-          {/* <img src={Logo} alt="Logo" width={150} height={50} className="pt-2" /> */}
-          <h1 className="text-white font-semibold text-lg">Auth Module App</h1>
+          <Link
+            to="/"
+            className="text-white font-semibold text-lg flex space-x-4"
+          >
+            <div className="bg-green-500 w-10 h-10 rounded-md" />
+            {/* <img src={Logo} alt="Logo" width={150} height={50} className="pt-2" /> */}
+
+            <h1 className="cursor-pointer mt-1">Auth Module App</h1>
+          </Link>
         </div>
         <div className="flex space-x-4 items-center">
           <Popover>
