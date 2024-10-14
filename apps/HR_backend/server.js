@@ -254,6 +254,49 @@ app.get('/employee/next/:id?', async (req, res) => {
 })
 
 
+// add registration
+app.post('/registration', (req, res) => {
+  const {
+    fullname,
+    address,
+    email,
+    telephone,
+    city,
+    province,
+    country,
+    postalcode,
+  } = req.body
+
+  const insertSTMT = `
+      INSERT INTO registration (fullname , address , email, telephone, city, province, country, postalcode ) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id;`
+
+  pool
+    .query(insertSTMT, [
+      fullname,
+      address,
+      email,
+      telephone,
+      city,
+      province,
+      country,
+      postalcode,
+    ])
+    .then((response) => {
+      const lastInsertRowid = response.rows[0].id
+      console.log('Booking saved')
+      res.json({ success: true, msg: '', lastInsertRowid })
+    })
+    .catch((err) => {
+      console.error('Insert failed', err)
+      res.json({ success: false, msg: 'Insert failed', lastInsertRowid: 0 })
+    })
+})
+
+
+
+
 
 
 app.listen(4000, () => console.log('server is running on port 4000'))
