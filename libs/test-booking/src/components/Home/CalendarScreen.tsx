@@ -46,7 +46,7 @@ const CalendarScreen: React.FC = () => {
     <div className="p-6">
       {/* Header Section */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-bold">Heritance Kandalama (LKR)</h1>
+        <h1 className="text-xl font-bold">Hillroost Kandy (LKR)</h1>
         <div>
           <p>Adults & Children: 2/0</p>
           <p>Dates of Stay</p>
