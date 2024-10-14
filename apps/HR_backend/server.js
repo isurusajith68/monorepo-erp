@@ -315,6 +315,26 @@ app.get('/attendancedate/:id', (req, res) => {
 })
 
 
+// getting all attendance dates 
+
+app.get('/allattendancedates', (req, res) => {
+  const getAllAttendanceDateQuery = `SELECT * FROM attendancedate`
+
+  pool
+    .query(getAllAttendanceDateQuery)
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const attendancedateData = response.rows // Get all rows
+        res.json({ success: true, msg: '', data: attendancedateData })
+      } else {
+        res.json({ success: false, msg: 'No attendance date found', data: [] })
+      }
+    })
+    .catch((err) => {
+      console.error('Error fetching attendance date:', err)
+      res.json({ success: false, msg: 'Error fetching attendance date', data: [] })
+    })
+})
 
 
 
