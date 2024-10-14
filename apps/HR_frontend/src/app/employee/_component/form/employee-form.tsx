@@ -198,8 +198,6 @@ const EmployeeForm = () => {
 
 
 
-  
-
   const {
     data: prevItem,
     isLoading: prevLoading,
@@ -208,7 +206,7 @@ const EmployeeForm = () => {
   console.log('prevvvvvvvvvvvvvvvvvvvvvvvv', prevItem)
   const getPrevItem = () => {
     if (prevItem && Object.keys(prevItem).length !== 0) {
-      navigate(`/employees/${prevItem.id}`)
+      navigate(`/employee/${prevItem.id}`)
     } else {
       toast({
         className: 'text-blue-600',
@@ -222,7 +220,7 @@ const EmployeeForm = () => {
   const { data: nextItem } = useGetNextEmployee(id)
   const getNextItem = () => {
     if (nextItem && Object.keys(nextItem).length !== 0) {
-      navigate(`/employees/${nextItem.id}`)
+      navigate(`/employee/${nextItem.id}`)
     } else {
       toast({
         className: 'text-blue-600',
@@ -235,7 +233,7 @@ const EmployeeForm = () => {
 
 
 
-  
+
 
   return (
     <div>
