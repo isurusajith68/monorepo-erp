@@ -648,5 +648,61 @@ app.get('/allroomdetails', (req, res) => {
       res.json({ success: false, msg: 'Error fetching booking', data: [] })
     })
 })
+app.get('/lib', (req, res) => {
+  const getAllRoomDetailsQuery = `SELECT * FROM hotelrooms `
+
+  pool
+    .query(getAllRoomDetailsQuery)
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const roomData = response.rows // Get all rows
+        res.json({ success: true, msg: '', data: roomData })
+      } else {
+        res.json({ success: false, msg: 'No booking found', data: [] })
+      }
+    })
+    .catch((err) => {
+      console.error('Error fetching booking:', err)
+      res.json({ success: false, msg: 'Error fetching booking', data: [] })
+    })
+})
+
+app.get('/library', async (req, res) => {
+  try {
+    // Fetch data from users and orders tables
+    const usersQuery = 'SELECT * FROM hotelrooms'
+    const ordersQuery =
+      'SELECT id, user_id, order_date, total_amount FROM orders'
+
+    const usersResult = await pool.query(usersQuery)
+    const ordersResult = await pool.query(ordersQuery)
+
+    const users = usersResult.rows
+    const orders = ordersResult.rows
+
+    // Create an array of objects with the combined data
+    const usersWithOrders = users.map((user) => {
+      // Find orders for this user
+      const userOrders = orders.filter((order) => order.user_id === user.id)
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        orders: userOrders.map((order) => ({
+          orderId: order.id,
+          orderDate: order.order_date,
+          totalAmount: order.total_amount,
+        })),
+      }
+    })
+
+    // Send structured response
+    res.json(usersWithOrders)
+  } catch (error) {
+    console.error(error)
+    res.status(500).send('Error fetching data')
+  }
+})
 
 app.listen(4000, () => console.log('server is running on port 4000'))
