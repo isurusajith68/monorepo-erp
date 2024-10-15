@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/table'
 import { useGetModules } from '../_services/queries'
 import { FaUserCircle } from 'react-icons/fa'
+import Navbar from '@/components/commonUi/navbar'
 
 export default function ListModule() {
   const { data } = useGetModules()
@@ -16,6 +17,8 @@ export default function ListModule() {
   return (
     <div className="mx-[10%] ">
       <div className="m-10 border-2 border-blue-200 rounded-lg shadow-lg ">
+        {/* Tab Buttons */}
+        <Navbar />
         <div className="flex justify-between items-center mb-4">
           <p className="text-xl font-semibold ml-10 mt-6 w-[150px]">
             Module List

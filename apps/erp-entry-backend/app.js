@@ -316,6 +316,30 @@ app.get('/getdocuments', (req, res) => {
   })
 })
 
+app.get('/documentsall', (req, res) => {
+  const dbquery = `SELECT * FROM documents ORDER BY docid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, documents: dbres.rows })
+    }
+  })
+})
+
+/////////////////////////////////////////////////////////////////////
+////////////////////////////ACTIONS////////////////////////////////////
+
+app.get('/getactions', (req, res) => {
+  const dbquery = `SELECT * FROM actions ORDER BY actid;`
+  // const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid ORDER BY documents.docid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, actions: dbres.rows })
+    }
+  })
+})
+
 app.listen(port, () => {
   console.log(`app listening on port ${port}`)
 })

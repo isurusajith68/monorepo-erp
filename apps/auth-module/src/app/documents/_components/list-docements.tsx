@@ -10,17 +10,16 @@ import {
 import { useGetDocuments } from '../_services/queries'
 import { FaUserCircle } from 'react-icons/fa'
 import { useEffect } from 'react'
+import Navbar from '@/components/commonUi/navbar'
 
 export default function ListDocements() {
   const { data } = useGetDocuments()
 
-  useEffect(() => {
-    console.log('datafun', data)
-  }, [data])
-
   return (
     <div className="mx-[10%] ">
       <div className="m-10 border-2 border-blue-200 rounded-lg shadow-lg ">
+        {/* Tab Buttons */}
+        <Navbar />
         <div className="flex justify-between items-center mb-4">
           <p className="text-2xl font-semibold ml-10 mt-6 w-[220px]">
             Docements List

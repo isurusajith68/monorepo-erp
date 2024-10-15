@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label'
 import { X } from 'lucide-react'
 import { zodValidator, ZodValidator } from '@tanstack/zod-form-adapter'
 import { getDirtyValuesTF } from '@/lib/utils'
+import { useNavigate } from 'react-router-dom'
+import Navbar from '@/components/commonUi/navbar'
 
 const roleDetailSchema = z.object({
   rid: z.number().optional(),
@@ -24,6 +26,8 @@ const formSchema = z.object({
 type FormType = z.infer<typeof formSchema>
 
 export default function NewFormRole() {
+  const Navigate = useNavigate()
+
   const form = useForm<FormType, ZodValidator>({
     defaultValues: {
       roles: [
@@ -54,8 +58,6 @@ export default function NewFormRole() {
         [{ arrayName: 'roles', pkName: 'rid' }],
         'rid',
       )
-
-      console.log('res', res)
       mutate(res)
       //window.location.reload()
     },
@@ -88,24 +90,7 @@ export default function NewFormRole() {
     <div className="mx-[10%] ">
       <div className="m-10 border-2 border-blue-200 rounded-lg shadow-lg ">
         {/* Tab Buttons */}
-        <div className="  ">
-          <div className="border-2 border-blue-200 shadow-sm m-6 p-4 rounded-md flex justify-center  space-x-10">
-            {[
-              'User Role List',
-              'Module List',
-              'Document List',
-              'Action List',
-              'Permission',
-            ].map((tab) => (
-              <Button
-                key={tab}
-                className="bg-blue-900 text-white px-8 py-2 rounded-full"
-              >
-                {tab}
-              </Button>
-            ))}
-          </div>
-        </div>
+        <Navbar />
 
         <div className="flex justify-between items-center mb-4">
           <p className="text-xl font-semibold ml-10 mt-6 w-[150px]">

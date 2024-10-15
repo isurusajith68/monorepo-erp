@@ -7,37 +7,89 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useGetDocuments } from '../_services/queries'
-import { FaUserCircle } from 'react-icons/fa'
-import { useEffect } from 'react'
 import { useGetModules } from '@/app/modules/_services/queries'
+import Navbar from '@/components/commonUi/navbar'
+import { useActions, useGetDocumentsAll } from '../_services/queries'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useState } from 'react'
 
 export default function ListActions() {
-  const { data } = useGetModules()
+  const { data } = useActions()
+  const { data: documents } = useGetDocumentsAll()
+  const { data: modules } = useGetModules()
+
+  const [selectedModule, setSelectedModule] = useState(null)
+  const [selectedDocument, setSelectedDocument] = useState(null)
+
+  const filteredActions = data?.actions.filter((action) => {
+    return (
+      (!selectedModule || action.modid === selectedModule) &&
+      (!selectedDocument || action.docid === selectedDocument)
+    )
+  })
 
   return (
     <div className="mx-[10%] ">
       <div className="m-10 border-2 border-blue-200 rounded-lg shadow-lg ">
+        {/* Tab Buttons */}
+        <Navbar />
         <div className="flex justify-between items-center mb-4">
           <p className="text-xl font-semibold ml-10 mt-6 w-[150px]">
-            Module List
+            Action List
           </p>
 
-          <div className="flex justify-end w-full mr-10 mt-6">
-            <div className="relative">
-              <FaUserCircle className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-600" />
-              <input
-                type="text"
-                placeholder="Search by Module Name"
-                className="border rounded-full pl-10 pr-4 py-2 focus:outline-none"
-              />
+          <div className="flex justify-end w-full mr-10 mt-6 gap-6">
+            {/* Module Select */}
+            <div className="w-[20%] ">
+              <Select
+                onValueChange={(value) => {
+                  setSelectedModule(value)
+                }}
+              >
+                <SelectTrigger className="border-2">
+                  <SelectValue placeholder="Select Module" />
+                </SelectTrigger>
+                <SelectContent>
+                  {modules?.modules.map((module) => (
+                    <SelectItem key={module.modid} value={module.modid}>
+                      {module.modname}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Document Select */}
+            <div className="w-[20%] ">
+              <Select
+                onValueChange={(value) => {
+                  setSelectedDocument(value)
+                }}
+              >
+                <SelectTrigger className="border-2">
+                  <SelectValue placeholder="Select Document" />
+                </SelectTrigger>
+                <SelectContent>
+                  {documents?.documents.map((doc) => (
+                    <SelectItem key={doc.docid} value={doc.docid}>
+                      {doc.docname}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
         <div className="m-10 ">
           <Table className="rounded-md overflow-hidden">
             <TableCaption className="pt-4">
-              A list of your sysem modules.
+              A list of your sysem actions.
             </TableCaption>
             <TableHeader className="bg-blue-400">
               <TableRow className="justify-center">
@@ -45,7 +97,7 @@ export default function ListActions() {
                   ID
                 </TableHead>
                 <TableHead className="w-[40%] text-center text-black">
-                  MODULE
+                  ACTION
                 </TableHead>
                 <TableHead className="w-[40%] text-center text-black">
                   DESCRIPTION
@@ -54,17 +106,17 @@ export default function ListActions() {
             </TableHeader>
 
             <TableBody>
-              {data &&
-                data.modules.map((module, index) => (
-                  <TableRow key={module.modid}>
+              {filteredActions &&
+                filteredActions.map((action, index) => (
+                  <TableRow key={action.actid}>
                     <TableCell className="font-medium text-center">
-                      {module.modid}
+                      {action.actid}
                     </TableCell>
                     <TableCell className="text-center">
-                      {module.modname}
+                      {action.actname}
                     </TableCell>
                     <TableCell className="text-center">
-                      {module.description}
+                      {action.description}
                     </TableCell>
                   </TableRow>
                 ))}
