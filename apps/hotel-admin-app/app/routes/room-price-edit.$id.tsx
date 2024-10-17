@@ -31,77 +31,65 @@ import { Form, json, Link, useFetcher, useLoaderData, useNavigate } from '@remix
 import { ActionFunctionArgs, LoaderFunction, LoaderFunctionArgs } from '@remix-run/node'
 import { client } from '~/db.server'
 import { useState } from 'react'
+import getUpdateQuery, { getDirtyValuesTF } from '~/lib/utils'
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const result = await client.query('SELECT * FROM hotelrooms')
-  if (result.rows.length === 0) {
+export let loader: LoaderFunction = async ({ params }) => {
+  const { id } = params
+
+  console.log('kasun', id)
+
+  // Perform the query, using hotelid if needed (e.g., filtering by hotelid)
+  const result = await client.query('SELECT * FROM roomprices WHERE id = $1', [
+    id,
+  ])
+
+  if (result.rows.length == 0) {
     return {}
   } else {
-    return result.rows
+    console.log('111111111', result.rows)
+    return result.rows[0]
   }
+  // Return the fetched data from the database
 }
 
 
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const id = formData.get('id');
-  console.log('ssssssss', Object.fromEntries(formData)); // Log the form data
+  try {
+    const formData = await request.formData()
+    const formDataCur = Object.fromEntries(formData)
+    console.log('curdata', formDataCur)
 
-  if (id) {
-    // DELETE request
-    const query = `DELETE FROM roomprices WHERE id = $1`;
-    await client.query(query, [id]);
-    return json({
-      success: true,
-      message: 'Hotel room-type deleted successfully!',
-    });
-  } else {
-    // Extract the common fields
-    const scheduleid = formData.get('scheduleid');
-    const startdate = formData.get('startdate');
-    const enddate = formData.get('enddate');
-    const remarks = formData.get('remarks');
-    
-    // Extract the arrays from FormData
-    const roomno = formData.getAll('roomno');
-    const roomtype = formData.getAll('roomtype');
-    const roomview = formData.getAll('roomview');
-    const noofbed = formData.getAll('noofbed');
-    const roprice = formData.getAll('roprice');
-    const bbprice = formData.getAll('bbprice');
-    const hbprice = formData.getAll('hbprice');
-    const fbprice = formData.getAll('fbprice');
+    if (formDataCur.id) {
+      const jsonPayload = formData.get('payload')
+      const initialdata = JSON.parse(jsonPayload as string)
 
-    // Iterate over the arrays and insert each row into the database
-    const insertQuery = `INSERT INTO roomprices (scheduleid, startdate, enddate, remarks, roomno, roomtype, roomview, noofbed, roprice, bbprice, hbprice, fbprice) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`;
+      const diff = getDirtyValuesTF(initialdata, formDataCur, [], 'id')
 
-    for (let i = 0; i < roomno.length; i++) {
-      const values = [
-        scheduleid,
-        startdate,
-        enddate,
-        remarks,
-        roomno[i],
-        roomtype[i],
-        roomview[i],
-        noofbed[i],
-        roprice[i],
-        bbprice[i],
-        hbprice[i],
-        fbprice[i],
-      ];
-      await client.query(insertQuery, values);
+      const [uq, vals] = getUpdateQuery(diff, 'roomprices', 'id')
+
+      console.log('2222222', uq)
+      console.log('2222222', vals)
+
+      await client.query(uq, vals)
+
+      return json({
+        success: true,
+        message: 'Hotel information saved successfully!',
+      })
     }
-
-    return json({
-      success: true,
-      message: 'Hotel room-type saved successfully!',
-    });
+  } catch (error) {
+    console.error('Error inserting hotel info:', error)
+    // Return error response with details to show in the alert
+    return json(
+      {
+        success: false,
+        message: 'Failed to save hotel information. Please try again.',
+      },
+      { status: 500 },
+    )
   }
+  return 0
 }
-
-
 export default function RoomPriceSchedule() {
   const navigate = useNavigate()
   const data = useLoaderData<typeof loader>()
@@ -114,16 +102,25 @@ export default function RoomPriceSchedule() {
     const formElement = document.getElementById('myForm')
     const formData = new FormData(formElement as HTMLFormElement)
 
-    console.log(formData, 'hhhh')
+    // Submit data to the server
+    const jsonPayload = JSON.stringify(data)
+
+    // Append the JSON string to the FormData
+    formData.append('payload', jsonPayload)
 
     // Submit form data
     await fetcher.submit(formData, { method: 'post' })
-    navigate(`/room-price-list`)
+    //navigate('/room-price-list')
   }
 
-  const handleClear = (id: number) => {
-    navigate(`/offers/${id}`)
-  }
+
+  const formatDate = (dateString : string) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Ensure 2 digits
+    const day = date.getDate().toString().padStart(2, "0"); // Ensure 2 digits
+    return `${year}-${month}-${day}`;
+  };
 
   return (
     <>
@@ -140,7 +137,7 @@ export default function RoomPriceSchedule() {
           <hr className="bg-blue-400 h-0.5 mt-2" />
           <div className="lg:ml-[80%] mt-8 mb-5">
           <Button  onClick={handleSubmit} className="h-9 text-white bg-blue-400 hover:bg-blue-500 ">
-           Save
+           Update
           </Button>
           <Button className="h-9 text-white bg-orange-400 hover:bg-orange-500 ml-8">
             Close
@@ -149,6 +146,7 @@ export default function RoomPriceSchedule() {
         </div>
         
         <Form method='post' id='myForm'>
+        <input name="id" type="hidden" defaultValue={data.id} />
         <div className="flex justify-between items-center mt-4 w-full">
           <div className="relative flex flex-col-3 gap-5 ml-28 mr-14">
             <div className="flex flex-col-2 gap-3 lg:w-[70%] ">
@@ -159,7 +157,7 @@ export default function RoomPriceSchedule() {
                 type="search"
                 name='scheduleid'
                 className="pl-3 pr-3 py-2 border border-blue-300 rounded-2xl"
-                placeholder=""
+                defaultValue={data.scheduleid}
                 // value={searchId}
                 // onChange={handleSearchChangeID}
               />
@@ -172,7 +170,7 @@ export default function RoomPriceSchedule() {
                 type="date"
                 name='startdate'
                 className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl"
-                placeholder=""
+                defaultValue={formatDate(data.startdate)}
                 // value={searchName}
                 // onChange={handleSearchChangeName}
               />
@@ -185,7 +183,7 @@ export default function RoomPriceSchedule() {
                 type="date"
                 name='enddate'
                 className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl"
-                placeholder=""
+                defaultValue={formatDate(data.enddate)}
                 // value={searchName}
                 // onChange={handleSearchChangeName}
               />
@@ -196,7 +194,7 @@ export default function RoomPriceSchedule() {
                 type="text"
                 name='remarks'
                 className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl w-44"
-                placeholder=""
+                defaultValue={data.remarks}
                 // value={searchName}
                 // onChange={handleSearchChangeName}
               />
@@ -245,8 +243,7 @@ export default function RoomPriceSchedule() {
               </TableRow>
             </TableHeader>
             <TableBody className="bg-blue-50">
-              {data.map((data: any, index: any) => (
-                <TableRow key={index} className="hover:bg-blue-100">
+                <TableRow className="hover:bg-blue-100">
                   <TableCell className="text-center px-4 py-2">
                     <Input name='roomno' defaultValue={data.roomno} className='border-none' readOnly></Input>
                   </TableCell>
@@ -260,31 +257,51 @@ export default function RoomPriceSchedule() {
                   <Input name='noofbed' defaultValue={data.noofbed} className='border-none' readOnly></Input> 
                   </TableCell>
                   <TableCell className="text-center px-4 py-2">
-                    <Input className="bg-white" name='roprice'></Input>
+                    <Input className="bg-white" name='roprice' defaultValue={data.roprice}></Input>
                   </TableCell>
                   <TableCell className="text-center px-4 py-2">
-                    <Input className="bg-white"  name='bbprice'></Input>
+                    <Input className="bg-white"  name='bbprice' defaultValue={data.bbprice}></Input>
                   </TableCell>
                   <TableCell className="text-center px-4 py-2">
-                    <Input className="bg-white"  name='hbprice'></Input>
+                    <Input className="bg-white"  name='hbprice' defaultValue={data.hbprice}></Input>
                   </TableCell>
                   <TableCell className="text-center px-4 py-2">
-                    <Input className="bg-white"  name='fbprice'></Input>
+                    <Input className="bg-white"  name='fbprice' defaultValue={data.fbprice}></Input>
                   </TableCell>
                   <TableCell className="text-center px-4 py-2">
                     <div className="flex gap-5 ml-2">
                       <div>
-                        <Button
-                           onClick={() => handleClear(data.id)}
-                          className="bg-blue-600"
-                        >
-                          Clear
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button className="ml-5 bg-blue-600 bg-destructive">
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Are you absolutely sure?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will
+                                permanently delete your account and remove your
+                                data from our servers.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                              // onClick={() => deleteAction(bank.id)}
+                              >
+                                Continue
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
             </TableBody>
           </Table>
         </div>

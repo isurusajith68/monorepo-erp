@@ -106,7 +106,7 @@ export default function RoomType() {
               <TableRow>
                 <TableHead className="text-center px-4 py-2">ID</TableHead>
                 <TableHead className="text-center p-12 py-2">Type</TableHead>
-                <TableHead className="text-center px-4 py-2">Action</TableHead>
+                <TableHead className="text-center py-2">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="bg-blue-50">
@@ -115,9 +115,9 @@ export default function RoomType() {
                   <TableCell className="text-center px-4 py-2">{data.id}</TableCell>
                   <TableCell className="text-center px-4 py-2">{data.roomtype}</TableCell>
                   <TableCell className="text-center py-2 px-4">
-                    <div className="flex items-center">
+                    <div className="flex items-center lg:ml-[20%]">
                       <div>
-                        <Button onClick={() => handleEdit(data.id)} className="bg-blue-600 ml-24">
+                        <Button onClick={() => handleEdit(data.id)} className="bg-blue-600">
                           Edit
                         </Button>
                       </div>

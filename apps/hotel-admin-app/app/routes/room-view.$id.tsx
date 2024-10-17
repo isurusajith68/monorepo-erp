@@ -14,7 +14,7 @@ export let loader: LoaderFunction = async ({ params }) => {
 
   // Perform the query, using hotelid if needed (e.g., filtering by hotelid)
   const result = await client.query(
-    'SELECT * FROM hotelroomtypes WHERE id = $1',
+    'SELECT * FROM hotelroomview WHERE id = $1',
     [id],
   )
 
@@ -41,7 +41,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
       const diff = getDirtyValuesTF(initialdata, formDataCur, [], 'id')
 
-      const [uq, vals] = getUpdateQuery(diff, 'hotelroomtypes', 'id')
+      const [uq, vals] = getUpdateQuery(diff, 'hotelroomview', 'id')
 
       console.log('2222222', uq)
       console.log('2222222', vals)
@@ -67,7 +67,7 @@ export async function action({ request }: ActionFunctionArgs) {
   return 0
 }
 
-function RoomEdit() {
+function ViewEdit() {
   const navigate = useNavigate();
   const data = useLoaderData<typeof loader>()
   console.log('idh', data)
@@ -89,7 +89,7 @@ function RoomEdit() {
 
     // Submit form data
     await fetcher.submit(formData, { method: 'post' })
-    navigate('/room-type/list');
+    navigate('/room-view/list');
   }
 
 
@@ -100,7 +100,7 @@ function RoomEdit() {
         <div className="lg:w-[40%] lg:ml-[20%] h-52 bg-white p-8 shadow-xl mt-36">
           <div className="grid gap-4">
             <div className="space-y-2">
-              <h4 className="font-medium leading-none">Room Type</h4>
+              <h4 className="font-medium leading-none">Room View</h4>
             </div>
             <div className="grid gap-2 mt-5">
               <div className="grid items-center gap-4">
@@ -108,14 +108,14 @@ function RoomEdit() {
                   <input name="id" type="hidden" defaultValue={data.id} />
                   <Input
                     id="width"
-                    name="roomtype"
-                    placeholder="Room Type"
+                    name="roomview"
+                    placeholder="Room View"
                     className="col-span-2 h-10"
-                    defaultValue={data.roomtype}
+                    defaultValue={data.roomview}
                   />
-                <div className='flex gap-10 lg:ml-[60%]'>
+                 <div className='flex gap-10 lg:ml-[60%]'>
                   <div>
-                  <Button onClick={() => navigate('/room-type/list')}
+                  <Button onClick={() => navigate('/room-view/list')}
                     className="text-white bg-orange-500 hover:bg-orange-400  w-20 mt-10"
                   >
                    close
@@ -141,4 +141,4 @@ function RoomEdit() {
   )
 }
 
-export default RoomEdit
+export default ViewEdit
