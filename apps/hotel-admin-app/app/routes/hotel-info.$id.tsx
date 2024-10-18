@@ -5,9 +5,13 @@ import {
   LoaderFunction,
   LoaderFunctionArgs,
 } from '@remix-run/node'
-import { json, useFetcher, useLoaderData, useSubmit } from '@remix-run/react'
+import { json, useActionData, useFetcher, useLoaderData, useSubmit } from '@remix-run/react'
 import { client } from '~/db.server'
 import getUpdateQuery, { getDirtyValuesTF } from '~/lib/utils'
+import { useEffect } from 'react'
+import { Slide, ToastContainer, toast as notify } from 'react-toastify'
+import "react-toastify/dist/ReactToastify.css";
+import "../app-component/style.css"
 
 export let loader: LoaderFunction = async ({ params }) => {
   const { id } = params
@@ -28,6 +32,17 @@ export let loader: LoaderFunction = async ({ params }) => {
   // Return the fetched data from the database
 }
 
+// Helper to return json with toast
+function jsonWithSuccess(data: any, message: string) {
+  return json({
+    ...data,
+    toast: {
+      type: 'success',
+      message,
+    },
+  })
+}
+
 export async function action({ request }: ActionFunctionArgs) {
   try {
     const formData = await request.formData()
@@ -37,9 +52,7 @@ export async function action({ request }: ActionFunctionArgs) {
     if(formDataCur.id){
       const jsonPayload = formData.get('payload')
       const initialdata = JSON.parse(jsonPayload as string)
-  
-      
-  
+
       const diff= getDirtyValuesTF(initialdata,formDataCur,[],"id")
 
       const [uq,vals]=getUpdateQuery(diff,"hotelinfo","id")
@@ -50,11 +63,11 @@ export async function action({ request }: ActionFunctionArgs) {
       if(uq){
       await client.query(uq, vals);
       }
-
-      return json({
-        success: true,
-        message: 'Hotel information saved successfully!',
-      })
+      // Returning JSON with success toast data
+      return jsonWithSuccess(
+        { result: 'Hotel Info successfully Updated' },
+        'Hotel Info successfully Updated !!',
+      )
     }else{
 
     const hotelQuery = `INSERT INTO hotelinfo (name, email, mobile, address1, address2, city, country, province, telephone) 
@@ -76,32 +89,41 @@ export async function action({ request }: ActionFunctionArgs) {
     await client.query(hotelQuery, hotelValues);
 
     // On successful insertion, return success response
-    return json({
-      success: true,
-      message: 'Hotel information saved successfully!',
-    })
+    return  jsonWithSuccess(
+      { result: 'Hotel Info successfully Insert' },
+      'Hotel Info successfully Insert !!',
+    )
 
   }
   } catch (error) {
     console.error('Error inserting hotel info:', error)
 
     // Return error response with details to show in the alert
-    return json(
-      {
-        success: false,
-        message: 'Failed to save hotel information. Please try again.',
-      },
-      { status: 500 },
+    return  jsonWithSuccess(
+      { result: 'Hotel Info successfully Insert' },
+      'Error inserting hotel info: !!',
     )
   }
 }
 
 export default function HotelInfoForm() {
-  const submit = useSubmit()
+  
   const data = useLoaderData<typeof loader>()
   console.log('idh', data)
 
   const fetcher = useFetcher()
+
+  const actionData = useActionData() // Capture action data (including toast data)
+  const submit = useSubmit()
+
+    // UseEffect to handle showing the toast when fetcher.data changes
+    useEffect(() => {
+      if (fetcher.data?.toast) {
+        // Show success or error toast based on the type
+        notify(fetcher.data.toast.message, { type: fetcher.data.toast.type });
+      }
+    }, [fetcher.data]); // Listen to changes in fetcher.data
+  
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -264,7 +286,26 @@ export default function HotelInfoForm() {
             </div>
           </div>
         </form>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false} // Show progress bar
+          newestOnTop={true} // Display newest toast on top
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          pauseOnHover={true}
+          theme="colored" // You can change to "light" or "dark"
+          transition={Slide} // Slide animation for toast appearance
+          icon={true} // Show icons for success, error, etc.
+          className="custom-toast-container" // Add custom classes
+          bodyClassName="custom-toast-body"
+          closeButton={false} // No close button for a clean look
+        />
       </div>
     </div>
   )
 }
+
+

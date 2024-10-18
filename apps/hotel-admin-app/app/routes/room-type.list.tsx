@@ -25,10 +25,14 @@ import {
   PopoverTrigger,
 } from '~/components/ui/popover';
 import { useState } from 'react';
-import { json, useLoaderData, Form } from '@remix-run/react';
-import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
-import { client } from '~/db.server';
+import { json, useLoaderData, Form, useActionData, useSubmit } from '@remix-run/react';
 import { useNavigate } from '@remix-run/react';
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
+import { client } from '~/db.server'
+import { useEffect } from 'react'
+import { Slide, ToastContainer, toast as notify } from 'react-toastify'
+import "react-toastify/dist/ReactToastify.css";
+import "../app-component/style.css"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const result = await client.query('SELECT * FROM hotelroomtypes');
@@ -39,6 +43,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 }
 
+// Helper to return json with toast
+function jsonWithSuccess(data: any, message: string) {
+  return json({
+    ...data,
+    toast: {
+      type: 'success',
+      message,
+    },
+  })
+}
+
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const id = formData.get('id');
@@ -47,13 +62,21 @@ export async function action({ request }: ActionFunctionArgs) {
     // DELETE request
     const query = `DELETE FROM hotelroomtypes WHERE id = $1`;
     await client.query(query, [id]);
-    return json({ success: true, message: 'Hotel room-type deleted successfully!' });
+    // Returning JSON with success toast data
+    return jsonWithSuccess(
+      { result: 'Data deleted successfully' },
+      'Room Type deleted successfully! 🗑️',
+    )
   } else {
     // INSERT request
     const roomtype = formData.get('roomtype');
     const hotelQuery = `INSERT INTO hotelroomtypes (roomtype) VALUES ($1)`;
     await client.query(hotelQuery, [roomtype]);
-    return json({ success: true, message: 'Hotel room-type saved successfully!' });
+     // Returning JSON with success toast data
+     return jsonWithSuccess(
+      { result: 'Hotel room-type saved successfully!' },
+      'Hotel room-type saved successfully!',
+    )
   }
 }
 
@@ -61,6 +84,18 @@ export default function RoomType() {
   const navigate = useNavigate();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const data = useLoaderData<typeof loader>();
+
+  const actionData = useActionData() // Capture action data (including toast data)
+  const submit = useSubmit()
+
+  // UseEffect to handle showing the toast when actionData changes
+  useEffect(() => {
+    if (actionData?.toast) {
+      // Show success or error toast based on the type
+      notify(actionData.toast.message, { type: actionData.toast.type })
+    }
+  }, [actionData])
+
 
   const handleEdit = (id: number) => {
     navigate(`/room-type/${id}`);
@@ -152,6 +187,23 @@ export default function RoomType() {
             </TableBody>
           </Table>
         </div>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false} // Show progress bar
+          newestOnTop={true} // Display newest toast on top
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          pauseOnHover={true}
+          theme="colored" // You can change to "light" or "dark"
+          transition={Slide} // Slide animation for toast appearance
+          icon={true} // Show icons for success, error, etc.
+          className="custom-toast-container" // Add custom classes
+          bodyClassName="custom-toast-body"
+          closeButton={false} // No close button for a clean look
+        />
       </div>
     </>
   );

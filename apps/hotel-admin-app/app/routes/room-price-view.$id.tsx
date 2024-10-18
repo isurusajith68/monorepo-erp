@@ -67,6 +67,7 @@ export default function RoomPriceScheduleView() {
     return `${year}-${month}-${day}`
   }
 
+
   return (
     <>
       <div className="ml-[18.4%] h-screen mt-14">
@@ -205,14 +206,6 @@ export default function RoomPriceScheduleView() {
                       <TableCell className="text-center py-2 px-4">
                         <div className="flex items-center">
                           <div>
-                            <Button
-                              //onClick={() => handleEdit(data.id)}
-                              className="bg-blue-600 ml-24"
-                            >
-                              Edit
-                            </Button>
-                          </div>
-                          <div>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button className="ml-5 bg-blue-600 bg-destructive">
@@ -259,6 +252,12 @@ export default function RoomPriceScheduleView() {
             </Table>
           </div>
         </Form>
+        <div className='bg-slate-100 w-[40%] h-44 ml-16 mt-20 rounded-lg shadow-xl'>
+           <h3 className='ml-5 mt-5'>RO : Room Only</h3>
+           <h3 className='ml-5 mt-5'>BB : Bed & Breakfast</h3>
+           <h3 className='ml-5 mt-5'>HB : Half Board (Breakfast & Dinner normally)</h3>
+           <h3 className='ml-5 mt-5'>FB : Full Board (Breakfast , Lunch & Dinner)</h3>
+        </div>
       </div>
     </>
   )
