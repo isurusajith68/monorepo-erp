@@ -77,3 +77,16 @@ export function useGetAllRoom() {
     },
   })
 }
+
+export function useGetAllRoomBooking() {
+  // console.log("first",id)
+  return useQuery({
+    queryKey: ['room'],
+    queryFn: async () => {
+      let data1
+      data1 = await Axios.get(`http://localhost:4000/library`)
+      // data1 = await Axios.get(`http://localhost:4000/bookings/28`);
+      return data1.data.data
+    },
+  })
+}

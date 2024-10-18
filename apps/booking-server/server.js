@@ -33,47 +33,97 @@ app.post('/b', (req, res) => {
 })
 
 // add booking
+// app.post('/bookings', (req, res) => {
+//   const {
+//     checkin,
+//     checkout,
+//     guestinformation,
+//   } = req.body
+
+//   const insertSTMT = `
+//       INSERT INTO booking ( checkin, checkout, guestinformation)
+//       VALUES ($1, $2, $3,)
+//       RETURNING id;`
+
+//   pool
+//     .query(insertSTMT, [
+
+//       checkin,
+//       checkout,
+//      guestinformation,
+//     ])
+//     .then((response) => {
+//       const lastInsertRowid = response.rows[0].id
+//       console.log('Booking saved', lastInsertRowid)
+//       res.json({ success: true, msg: '', lastInsertRowid })
+//     })
+//     .catch((err) => {
+//       console.error('Insert failed', err)
+//       res.json({
+//         success: false,
+//         msg: `Insert failed- ${err}`,
+//         lastInsertRowid: 0,
+//       })
+//     })
+// })
 app.post('/bookings', (req, res) => {
   const {
-    roomnumber,
-    checkin,
-    checkout,
-    telephone,
+    checkindate,
+    checkoutdate,
+    firstname,
+    lastname,
     email,
-    adultcount,
-    childrencount,
-    bookingdate,
-    roomprice,
+    phonenumber,
+    address,
+    city,
+    country,
+    postalcode,
   } = req.body
 
-  const insertSTMT = `
-      INSERT INTO booking (roomnumber, checkin, checkout, telephone, email, adultcount, childrencount, bookingdate, roomprice) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+  // Insert guest information first
+  const guestInsertSTMT = `
+      INSERT INTO guestinformation (firstname, lastname, email, phonenumber, address, city, country, postalcode) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING id;`
 
   pool
-    .query(insertSTMT, [
-      roomnumber,
-      checkin,
-      checkout,
-      telephone,
+    .query(guestInsertSTMT, [
+      firstname,
+      lastname,
       email,
-      adultcount,
-      childrencount,
-      bookingdate,
-      roomprice,
+      phonenumber,
+      address,
+      city,
+      country,
+      postalcode,
     ])
-    .then((response) => {
-      const lastInsertRowid = response.rows[0].id
-      console.log('Booking saved', lastInsertRowid)
-      res.json({ success: true, msg: '', lastInsertRowid })
+    .then((guestResponse) => {
+      const guestId = guestResponse.rows[0].id // Get the guestinformation ID
+
+      console.log('Guest Information saved', guestId)
+
+      // Now insert booking data with guestinformation foreign key
+      const bookingInsertSTMT = `
+        INSERT INTO booking (checkin, checkout, guestinformation)
+        VALUES ($1, $2, $3)
+        RETURNING id;`
+
+      return pool.query(bookingInsertSTMT, [checkindate, checkoutdate, guestId])
+    })
+    .then((bookingResponse) => {
+      const bookingId = bookingResponse.rows[0].id
+      console.log('Booking saved', bookingId)
+
+      // Respond with success
+      res.json({ success: true, msg: '', bookingId })
     })
     .catch((err) => {
       console.error('Insert failed', err)
+
+      // Respond with failure
       res.json({
         success: false,
-        msg: `Insert failed- ${err}`,
-        lastInsertRowid: 0,
+        msg: `Insert failed - ${err}`,
       })
     })
 })
@@ -648,8 +698,8 @@ app.get('/allroomdetails', (req, res) => {
       res.json({ success: false, msg: 'Error fetching booking', data: [] })
     })
 })
-app.get('/lib', (req, res) => {
-  const getAllRoomDetailsQuery = `SELECT * FROM hotelrooms `
+app.get('/library', (req, res) => {
+  const getAllRoomDetailsQuery = `SELECT * FROM roomprices `
 
   pool
     .query(getAllRoomDetailsQuery)
@@ -667,42 +717,141 @@ app.get('/lib', (req, res) => {
     })
 })
 
-app.get('/library', async (req, res) => {
-  try {
-    // Fetch data from users and orders tables
-    const usersQuery = 'SELECT * FROM hotelrooms'
-    const ordersQuery =
-      'SELECT id, user_id, order_date, total_amount FROM orders'
+// app.get('/hotel-data', async (req, res) => {
+//   try {
+//     // Query to get all necessary data from the tables
+//     const usersQuery = 'SELECT * FROM hotelrooms';
+//     const hotelOffersQuery = 'SELECT discount FROM hoteloffers';
+//     const hotelRoomsQuery = 'SELECT roomtype FROM hotelrooms';
+//     const hotelRoomTypesQuery = 'SELECT roomtype FROM hotelroomtypes';
+//     const hotelRoomViewQuery = 'SELECT roomview FROM hotelroomview';
+//     const roomPricesQuery = 'SELECT * FROM roomprices';
 
-    const usersResult = await pool.query(usersQuery)
-    const ordersResult = await pool.query(ordersQuery)
+//     // Execute all queries asynchronously
+//     const [hotelRooms, hotelOffers, hotelRoomTypes, hotelRoomViews, roomPrices] = await Promise.all([
+//       pool.query(usersQuery),
+//       pool.query(hotelOffersQuery),
+//       pool.query(hotelRoomTypesQuery),
+//       pool.query(hotelRoomViewQuery),
+//       pool.query(roomPricesQuery),
+//     ]);
 
-    const users = usersResult.rows
-    const orders = ordersResult.rows
+//     // Combine data into one object
+//     const combinedData = hotelRooms.rows.map((room) => {
+//       const roomOffer = hotelOffers.rows.find((offer) => offer.roomtype === room.roomtype);
+//       const roomType = hotelRoomTypes.rows.find((type) => type.roomtype === room.roomtype);
+//       const roomView = hotelRoomViews.rows.find((view) => view.roomtype === room.roomtype);
+//       const roomPrice = roomPrices.rows.find((price) => price.roomtype === room.roomtype);
 
-    // Create an array of objects with the combined data
-    const usersWithOrders = users.map((user) => {
-      // Find orders for this user
-      const userOrders = orders.filter((order) => order.user_id === user.id)
+//       return {
+//         ...room,
+//         discount: roomOffer ? roomOffer.discount : null,
+//         roomType: roomType ? roomType.roomtype : null,
+//         roomView: roomView ? roomView.roomview : null,
+//         roomPrice: roomPrice ? roomPrice.price : null,
+//       };
+//     });
 
-      return {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        orders: userOrders.map((order) => ({
-          orderId: order.id,
-          orderDate: order.order_date,
-          totalAmount: order.total_amount,
-        })),
-      }
+//     // Send combined data as response
+//     res.json(combinedData);
+//   } catch (error) {
+//     console.error('Error fetching data', error);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
+
+// app.get('/library', async (req, res) => {
+//   try {
+//     // Fetch data from users and orders tables
+//     const usersQuery = 'SELECT * FROM hotelrooms'
+//     const hotelofers = 'SELECT discount FROM hoteloffers'
+//     const hotelrooms = 'SELECT roomtype FROM hotelrooms'
+//     const hotelroomtypes = 'SELECT roomtype FROM hotelroomtypes'
+//     const hotelroomview = 'SELECT roomview FROM hotelroomview'
+//     const roomprices = 'SELECT * FROM roomprices'
+//     // const ordersQuery =
+//     //   'SELECT id, user_id, order_date, total_amount FROM orders'
+
+//     const usersResult = await pool.query(usersQuery)
+//     const hotelofersResult = await pool.query(hotelofers)
+//     const hotelroomsResult = await pool.query(hotelrooms)
+//     const hotelroomtypesResult = await pool.query(hotelroomtypes)
+//     const hotelroomviewResult = await pool.query(hotelroomview)
+//     const roompricesResult = await pool.query(roomprices)
+
+//     const users = usersResult.rows
+//     const b = hotelofersResult.rows
+//     const c = hotelroomsResult.rows
+//     const d = hotelroomtypesResult.rows
+//     const e = hotelroomviewResult.rows
+//     const f = roompricesResult.rows
+
+//     // Create an array of objects with the combined data
+//     const usersWithOrders = users.map((user) => {
+//       // Find orders for this user
+//       const userOrders = orders.filter((order) => order.user_id === user.id)
+
+//       return {
+//         id: user.id,
+//         name: user.name,
+//         email: user.email,
+//         orders: userOrders.map((order) => ({
+//           orderId: order.id,
+//           orderDate: order.order_date,
+//           totalAmount: order.total_amount,
+//         })),
+//       }
+//     })
+
+//     // Send structured response
+//     res.json(usersWithOrders)
+//   } catch (error) {
+//     console.error(error)
+//     res.status(500).send('Error fetching data')
+//   }
+// })
+
+app.post('/guestinformation', (req, res) => {
+  const {
+    firstname,
+    lastname,
+    email,
+    phonenumber,
+    address,
+    city,
+    country,
+    postalcode,
+  } = req.body
+
+  const insertSTMT = `
+      INSERT INTO guestinformation (firstname, lastname, email, phonenumber, address, city, country, postalcode) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id;`
+
+  pool
+    .query(insertSTMT, [
+      firstname,
+      lastname,
+      email,
+      phonenumber,
+      address,
+      city,
+      country,
+      postalcode,
+    ])
+    .then((response) => {
+      const lastInsertRowid = response.rows[0].id
+      console.log('Room Details saved', lastInsertRowid)
+      res.json({ success: true, msg: '', lastInsertRowid })
     })
-
-    // Send structured response
-    res.json(usersWithOrders)
-  } catch (error) {
-    console.error(error)
-    res.status(500).send('Error fetching data')
-  }
+    .catch((err) => {
+      console.error('Insert failed', err)
+      res.json({
+        success: false,
+        msg: `Insert failed- ${err}`,
+        lastInsertRowid: 0,
+      })
+    })
 })
 
 app.listen(4000, () => console.log('server is running on port 4000'))

@@ -72,3 +72,24 @@ export const useDeleteBookingMutation = () => {
     },
   })
 }
+
+export const useInsertGuestInformationMutation = () => {
+  // console.log("aaaqqq",bapi)
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: any) => {
+      console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqq', data.data)
+      // console.log("geeth",bapi + params.data.id)
+
+      try {
+        const res = await axios.post(`${bapi}guestinformation`, data.data)
+        // console.log("ressssssssssssssssssssssss",res.data)
+        return res.data
+      } catch (error) {
+        console.error('Error in API call:', error)
+        throw error
+      }
+    },
+  })
+}
