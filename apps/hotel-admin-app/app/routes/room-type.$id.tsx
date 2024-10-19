@@ -72,7 +72,7 @@ export async function action({ request }: ActionFunctionArgs) {
       // Returning JSON with success toast data
       return jsonWithSuccess(
         { result: 'Data Update successfully' },
-        'Room Update successfully! 🗑️',
+        'Room Update successfully!!',
       )
     }
   } catch (error) {
@@ -146,7 +146,7 @@ function RoomEdit() {
                         className="text-white bg-orange-500 hover:bg-orange-400  w-20 mt-10 h-20"
                         to={'/room-type/list'}
                       >
-                        <Button>Close</Button>
+                        <Button className='text-white bg-orange-500 hover:bg-orange-400 mt-10'>Close</Button>
                       </Link>
                     </div>
                     <div>

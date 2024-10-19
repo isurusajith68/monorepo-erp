@@ -82,7 +82,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return json({})
   } else {
     // Return the processed hotel data with images
-    console.log('Processed hotels data: ', { hotels })
+   // console.log('Processed hotels data: ', { hotels })
     return json({ hotels })
   }
 }
@@ -125,7 +125,7 @@ export default function RoomList() {
   const navigate = useNavigate()
   const data = useLoaderData<typeof loader>()?.hotels || [] // Fallback to an empty array
 
-  console.log('first', data)
+  // console.log('first', data)
 
   const actionData = useActionData() // Capture action data (including toast data)
   const submit = useSubmit()
@@ -139,7 +139,7 @@ export default function RoomList() {
   }, [actionData])
 
   const handleEdit = (id: number) => {
-    navigate(`/room-type/${id}`)
+    navigate(`/room-add/${id}`)
   }
 
 
@@ -159,7 +159,7 @@ export default function RoomList() {
           <hr className="bg-blue-400 h-0.5 mt-2" />
         </div>
 
-        <div className="overflow-x-auto mt-5 pl-12 pr-4  border-blue-300 w-[85%] ml-[5%] mb-14">
+        <div className="overflow-x-auto mt-5 pl-12 pr-4  border-blue-300 w-[90%] ml-[5%] mb-14">
           <Table className="rounded-xl border border-blue-300 overflow-hidden mb-14">
             <TableHeader className="bg-blue-300 text-center border border-blue-300">
               <TableRow>
@@ -168,6 +168,9 @@ export default function RoomList() {
                 </TableHead>
                 <TableHead className="text-center px-4 py-2">
                   Room Type{' '}
+                </TableHead>
+                <TableHead className="text-center px-4 py-2">
+                  Room View{' '}
                 </TableHead>
                 <TableHead className="text-center px-4 py-2">
                   No of Beds
@@ -190,6 +193,9 @@ export default function RoomList() {
                     </TableCell>
                     <TableCell className="text-center px-4 py-2">
                       {data.roomtype}
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      {data.roomview}
                     </TableCell>
                     <TableCell className="text-center px-4 py-2">
                       {data.noofbed}
@@ -237,7 +243,7 @@ export default function RoomList() {
                     <TableCell className="text-center px-4 py-2">
                       <div className="flex gap-5 ml-2">
                         <div>
-                          <Button className="bg-blue-600">Edit</Button>
+                          <Button  onClick={() => handleEdit(data.id)} className="bg-blue-600">Edit</Button>
                         </div>
                         <div>
                           <AlertDialog>
