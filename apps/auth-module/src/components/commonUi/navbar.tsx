@@ -10,7 +10,7 @@ export default function Navbar() {
     { item: 'Module List', route: '/modules' },
     { item: 'Document List', route: '/documents' },
     { item: 'Action List', route: '/actions' },
-    { item: 'Permission', route: '' },
+    { item: 'Permission', route: '/permission' },
   ]
 
   return (

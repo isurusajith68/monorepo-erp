@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table'
 import { useGetModules } from '@/app/modules/_services/queries'
 import Navbar from '@/components/commonUi/navbar'
-import { useActions, useGetDocumentsAll } from '../_services/queries'
+import { useActions, useGetDocumentsByModule } from '../_services/queries'
 import {
   Select,
   SelectContent,
@@ -20,12 +20,12 @@ import {
 import { useState } from 'react'
 
 export default function ListActions() {
-  const { data } = useActions()
-  const { data: documents } = useGetDocumentsAll()
-  const { data: modules } = useGetModules()
-
   const [selectedModule, setSelectedModule] = useState(null)
   const [selectedDocument, setSelectedDocument] = useState(null)
+
+  const { data } = useActions()
+  const { data: modules } = useGetModules()
+  const { data: documents } = useGetDocumentsByModule(selectedModule)
 
   const filteredActions = data?.actions.filter((action) => {
     return (

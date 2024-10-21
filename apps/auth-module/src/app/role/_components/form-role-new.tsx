@@ -53,7 +53,7 @@ export default function NewFormRole() {
     onSubmit: ({ value }) => {
       console.log(value)
       const res = getDirtyValuesTF(
-        { roles: roles.roles.rows },
+        { roles: roles.roles },
         value,
         [{ arrayName: 'roles', pkName: 'rid' }],
         'rid',
@@ -73,12 +73,12 @@ export default function NewFormRole() {
       //   { rid: '1', role: '1,', description: 'ppp' },
       // ])
 
-      for (let index = 0; index < roles.roles.rows.length; index++) {
-        const role = roles.roles.rows[index]
-        form.setFieldValue('roles', roles.roles.rows)
+      for (let index = 0; index < roles.roles.length; index++) {
+        const role = roles.roles[index]
+        form.setFieldValue('roles', roles.roles)
       }
 
-      //   roles.roles.rows.forEach((role, index) => {
+      //   roles.roles.forEach((role, index) => {
       //     form.setFieldValue(`role[${index}].rid`, role.rid)
       //     form.setFieldValue(`role[${index}].role`, role.role)
       //     form.setFieldValue(`role[${index}].description`, role.description)

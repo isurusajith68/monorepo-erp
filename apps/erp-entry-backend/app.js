@@ -284,8 +284,7 @@ app.get('/getroles', (req, res) => {
   const dbquery = `SELECT * FROM userroles ORDER BY rid;`
   pool.query(dbquery).then((dbres) => {
     if (dbres.rows.length > 0) {
-      const roles = { rows: dbres.rows }
-      res.send({ success: true, roles: roles })
+      res.send({ success: true, roles: dbres.rows })
     }
   })
 })
@@ -326,6 +325,17 @@ app.get('/documentsall', (req, res) => {
   })
 })
 
+app.get('/documentsbymodule/:selectedModule', (req, res) => {
+  const selectedModule = req.params.selectedModule
+  const dbquery = `SELECT * FROM documents WHERE modid=${selectedModule} ORDER BY docid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, documents: dbres.rows })
+    }
+  })
+})
+
 /////////////////////////////////////////////////////////////////////
 ////////////////////////////ACTIONS////////////////////////////////////
 
@@ -338,6 +348,91 @@ app.get('/getactions', (req, res) => {
       res.send({ success: true, actions: dbres.rows })
     }
   })
+})
+
+/////////////////////////////////////////////////////////////////////
+////////////////////////////PERMISSIONS////////////////////////////////////
+
+app.get('/getpermissons/:roleid/:modid', (req, res) => {
+  const modid = req.params.modid
+  const roleid = req.params.roleid
+
+  // const dbquery = `SELECT * FROM actions ORDER BY actid;`
+  const dbquery = `SELECT a.docid, COALESCE(p.permission IS NOT NULL, false) AS permission ,
+a.actid, a.actname ,p.permissionid FROM actions a 
+left join  permissions p on a.actid=p.actid AND p.rid=${roleid}
+WHERE a.modid=${modid}
+ ORDER BY permissionid;`
+
+  // const dbquery = `SELECT * FROM permissions WHERE modid=${modid} AND rid=${roleid} ORDER BY permissionid;`
+  // console.log('dbquery123', dbquery)
+
+  // const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid ORDER BY documents.docid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      //console.log('dbres.rows', dbres.rows)
+
+      res.send({ success: true, list: dbres.rows })
+    }
+  })
+})
+
+app.post('/addpermission', async (req, res) => {
+  const { truePermissions, rid, module } = req.body
+
+  console.log('rid', req.body)
+  try {
+    const sqlDelete = `DELETE FROM permissions WHERE rid=${rid}`
+    const res1 = await pool.query(sqlDelete)
+
+    truePermissions.map(async (p) => {
+      const sqlInsert = `INSERT INTO permissions ( rid, modid,docid,actid,permission) VALUES (${rid},${module},${p.docid},${p.actid},${true})`
+      const res2 = await pool.query(sqlInsert)
+    })
+
+    if (res1.rows.length > 0) {
+      //return res.send({ success: false, message: 'User already exists' })
+      // const sqlInsert = `INSERT INTO permissions ( rid, modid,docid,actid,permission) VALUES ($1, $2,$3)`
+    }
+  } catch (error) {
+    console.log('error', error)
+  }
+  //   console.error('Error in backend-', error)
+  //   return res.send({ success: false, message: error.message })
+  // }
+
+  // try {
+  //   const sqlDelete = `SELECT 1 as name FROM users WHERE email = $1 `
+
+  //   const res1 = await pool.query(sqlCheck, [email])
+
+  //   if (res1.rows.length > 0) {
+  //     return res.send({ success: false, message: 'User already exists' })
+  //   }
+
+  //   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS)
+
+  //   const sqlInsert = `INSERT INTO users ( email, password,username) VALUES ($1, $2,$3)`
+  //   const insrtedData = await pool.query(sqlInsert, [
+  //     email,
+  //     hashedPassword,
+  //     username,
+  //   ])
+
+  //   console.log('insrtedData', insrtedData)
+
+  //   if (insrtedData.rowCount == 1) {
+  //     console.log('added')
+  //     return res.send({
+  //       success: true,
+  //       message: 'User registered successfully',
+  //     })
+  //   }
+  // } catch (error) {
+  //   console.error('Error in backend-', error)
+  //   return res.send({ success: false, message: error.message })
+  // }
 })
 
 app.listen(port, () => {
