@@ -30,8 +30,11 @@ import {
 import { Form, json, Link, useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
 import { ActionFunctionArgs, LoaderFunction, LoaderFunctionArgs } from '@remix-run/node'
 import { client } from '~/db.server'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import getUpdateQuery, { getDirtyValuesTF } from '~/lib/utils'
+import { Slide, ToastContainer, toast as notify } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import '../app-component/style.css'
 
 export let loader: LoaderFunction = async ({ params }) => {
   const { id } = params
@@ -50,6 +53,18 @@ export let loader: LoaderFunction = async ({ params }) => {
     return result.rows[0]
   }
   // Return the fetched data from the database
+}
+
+////////action///////////////
+// Helper to return json with toast
+function jsonWithSuccess(data: any, message: string) {
+  return json({
+    ...data,
+    toast: {
+      type: 'success',
+      message,
+    },
+  })
 }
 
 
@@ -72,28 +87,39 @@ export async function action({ request }: ActionFunctionArgs) {
 
       await client.query(uq, vals)
 
-      return json({
-        success: true,
-        message: 'Hotel information saved successfully!',
-      })
+      // Returning JSON with success toast data
+      return jsonWithSuccess(
+        { result: 'Data Update successfully' },
+        'Room Price Update successfully!!',
+      )
     }
   } catch (error) {
     console.error('Error inserting hotel info:', error)
     // Return error response with details to show in the alert
-    return json(
-      {
-        success: false,
-        message: 'Failed to save hotel information. Please try again.',
-      },
-      { status: 500 },
+     // Return error response with details to show in the alert
+     return jsonWithSuccess(
+      { result: 'Failed to save Room information. Please try again.' },
+      'Failed to save Room information. Please try again.',
     )
   }
   return 0
 }
+
+
 export default function RoomPriceSchedule() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const data = useLoaderData<typeof loader>()
+  console.log('idh', data)
+
   const fetcher = useFetcher()
+
+  // UseEffect to handle showing the toast when fetcher.data changes
+  useEffect(() => {
+    if (fetcher.data?.toast) {
+      // Show success or error toast based on the type
+      notify(fetcher.data.toast.message, { type: fetcher.data.toast.type })
+    }
+  }, [fetcher.data]) // Listen to changes in fetcher.data
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -110,9 +136,8 @@ export default function RoomPriceSchedule() {
 
     // Submit form data
     await fetcher.submit(formData, { method: 'post' })
-    //navigate('/room-price-list')
+    
   }
-
 
   const formatDate = (dateString : string) => {
     const date = new Date(dateString);
@@ -306,6 +331,26 @@ export default function RoomPriceSchedule() {
           </Table>
         </div>
         </Form>
+         {/* ToastContainer to display the notifications */}
+
+      <ToastContainer
+        position="bottom-right"
+        autoClose={2000}
+        hideProgressBar={false} // Show progress bar
+        newestOnTop={true} // Display newest toast on top
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={true}
+        pauseOnHover={true}
+        theme="colored" // You can change to "light" or "dark"
+        transition={Slide} // Slide animation for toast appearance
+        icon={true} // Show icons for success, error, etc.
+        className="custom-toast-container" // Add custom classes
+        bodyClassName="custom-toast-body"
+        closeButton={false} // No close button for a clean look
+        onClick={() => navigate('/room-view/list')}
+      />
       </div>
     </>
   )

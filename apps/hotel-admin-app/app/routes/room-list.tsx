@@ -40,8 +40,8 @@ import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { client } from '~/db.server'
 import { useEffect } from 'react'
 import { Slide, ToastContainer, toast as notify } from 'react-toastify'
-import "react-toastify/dist/ReactToastify.css";
-import "../app-component/style.css"
+import 'react-toastify/dist/ReactToastify.css'
+import '../app-component/style.css'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Query to fetch hotel rooms and their associated images using INNER JOIN
@@ -73,17 +73,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
         images: imageBase64 ? [imageBase64] : [],
       })
     }
-
     return acc
   }, [])
+  const resultview = await client.query('SELECT * FROM hotelroomview')
+  const resulttype = await client.query('SELECT * FROM hotelroomtypes')
 
   // Check if there are no rows, return an empty object
-  if (hotels.length === 0) {
+  if (
+    hotels.length === 0 &&
+    resultview.rows.length === 0 &&
+    resulttype.rows.length === 0
+  ) {
     return json({})
   } else {
     // Return the processed hotel data with images
-   // console.log('Processed hotels data: ', { hotels })
-    return json({ hotels })
+    // console.log('Processed hotels data: ',  resultview.rows )
+    return json({
+      hotels,
+      resultview: resultview.rows,
+      roomTypes: resulttype.rows,
+    })
   }
 }
 
@@ -123,9 +132,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function RoomList() {
   const navigate = useNavigate()
-  const data = useLoaderData<typeof loader>()?.hotels || [] // Fallback to an empty array
-
-  // console.log('first', data)
+  const Data = useLoaderData<typeof loader>() // Fallback to an empty array
+  const data = Data?.hotels ?? []
+  const roomview = Data?.resultview ?? []
+  const roomTypes = Data?.roomTypes ?? []
+  console.log('first', roomTypes)
+  console.log('first', data)
 
   const actionData = useActionData() // Capture action data (including toast data)
   const submit = useSubmit()
@@ -139,9 +151,8 @@ export default function RoomList() {
   }, [actionData])
 
   const handleEdit = (id: number) => {
-    navigate(`/room-add/${id}`)
+    navigate(`/room-edit/${id}`)
   }
-
 
   return (
     <>
@@ -186,104 +197,111 @@ export default function RoomList() {
             </TableHeader>
             <TableBody className="bg-blue-50">
               {data.length > 0 ? (
-                data.map((data: any, index: any) => (
+                data.map((item: any, index: number) => (
                   <TableRow key={index} className="hover:bg-blue-100">
                     <TableCell className="text-center px-4 py-2">
-                      {data.roomno}
+                      {item.roomno}
                     </TableCell>
+
+                    {/* Room Type - Display the name instead of the ID */}
                     <TableCell className="text-center px-4 py-2">
-                      {data.roomtype}
+                      {roomTypes.find((type :any) => type.id.toString() === item.roomtype)
+                        ?.roomtype || 'Unknown Type'}
                     </TableCell>
+
+                    {/* Room View - Display the name instead of the ID */}
                     <TableCell className="text-center px-4 py-2">
-                      {data.roomview}
+                      {roomview.find((view : any) => view.id.toString() === item.roomview)
+                        ?.roomview || 'Unknown View'}
                     </TableCell>
+
                     <TableCell className="text-center px-4 py-2">
-                      {data.noofbed}
+                      {item.noofbed}
                     </TableCell>
+
+                    {/* Display AC, TV, WiFi, and Balcony */}
                     <TableCell className="text-center px-4 py-2">
-                      {data.ac === 'on' && (
+                      {item.ac === 'on' && (
                         <span style={{ color: 'green', marginRight: '10px' }}>
                           AC
                         </span>
                       )}
-                      {data.tv === 'on' && (
+                      {item.tv === 'on' && (
                         <span style={{ color: 'blue', marginRight: '10px' }}>
                           TV
                         </span>
                       )}
-                      {data.wifi === 'on' && (
+                      {item.wifi === 'on' && (
                         <span style={{ color: 'purple', marginRight: '10px' }}>
                           WiFi
                         </span>
                       )}
-                      {data.balcony === 'on' && (
+                      {item.balcony === 'on' && (
                         <span style={{ color: 'orange', marginRight: '10px' }}>
                           Balcony
                         </span>
                       )}
                     </TableCell>
 
-                    {/* Display the base64 image */}
+                    {/* Display the base64 images */}
                     <TableCell className="text-center px-4 py-2">
                       <div className="flex flex-row gap-4">
-                        {data.images && data.images.length > 0
-                          ? data.images.map((image: string, index: number) => (
-                              <img
-                                key={index} // Unique key for each image
-                                src={image}
-                                alt={`Room Image ${index + 1}`}
-                                width={50}
-                                height={50}
-                              />
-                            ))
+                        {item.images && item.images.length > 0
+                          ? item.images.map(
+                              (image: string, imgIndex: number) => (
+                                <img
+                                  key={imgIndex}
+                                  src={image}
+                                  alt={`Room Image ${imgIndex + 1}`}
+                                  width={50}
+                                  height={50}
+                                />
+                              ),
+                            )
                           : 'No Image Available'}
                       </div>
                     </TableCell>
 
+                    {/* Action buttons: Edit and Delete */}
                     <TableCell className="text-center px-4 py-2">
                       <div className="flex gap-5 ml-2">
-                        <div>
-                          <Button  onClick={() => handleEdit(data.id)} className="bg-blue-600">Edit</Button>
-                        </div>
-                        <div>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button className="ml-5 bg-blue-600 bg-destructive">
-                                Delete
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Are you absolutely sure?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone. This will
-                                  permanently delete your account and remove
-                                  your data from our servers.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <Form method="post">
-                                  <input
-                                    type="hidden"
-                                    name="id"
-                                    value={data.id}
-                                  />
-                                  <AlertDialogAction asChild>
-                                    <Button
-                                      type="submit"
-                                      className="bg-red-500"
-                                    >
-                                      Continue
-                                    </Button>
-                                  </AlertDialogAction>
-                                </Form>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
+                        <Button
+                          onClick={() => handleEdit(item.id)}
+                          className="bg-blue-600"
+                        >
+                          Edit
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button className="ml-5 bg-red-600">Delete</Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Are you absolutely sure?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will
+                                permanently delete your data.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <Form method="post">
+                                <input
+                                  type="hidden"
+                                  name="id"
+                                  value={item.id}
+                                />
+                                <AlertDialogAction asChild>
+                                  <Button type="submit" className="bg-red-500">
+                                    Continue
+                                  </Button>
+                                </AlertDialogAction>
+                              </Form>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -299,7 +317,7 @@ export default function RoomList() {
           </Table>
         </div>
         {/* ToastContainer to display the notifications */}
-     
+
         <ToastContainer
           position="bottom-right"
           autoClose={2000}

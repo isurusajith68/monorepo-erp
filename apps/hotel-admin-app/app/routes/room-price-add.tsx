@@ -31,6 +31,7 @@ import {
   Form,
   json,
   Link,
+  useActionData,
   useFetcher,
   useLoaderData,
   useNavigate,
@@ -41,7 +42,11 @@ import {
   LoaderFunctionArgs,
 } from '@remix-run/node'
 import { client } from '~/db.server'
-import { useState } from 'react'
+import { Slide, ToastContainer, toast as notify } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import '../app-component/style.css'
+import { useToast } from '~/hooks/use-toast'
+import { useEffect } from 'react'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const result = await client.query('SELECT * FROM hotelrooms')
@@ -52,69 +57,127 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 }
 
+// Helper to return json with toast
+function jsonWithSuccess(data: any, message: string) {
+  return json({
+    ...data,
+    toast: {
+      type: 'success',
+      message,
+    },
+  })
+}
+
+
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData()
-  const id = formData.get('id')
-  console.log('ssssssss', Object.fromEntries(formData)) // Log the form data
+  try {
+    const formData = await request.formData();
+    const id = formData.get('id');
+    console.log('Form Data:', Object.fromEntries(formData)); // Log the form data
 
-  if (id) {
-    // DELETE request
-    const query = `DELETE FROM roomprices WHERE id = $1`
-    await client.query(query, [id])
-    return json({
-      success: true,
-      message: 'Hotel room-type deleted successfully!',
-    })
-  } else {
-    // Extract the common fields
-    const scheduleid = formData.get('scheduleid')
-    const startdate = formData.get('startdate')
-    const enddate = formData.get('enddate')
-    const remarks = formData.get('remarks')
+    if (id) {
+      // DELETE request
+      const query = `DELETE FROM roomprices WHERE id = $1`;
+      await client.query(query, [id]);
 
-    // Extract the arrays from FormData
-    const roomno = formData.getAll('roomno')
-    const roomtype = formData.getAll('roomtype')
-    const roomview = formData.getAll('roomview')
-    const noofbed = formData.getAll('noofbed')
-    const roprice = formData.getAll('roprice')
-    const bbprice = formData.getAll('bbprice')
-    const hbprice = formData.getAll('hbprice')
-    const fbprice = formData.getAll('fbprice')
+      return json({
+        success: true,
+        message: 'Hotel room-type deleted successfully!',
+      });
+    } else {
+      // Extract the common fields
+      const scheduleid = formData.get('scheduleid');
+      const startdate = formData.get('startdate');
+      const enddate = formData.get('enddate');
+      const remarks = formData.get('remarks');
 
-    // Iterate over the arrays and insert each row into the database
-    const insertQuery = `INSERT INTO roomprices (scheduleid, startdate, enddate, remarks, roomno, roomtype, roomview, noofbed, roprice, bbprice, hbprice, fbprice) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+      // Extract the arrays from FormData
+      const roomno = formData.getAll('roomno');
+      const roomtype = formData.getAll('roomtype');
+      const roomview = formData.getAll('roomview');
+      const noofbed = formData.getAll('noofbed');
+      const roprice = formData.getAll('roprice');
+      const bbprice = formData.getAll('bbprice');
+      const hbprice = formData.getAll('hbprice');
+      const fbprice = formData.getAll('fbprice');
 
-    for (let i = 0; i < roomno.length; i++) {
+      // Validate the arrays have the same length
+      if (
+        roomno.length !== roomtype.length ||
+        roomno.length !== roomview.length ||
+        roomno.length !== noofbed.length ||
+        roomno.length !== roprice.length ||
+        roomno.length !== bbprice.length ||
+        roomno.length !== hbprice.length ||
+        roomno.length !== fbprice.length
+      ) {
+        throw new Error('Mismatch in form data arrays lengths.');
+      }
+
+      // Create a single query for bulk insertion
+      const insertQuery = `
+        INSERT INTO roomprices 
+        (scheduleid, startdate, enddate, remarks, roomno, roomtype, roomview, noofbed, roprice, bbprice, hbprice, fbprice) 
+        VALUES 
+        ${roomno
+          .map(
+            (_, index) =>
+              `($1, $2, $3, $4, $${5 + index * 8}, $${6 + index * 8}, $${7 + index * 8}, $${8 + index * 8}, $${9 + index * 8}, $${10 + index * 8}, $${11 + index * 8}, $${12 + index * 8})`
+          )
+          .join(', ')}
+      `;
+
+      // Flatten the array data into a single array of values
       const values = [
         scheduleid,
         startdate,
         enddate,
         remarks,
-        roomno[i],
-        roomtype[i],
-        roomview[i],
-        noofbed[i],
-        roprice[i],
-        bbprice[i],
-        hbprice[i],
-        fbprice[i],
-      ]
-      await client.query(insertQuery, values)
-    }
+        ...roomno,
+        ...roomtype,
+        ...roomview,
+        ...noofbed,
+        ...roprice,
+        ...bbprice,
+        ...hbprice,
+        ...fbprice,
+      ];
 
-    return json({
-      success: true,
-      message: 'Hotel room-type saved successfully!',
-    })
+      await client.query(insertQuery, values);
+
+      // Returning JSON with success toast data
+      return jsonWithSuccess(
+        { result: 'Room Data successfully Insert!' },
+        'Room Data successfully Insert!'
+      );
+    }
+  } catch (error) {
+    console.error('Error saving room info:', error);
+
+    // Return error toast data on failure
+    return jsonWithSuccess(
+      { result: 'Error saving room info' },
+      'Error saving room info',
+    );
   }
 }
+
 
 export default function RoomPriceSchedule() {
   const navigate = useNavigate()
   const data = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
+  const actionData = useActionData()
+  const toast = useToast() // Get the toast function from Remix or your UI library
+
+
+  // UseEffect to handle showing the toast when actionData changes
+  useEffect(() => {
+    if (actionData?.toast) {
+      // Show success or error toast based on the type
+      notify(actionData.toast.message, { type: actionData.toast.type })
+    }
+  }, [actionData])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -331,6 +394,26 @@ export default function RoomPriceSchedule() {
             FB : Full Board (Breakfast , Lunch & Dinner)
           </h3>
         </div>
+         {/* ToastContainer to display the notifications */}
+
+      <ToastContainer
+        position="bottom-right"
+        autoClose={2000}
+        hideProgressBar={false} // Show progress bar
+        newestOnTop={true} // Display newest toast on top
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={true}
+        pauseOnHover={true}
+        theme="colored" // You can change to "light" or "dark"
+        transition={Slide} // Slide animation for toast appearance
+        icon={true} // Show icons for success, error, etc.
+        className="custom-toast-container" // Add custom classes
+        bodyClassName="custom-toast-body"
+        closeButton={false} // No close button for a clean look
+        onClick={() => navigate('/room-type/list')}
+      />
       </div>
     </>
   )

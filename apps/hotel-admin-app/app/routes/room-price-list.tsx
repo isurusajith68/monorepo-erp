@@ -27,10 +27,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '~/components/ui/alert-dialog'
-import { Form, Link, useLoaderData, useNavigate } from '@remix-run/react'
-import { LoaderFunctionArgs } from '@remix-run/node'
+import { Form, json, Link, useActionData, useLoaderData, useNavigate, useSubmit } from '@remix-run/react'
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { client } from '~/db.server'
 import { useState } from 'react'
+import { useEffect } from 'react'
+import { Slide, ToastContainer, toast as notify } from 'react-toastify'
+import "react-toastify/dist/ReactToastify.css";
+import "../app-component/style.css"
 
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -43,11 +47,56 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 }
 
+// Helper to return json with toast
+function jsonWithSuccess(data: any, message: string) {
+  return json({
+    ...data,
+    toast: {
+      type: 'success',
+      message,
+    },
+  })
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData()
+  const id = formData.get('id')
+
+  if (id) {
+    // DELETE request
+    const query = `DELETE FROM roomprices WHERE id = $1`
+    await client.query(query, [id])
+
+    // Returning JSON with success toast data
+    return jsonWithSuccess(
+      { result: 'Data deleted successfully' },
+      'Room Price deleted successfully! 🗑️',
+    )
+  } else {
+    // If no ID, returning a generic success message
+    return jsonWithSuccess(
+      { result: 'Operation unsuccessful' },
+      'Operation unsuccessful! 🎉',
+    )
+  }
+}
+
 export default function RoomPriceList() {
   const navigate = useNavigate()
   const data = useLoaderData<typeof loader>()
   const [searchId, setSearchId] = useState("");
   const [searchDate, setsearchDate] = useState("");
+  const [searchEndDate, setsearchEndDate] = useState("");
+  const actionData = useActionData() // Capture action data (including toast data)
+  const submit = useSubmit()
+
+  // UseEffect to handle showing the toast when actionData changes
+  useEffect(() => {
+    if (actionData?.toast) {
+      // Show success or error toast based on the type
+      notify(actionData.toast.message, { type: actionData.toast.type })
+    }
+  }, [actionData])
   
   const handleEdit = (id: number) => {
     navigate(`/room-price-edit/${id}`)
@@ -59,11 +108,26 @@ export default function RoomPriceList() {
 
 // Filter the data based on `id` and `oname`
 const filteredData = data.filter((item: any) => {
-  
   const matchesSearchCriteria =
-    item.scheduleid.toString().includes(searchId)
+    item.scheduleid.toString().includes(searchId) &&
+    item.startdate.toString().includes(searchDate)&&
+    item.enddate.toString().includes(searchEndDate);
   return matchesSearchCriteria;
 });
+// const filteredData = data.filter((item: any) => {
+//   const itemStartDate = new Date(item.startdate);
+//   const itemEndDate = new Date(item.enddate);
+//   const searchStartDate = new Date(searchDate);
+//   const SearchEndDate = new Date(searchEndDate);
+
+//   // Check if the item's date range falls within the search range
+//   const matchesSearchCriteria =
+//     itemStartDate >= searchStartDate && itemEndDate <= SearchEndDate  && 
+//      item.scheduleid.toString().includes(searchId);
+
+//   return matchesSearchCriteria;
+// });
+
 
   return (
     <>
@@ -109,8 +173,8 @@ const filteredData = data.filter((item: any) => {
                 type="date"
                 className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl"
                 placeholder=""
-                // value={searchName}
-                // onChange={handleSearchChangeName}
+                value={searchEndDate}
+                onChange={(e) => setsearchEndDate(e.target.value)} 
               />
             </div>
           </div>
@@ -230,6 +294,25 @@ const filteredData = data.filter((item: any) => {
             </TableBody>
           </Table>
         </div>
+           {/* ToastContainer to display the notifications */}
+     
+           <ToastContainer
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false} // Show progress bar
+          newestOnTop={true} // Display newest toast on top
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          pauseOnHover={true}
+          theme="colored" // You can change to "light" or "dark"
+          transition={Slide} // Slide animation for toast appearance
+          icon={true} // Show icons for success, error, etc.
+          className="custom-toast-container" // Add custom classes
+          bodyClassName="custom-toast-body"
+          closeButton={false} // No close button for a clean look
+        />
       </div>
     </>
   )

@@ -4,6 +4,8 @@ import {
   BookOpenCheck,
   BookOpenText,
   Home,
+  House,
+  HousePlus,
   LineChart,
   NotebookPen,
   Package,
@@ -51,21 +53,21 @@ const Sidebar = () => {
               to="/room-type/list"
               className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
             >
-              <BookOpenText className="h-4 w-4" />
+              <HousePlus className="h-4 w-4" />
               Room Type
             </Link>
             <Link
               to="/room-view/list"
               className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
             >
-              <UserPlus className="h-4 w-4" />
+              <House className="h-4 w-4" />
               Room Views
             </Link>
             <Link
               to="/room-list"
               className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
             >
-              <IoPeople className="h-4 w-4" />
+              <HousePlus className="h-4 w-4" />
               Rooms
             </Link>
             <Link

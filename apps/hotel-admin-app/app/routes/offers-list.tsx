@@ -32,18 +32,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '~/components/ui/popover'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Label } from '~/components/ui/label'
 import {
   Form,
   json,
   Link,
+  useActionData,
   useFetcher,
   useLoaderData,
   useNavigate,
+  useSubmit,
 } from '@remix-run/react'
 import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { client } from '~/db.server'
+import { Slide, ToastContainer, toast as notify } from 'react-toastify'
+import "react-toastify/dist/ReactToastify.css";
+import "../app-component/style.css"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const result = await client.query('SELECT * FROM hoteloffers')
@@ -54,34 +59,45 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 }
 
+// Helper to return json with toast
+function jsonWithSuccess(data: any, message: string) {
+  return json({
+    ...data,
+    toast: {
+      type: 'success',
+      message,
+    },
+  })
+}
+
+
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
   const id = formData.get('id')
-  console.log('ssssssss', formData)
 
   if (id) {
     // DELETE request
     const query = `DELETE FROM hoteloffers WHERE id = $1`
     await client.query(query, [id])
-    return json({
-      success: true,
-      message: 'Hotel room-type deleted successfully!',
-    })
+
+    // Returning JSON with success toast data
+    return jsonWithSuccess(
+      { result: 'Data deleted successfully' },
+      'Hotel Offer deleted successfully! 🗑️',
+    )
   } else {
     // INSERT request
-    const offername = formData.get('offername')
-    const discount = formData.get('discount')
-    const startdate = formData.get('startdate')
-    const enddate = formData.get('enddate')
-
-    const hotelQuery = `INSERT INTO hoteloffers (offername, discount, startdate, enddate) VALUES ($1, $2, $3, $4)`
-    const values = [offername, discount, startdate, enddate]
-    await client.query(hotelQuery, values)
-
-    return json({
-      success: true,
-      message: 'Hotel room-type saved successfully!',
-    })
+    const offername = formData.get('offername');
+    const discount = formData.get('discount');
+    const startdate = formData.get('startdate');
+    const enddate = formData.get('enddate');
+    const hotelQuery = `INSERT INTO hoteloffers (offername, discount, startdate, enddate) VALUES ($1, $2, $3, $4)`;
+    await client.query(hotelQuery, [offername, discount, startdate, enddate]);
+     // Returning JSON with success toast data
+     return jsonWithSuccess(
+      { result: 'Hotel Offer saved successfully!' },
+      'Hotel Offer saved successfully!',
+    )
   }
 }
 
@@ -90,20 +106,17 @@ export default function Offers() {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
   const data = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
+  const actionData = useActionData() // Capture action data (including toast data)
+  const submit = useSubmit()
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
+  // UseEffect to handle showing the toast when actionData changes
+  useEffect(() => {
+    if (actionData?.toast) {
+      // Show success or error toast based on the type
+      notify(actionData.toast.message, { type: actionData.toast.type })
+    }
+  }, [actionData])
 
-    // Access form data using the FormData API
-    const formElement = document.getElementById('myForm')
-    const formData = new FormData(formElement as HTMLFormElement)
-
-    console.log(formData, 'hhhh')
-
-    // Submit form data
-    await fetcher.submit(formData, { method: 'post' })
-    navigate(`/offers-list/`)
-  }
 
   const handleEdit = (id: number) => {
     navigate(`/offers/${id}`)
@@ -139,7 +152,7 @@ export default function Offers() {
                     </h4>
                   </div>
                   <div className="grid gap-2 mt-5">
-                      <form method="post" id="myForm">
+                  <Form method="post">
                       <div className="grid grid-cols-2 items-center gap-4">
                         <div>
                           <Label>Offers Name</Label>
@@ -180,23 +193,27 @@ export default function Offers() {
                           />
                         </div>
                         </div>
-                      </form>
-                    <div className="ml-[70%] mt-10">
-                      <Button
-                        onClick={handleSubmit}
+                     
+                    <div className="ml-[70%] mt-10 flex">
+                      <div>
+                      <Button type="submit" 
                         className="text-white bg-blue-500 hover:bg-blue-400 "
                       >
                         Add Offers
                       </Button>
-                      <Button
+                      </div>
+                      <div>
+                     <Button
                         onClick={() => setIsPopoverOpen(false)} // Close popover when clicked
                         className=" text-white bg-orange-500 hover:bg-orange-400 ml-8"
                       >
                         Close
                       </Button>
-                    </div>
-                  </div>
-                </div>
+                      </div>
+                      </div>
+                     </Form>
+                     </div>
+                     </div>    
               </PopoverContent>
             </Popover>
           </div>
@@ -264,15 +281,12 @@ export default function Offers() {
                       {formattedEndDate}
                     </TableCell>
                     <TableCell className="text-center py-2 px-4">
-                      <div className="flex items-center">
-                        <div>
-                          <Button
-                            onClick={() => handleEdit(data.id)}
-                            className="bg-blue-600 ml-24"
-                          >
-                            Edit
-                          </Button>
-                        </div>
+                      <div className="flex items-center lg:ml-[20%]">
+                      <div>
+                        <Button onClick={() => handleEdit(data.id)} className="bg-blue-600">
+                          Edit
+                        </Button>
+                      </div>
                         <div>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -319,6 +333,25 @@ export default function Offers() {
             </TableBody>
           </Table>
         </div>
+           {/* ToastContainer to display the notifications */}
+     
+           <ToastContainer
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false} // Show progress bar
+          newestOnTop={true} // Display newest toast on top
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          pauseOnHover={true}
+          theme="colored" // You can change to "light" or "dark"
+          transition={Slide} // Slide animation for toast appearance
+          icon={true} // Show icons for success, error, etc.
+          className="custom-toast-container" // Add custom classes
+          bodyClassName="custom-toast-body"
+          closeButton={false} // No close button for a clean look
+        />
       </div>
     </>
   )

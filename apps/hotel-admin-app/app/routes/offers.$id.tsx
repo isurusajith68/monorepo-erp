@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, LoaderFunction } from '@remix-run/node'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { client } from '~/db.server'
 import RoomType from './room-type.list'
 import { Button } from '~/components/ui/button'
@@ -13,6 +13,9 @@ import {
 } from '@remix-run/react'
 import getUpdateQuery, { getDirtyValuesTF } from '~/lib/utils'
 import { Label } from '~/components/ui/label'
+import { Slide, ToastContainer, toast as notify } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import '../app-component/style.css'
 
 export let loader: LoaderFunction = async ({ params }) => {
   const { id } = params
@@ -34,6 +37,16 @@ export let loader: LoaderFunction = async ({ params }) => {
 }
 
 ////////action///////////////
+// Helper to return json with toast
+function jsonWithSuccess(data: any, message: string) {
+  return json({
+    ...data,
+    toast: {
+      type: 'success',
+      message,
+    },
+  })
+}
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
@@ -54,31 +67,38 @@ export async function action({ request }: ActionFunctionArgs) {
 
       await client.query(uq, vals)
 
-      return json({
-        success: true,
-        message: 'Hotel information saved successfully!',
-      })
+      // Returning JSON with success toast data
+      return jsonWithSuccess(
+        { result: 'Data Update successfully' },
+        'Offer Update successfully!!',
+      )
     }
   } catch (error) {
     console.error('Error inserting hotel info:', error)
     // Return error response with details to show in the alert
-    return json(
-      {
-        success: false,
-        message: 'Failed to save hotel information. Please try again.',
-      },
-      { status: 500 },
+     // Return error response with details to show in the alert
+     return jsonWithSuccess(
+      { result: 'Failed to save Room information. Please try again.' },
+      'Failed to save Room information. Please try again.',
     )
   }
   return 0
 }
 
 function ViewOffers() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const data = useLoaderData<typeof loader>()
   console.log('idh', data)
 
   const fetcher = useFetcher()
+
+  // UseEffect to handle showing the toast when fetcher.data changes
+  useEffect(() => {
+    if (fetcher.data?.toast) {
+      // Show success or error toast based on the type
+      notify(fetcher.data.toast.message, { type: fetcher.data.toast.type })
+    }
+  }, [fetcher.data]) // Listen to changes in fetcher.data
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -95,11 +115,7 @@ function ViewOffers() {
 
     // Submit form data
     await fetcher.submit(formData, { method: 'post' })
-    navigate('/offers-list')
-  }
-
-  const GoList = () => {
-    navigate('/offers-list')
+    
   }
 
   const formatDate = (dateString : string) => {
@@ -116,7 +132,7 @@ function ViewOffers() {
         <div className="lg:w-[40%] lg:ml-[20%] h-full bg-white p-8 shadow-xl mt-36">
           <div className="grid gap-4">
             <div className="space-y-2">
-              <h4 className="font-medium leading-none">Room View</h4>
+              <h4 className="font-medium leading-none">Offers View</h4>
             </div>
             <div className="grid gap-2 mt-5">
               <div className="grid items-center gap-4">
@@ -166,23 +182,23 @@ function ViewOffers() {
                     />
                   </div>
                   <div className="grid grid-cols-2">
-                    <div className=' lg:ml-[90%]'>
-                      <Button
-                        onClick={GoList}
-                        className="text-white bg-orange-500 hover:bg-orange-400  w-20 mt-10"
+                  <div>
+                  <Link
+                        className="text-white bg-orange-500 hover:bg-orange-400  w-20 mt-10 h-20"
+                        to={'/offers-list'}
                       >
-                        close
-                      </Button>
-                    </div>
-                    <div className=' lg:ml-[90%]'>
-                      <Button
-                        onClick={handleSubmit}
-                        //onClick={() => navigate('/room-type/list')}
-                        className="text-white bg-blue-500 hover:bg-blue-400 mt-10  "
-                      >
-                        Update
-                      </Button>
-                    </div>
+                        <Button className='text-white bg-orange-500 hover:bg-orange-400 mt-10'>Close</Button>
+                      </Link>
+                  </div>
+                  <div>
+                  <Button
+                    onClick={handleSubmit}
+                    //onClick={() => navigate('/room-type/list')}
+                    className="text-white bg-blue-500 hover:bg-blue-400 mt-10  "
+                  >
+                    Update
+                  </Button>
+                </div>
                   </div>
                   </div>
                 </form>
@@ -191,6 +207,26 @@ function ViewOffers() {
           </div>
         </div>
       </div>
+      {/* ToastContainer to display the notifications */}
+
+      <ToastContainer
+        position="bottom-right"
+        autoClose={2000}
+        hideProgressBar={false} // Show progress bar
+        newestOnTop={true} // Display newest toast on top
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={true}
+        pauseOnHover={true}
+        theme="colored" // You can change to "light" or "dark"
+        transition={Slide} // Slide animation for toast appearance
+        icon={true} // Show icons for success, error, etc.
+        className="custom-toast-container" // Add custom classes
+        bodyClassName="custom-toast-body"
+        closeButton={false} // No close button for a clean look
+        onClick={() => navigate('/offers-list')}
+      />
     </div>
   )
 }
