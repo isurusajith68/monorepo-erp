@@ -19,7 +19,8 @@
   "license": "ISC",
   "dependencies": {
     "@erp/common": "workspace:^",
-    "@erp/sample-lib": "workspace:^"
+    "@erp/sample-lib": "workspace:^",
+    "@tanstack/react-form": "^0.33.0"
   },
   "devDependencies": {
     "husky": "^8.0.0",

@@ -5,6 +5,13 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
+    // "target": "ES2023", // or "ES2023" if available
+    // "module": "ESNext",
+    // "lib": ["DOM", "ES2023"], // include ES2022 library
+    // "strict": true,
+    // "esModuleInterop": true,
+    // "skipLibCheck": true,
+    // "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
