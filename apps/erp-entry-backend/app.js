@@ -22,7 +22,11 @@ const port = 10000
 //app.use(cors());
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'http://localhost:5175'],
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:5175',
+      'http://localhost:5174',
+    ],
     credentials: true,
   }),
 )
@@ -108,6 +112,8 @@ app.post('/login', (req, res1) => {
   pool
     .query(select)
     .then(async (res) => {
+      console.log('resaaa', res)
+
       if (res.rows.length > 0) {
         const userData = {
           email: res.rows[0].email,
@@ -124,7 +130,7 @@ app.post('/login', (req, res1) => {
         console.log('isPasswordValid', isPasswordValid)
 
         if (!isPasswordValid) {
-          return { success: false, message: 'Invalid credentials' }
+          return res1.send({ success: false, message: 'Invalid credentials' })
         }
 
         const token = createSessionToken(userData.id)
@@ -206,6 +212,12 @@ const createSessionToken = (userId) => {
   console.log(jwt.sign(payload, process.env.JWT_SECRET, options))
   return jwt.sign(payload, process.env.JWT_SECRET, options)
 }
+
+console.clear()
+
+/***********************************************************************/
+/****************************AUTH MODULE********************************/
+/***********************************************************************/
 
 /////////////////////////////////////////////////////////////////////
 ////////////////////////////ROLES////////////////////////////////////
@@ -305,7 +317,6 @@ app.get('/getmodules', (req, res) => {
 ////////////////////////////DOCUMENTS////////////////////////////////////
 
 app.get('/getdocuments', (req, res) => {
-  // const dbquery = `SELECT * FROM documents ORDER BY docid;`
   const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid ORDER BY documents.docid;`
 
   pool.query(dbquery).then((dbres) => {
@@ -341,7 +352,6 @@ app.get('/documentsbymodule/:selectedModule', (req, res) => {
 
 app.get('/getactions', (req, res) => {
   const dbquery = `SELECT * FROM actions ORDER BY actid;`
-  // const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid ORDER BY documents.docid;`
 
   pool.query(dbquery).then((dbres) => {
     if (dbres.rows.length > 0) {
@@ -357,22 +367,14 @@ app.get('/getpermissons/:roleid/:modid', (req, res) => {
   const modid = req.params.modid
   const roleid = req.params.roleid
 
-  // const dbquery = `SELECT * FROM actions ORDER BY actid;`
   const dbquery = `SELECT a.docid, COALESCE(p.permission IS NOT NULL, false) AS permission ,
-a.actid, a.actname ,p.permissionid FROM actions a 
-left join  permissions p on a.actid=p.actid AND p.rid=${roleid}
-WHERE a.modid=${modid}
- ORDER BY permissionid;`
-
-  // const dbquery = `SELECT * FROM permissions WHERE modid=${modid} AND rid=${roleid} ORDER BY permissionid;`
-  // console.log('dbquery123', dbquery)
-
-  // const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid ORDER BY documents.docid;`
+                   a.actid, a.actname ,p.permissionid FROM actions a 
+                   left join  permissions p on a.actid=p.actid AND p.rid=${roleid}
+                   WHERE a.modid=${modid}
+                   ORDER BY permissionid;`
 
   pool.query(dbquery).then((dbres) => {
     if (dbres.rows.length > 0) {
-      //console.log('dbres.rows', dbres.rows)
-
       res.send({ success: true, list: dbres.rows })
     }
   })
@@ -387,52 +389,17 @@ app.post('/addpermission', async (req, res) => {
     const res1 = await pool.query(sqlDelete)
 
     truePermissions.map(async (p) => {
-      const sqlInsert = `INSERT INTO permissions ( rid, modid,docid,actid,permission) VALUES (${rid},${module},${p.docid},${p.actid},${true})`
+      const sqlInsert = `INSERT INTO permissions ( rid, modid,docid,actid,permission) VALUES (${rid},${module},${
+        p.docid
+      },${p.actid},${true})`
       const res2 = await pool.query(sqlInsert)
     })
 
     if (res1.rows.length > 0) {
-      //return res.send({ success: false, message: 'User already exists' })
-      // const sqlInsert = `INSERT INTO permissions ( rid, modid,docid,actid,permission) VALUES ($1, $2,$3)`
     }
   } catch (error) {
     console.log('error', error)
   }
-  //   console.error('Error in backend-', error)
-  //   return res.send({ success: false, message: error.message })
-  // }
-
-  // try {
-  //   const sqlDelete = `SELECT 1 as name FROM users WHERE email = $1 `
-
-  //   const res1 = await pool.query(sqlCheck, [email])
-
-  //   if (res1.rows.length > 0) {
-  //     return res.send({ success: false, message: 'User already exists' })
-  //   }
-
-  //   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS)
-
-  //   const sqlInsert = `INSERT INTO users ( email, password,username) VALUES ($1, $2,$3)`
-  //   const insrtedData = await pool.query(sqlInsert, [
-  //     email,
-  //     hashedPassword,
-  //     username,
-  //   ])
-
-  //   console.log('insrtedData', insrtedData)
-
-  //   if (insrtedData.rowCount == 1) {
-  //     console.log('added')
-  //     return res.send({
-  //       success: true,
-  //       message: 'User registered successfully',
-  //     })
-  //   }
-  // } catch (error) {
-  //   console.error('Error in backend-', error)
-  //   return res.send({ success: false, message: error.message })
-  // }
 })
 
 app.listen(port, () => {
