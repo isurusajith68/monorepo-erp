@@ -1,19 +1,28 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
 
+import react from '@vitejs/plugin-react-swc'
+import dts from 'vite-plugin-dts'
+
 export default defineConfig({
+  plugins: [react(), dts({ include: ['lib'] })],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'), // Make sure this points to your entry file
-      name: 'Common', // Your library name
-      fileName: (format) => `common.${format}.js`, // Output file name
-      formats: ['es', 'umd'], // Specify output formats
+      // Could also be a dictionary or array of multiple entry points
+      entry: resolve(__dirname, 'src/main.ts'),
+      name: 'MyLib',
+      // the proper extensions will be added
+      fileName: 'my-lib',
     },
     rollupOptions: {
+      // make sure to externalize deps that shouldn't be bundled
+      // into your library
+      external: ['react'],
       output: {
+        // Provide global variables to use in the UMD build
+        // for externalized deps
         globals: {
-          react: 'React', // Global variable name for React
-          'react-dom': 'ReactDOM', // Global variable name for ReactDOM
+          react: 'react',
         },
       },
     },

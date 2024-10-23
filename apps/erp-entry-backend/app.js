@@ -10,6 +10,8 @@ import { jwtVerify } from 'jose'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import { requireAuth } from './middleware/authMiddleware.js'
+import getUpdateQuery from './utils.js'
+// import { client_encoding } from 'pg/lib/defaults.js'
 
 dotenv.config()
 
@@ -34,13 +36,14 @@ app.get('/getData', (req, res) => {
   res.send('car data is stored in cookies')
 })
 
-/////////////////////////////////////////////////////add user//////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+//////////////////////////ADD USER///////////////////////////////
 
 app.post('/registerUser', async (req, res) => {
   const { email, password, role, username } = req.body
 
   try {
-    const sqlCheck = `SELECT 1 as name FROM users WHERE email = $1 `
+    const sqlDelete = `SELECT 1 as name FROM users WHERE email = $1 `
 
     const res1 = await pool.query(sqlCheck, [email])
 
@@ -90,15 +93,13 @@ app.post('/registerUser', async (req, res) => {
   }
 })
 
-///////////////////////////////////////////////////login//////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+//////////////////////////LOGIN//////////////////////////////////
 
 // app.post("/login",requireAuth, (req, res1) => {
 app.post('/login', (req, res1) => {
   const { email, password } = req.body
   console.log('Received data:', { password, email })
-
-  // const insert=`INSERT INTO login (email, password)
-  // VALUES ('${email}','${password}');`
 
   const select = `SELECT *
                   FROM users
@@ -173,6 +174,9 @@ app.post('/login', (req, res1) => {
     )
 })
 
+/////////////////////////////////////////////////////////////////
+//////////////////////////LOGOUT/////////////////////////////////
+
 app.get('/logout', (req, res) => {
   try {
     // const cookie = serialize("authToken", "", {
@@ -203,30 +207,135 @@ const createSessionToken = (userId) => {
   return jwt.sign(payload, process.env.JWT_SECRET, options)
 }
 
-app.post('/addrole', (req, res) => {
-  console.log('name', req.body.purchasedetails)
+/////////////////////////////////////////////////////////////////////
+////////////////////////////ROLES////////////////////////////////////
 
-  req.body.purchasedetails.map(async (r) => {
-    try {
+app.post('/addrole', async (req, res) => {
+  const inserts = req.body?.roles?.inserts
+  const updates = req.body?.roles?.updates
+  const deletes = req.body?.roles?.deletes
+  const ignoredRoles = []
+  const insertedRoles = []
+  const updatedRoles = []
+  const deletedRoles = []
+  try {
+    //inserts
+    for (let a = 0; inserts.length > a; a++) {
+      let r = inserts[a]
       const sqlCheck = `SELECT 1 as role FROM userroles WHERE role = $1 `
-
-      const res1 = await pool.query(sqlCheck, [r.name])
-      console.log('res', res1)
+      const res1 = await pool.query(sqlCheck, [r.role])
 
       if (res1.rows.length > 0) {
-        return res.send({ success: false, message: 'User already exists' })
+        ignoredRoles.push(r.role)
+      } else {
+        const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
+        const insrtedData = await pool.query(sqlInsert, [
+          r.role,
+          r.description ?? 0,
+        ])
+        insertedRoles.push(r.role)
       }
+    }
 
-      const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
-      const insrtedData = await pool.query(sqlInsert, [
-        r.name,
-        r.description ?? 0,
-      ])
+    //updates
 
-      console.log('insrtedData', insrtedData)
-    } catch (err) {
-      console.log('error is ', err)
-      res.send({ success: false, message: err.message })
+    for (let a = 0; updates.length > a; a++) {
+      let r = updates[a]
+      const [sqlUpdate, vals] = getUpdateQuery(r, 'userroles', 'rid')
+
+      const res1 = await pool.query(sqlUpdate, vals)
+
+      if (res1.rowCount > 0) {
+        updatedRoles.push(r)
+      }
+    }
+
+    //deletes
+
+    for (let a = 0; deletes.length > a; a++) {
+      let r = deletes[a]
+      const sqlDelete = `DELETE FROM userroles WHERE rid=$1; `
+      const res1 = await pool.query(sqlDelete, [r])
+
+      if (res1.rowCount > 0) {
+        deletedRoles.push(r)
+      }
+    }
+
+    res.send({
+      success: true,
+      message: '',
+      process: {
+        ignoredRoles: ignoredRoles,
+        insertedRoles: insertedRoles,
+        updatedRoles: updatedRoles,
+        deletedRoles: deletedRoles,
+      },
+    })
+  } catch (err) {
+    res.send({
+      success: false,
+      message: err.message,
+    })
+  }
+})
+
+app.get('/getroles', (req, res) => {
+  const dbquery = `SELECT * FROM userroles ORDER BY rid;`
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      const roles = { rows: dbres.rows }
+      res.send({ success: true, roles: roles })
+    }
+  })
+})
+
+/////////////////////////////////////////////////////////////////////
+////////////////////////////MODULES////////////////////////////////////
+
+app.get('/getmodules', (req, res) => {
+  const dbquery = `SELECT * FROM modules ORDER BY modid;`
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, modules: dbres.rows })
+    }
+  })
+})
+
+/////////////////////////////////////////////////////////////////////
+////////////////////////////DOCUMENTS////////////////////////////////////
+
+app.get('/getdocuments', (req, res) => {
+  // const dbquery = `SELECT * FROM documents ORDER BY docid;`
+  const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid ORDER BY documents.docid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, documents: dbres.rows })
+    }
+  })
+})
+
+app.get('/documentsall', (req, res) => {
+  const dbquery = `SELECT * FROM documents ORDER BY docid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, documents: dbres.rows })
+    }
+  })
+})
+
+/////////////////////////////////////////////////////////////////////
+////////////////////////////ACTIONS////////////////////////////////////
+
+app.get('/getactions', (req, res) => {
+  const dbquery = `SELECT * FROM actions ORDER BY actid;`
+  // const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid ORDER BY documents.docid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, actions: dbres.rows })
     }
   })
 })
