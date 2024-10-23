@@ -13,7 +13,7 @@ import { requireAuth } from './middleware/authMiddleware.js'
 import getUpdateQuery from './utils.js'
 // import { client_encoding } from 'pg/lib/defaults.js'
 
-dotenv.config()
+dotenv.config() 
 
 const SALT_ROUNDS = 10
 
@@ -293,9 +293,11 @@ app.post('/addrole', async (req, res) => {
 })
 
 app.get('/getroles', (req, res) => {
+  console.log("first") 
   const dbquery = `SELECT * FROM userroles ORDER BY rid;`
   pool.query(dbquery).then((dbres) => {
     if (dbres.rows.length > 0) {
+      // console.log("first") 
       res.send({ success: true, roles: dbres.rows })
     }
   })
