@@ -50,10 +50,23 @@ import { useEffect } from 'react'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const result = await client.query('SELECT * FROM hotelrooms')
-  if (result.rows.length === 0) {
+  const resultview = await client.query('SELECT * FROM hotelroomview')
+  const resulttype = await client.query('SELECT * FROM hotelroomtypes')
+
+  // Check if both queries are empty
+  if (
+    result.rows.length === 0 &&
+    resultview.rows.length === 0 &&
+    resulttype.rows.length === 0
+  ) {
     return {}
   } else {
-    return result.rows
+    // Return both datasets in an object
+    return {
+      hotelrooms: result.rows,
+      roomsViews: resultview.rows,
+      roomTypes: resulttype.rows,
+    }
   }
 }
 
@@ -67,7 +80,6 @@ function jsonWithSuccess(data: any, message: string) {
     },
   })
 }
-
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
@@ -85,7 +97,7 @@ export async function action({ request }: ActionFunctionArgs) {
         message: 'Hotel room-type deleted successfully!',
       });
     } else {
-      // Extract the common fields
+      // Extract common fields
       const scheduleid = formData.get('scheduleid');
       const startdate = formData.get('startdate');
       const enddate = formData.get('enddate');
@@ -147,8 +159,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
       // Returning JSON with success toast data
       return jsonWithSuccess(
-        { result: 'Room Data successfully Insert!' },
-        'Room Data successfully Insert!'
+        { result: 'Room Price Data successfully Insert!' },
+        'Room Price Data successfully Insert!'
       );
     }
   } catch (error) {
@@ -166,10 +178,12 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function RoomPriceSchedule() {
   const navigate = useNavigate()
   const data = useLoaderData<typeof loader>()
+  const hotelrooms = data?.hotelrooms ?? []
+  const roomsViews = data?.roomsViews ?? []
+  const roomTypes = data?.roomTypes ?? []
   const fetcher = useFetcher()
   const actionData = useActionData()
   const toast = useToast() // Get the toast function from Remix or your UI library
-
 
   // UseEffect to handle showing the toast when actionData changes
   useEffect(() => {
@@ -179,23 +193,7 @@ export default function RoomPriceSchedule() {
     }
   }, [actionData])
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
-
-    // Access form data using the FormData API
-    const formElement = document.getElementById('myForm')
-    const formData = new FormData(formElement as HTMLFormElement)
-
-    console.log(formData, 'hhhh')
-
-    // Submit form data
-    await fetcher.submit(formData, { method: 'post' })
-    navigate(`/room-price-list`)
-  }
-
-  const handleClear = (id: number) => {
-    navigate(`/offers/${id}`)
-  }
+ 
 
   return (
     <>
@@ -220,12 +218,10 @@ export default function RoomPriceSchedule() {
                   Schedule ID
                 </label>
                 <Input
-                  type="search"
+                  type="text"
                   name="scheduleid"
                   className="pl-3 pr-3 py-2 border border-blue-300 rounded-2xl"
                   placeholder=""
-                  // value={searchId}
-                  // onChange={handleSearchChangeID}
                 />
               </div>
               <div className="flex flex-col-2 gap-3 lg:w-[80%] ">
@@ -237,8 +233,6 @@ export default function RoomPriceSchedule() {
                   name="startdate"
                   className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl"
                   placeholder=""
-                  // value={searchName}
-                  // onChange={handleSearchChangeName}
                 />
               </div>
               <div className="flex flex-col-2 gap-3 lg:w-[80%] ">
@@ -250,8 +244,6 @@ export default function RoomPriceSchedule() {
                   name="enddate"
                   className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl"
                   placeholder=""
-                  // value={searchName}
-                  // onChange={handleSearchChangeName}
                 />
               </div>
               <div className="flex flex-col-2 gap-3 lg:w-[80%] ">
@@ -261,8 +253,6 @@ export default function RoomPriceSchedule() {
                   name="remarks"
                   className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl w-44"
                   placeholder=""
-                  // value={searchName}
-                  // onChange={handleSearchChangeName}
                 />
               </div>
             </div>
@@ -305,14 +295,10 @@ export default function RoomPriceSchedule() {
                     {' '}
                     Fb Price
                   </TableHead>
-                  <TableHead className="text-center px-4 py-2">
-                    {' '}
-                    Action
-                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody className="bg-blue-50">
-                {data.map((data: any, index: any) => (
+                {hotelrooms.map((data: any, index: any) => (
                   <TableRow key={index} className="hover:bg-blue-100">
                     <TableCell className="text-center px-4 py-2">
                       <Input
@@ -325,18 +311,27 @@ export default function RoomPriceSchedule() {
                     <TableCell className="text-center px-4 py-2">
                       <Input
                         name="roomtype"
-                        defaultValue={data.roomtype}
-                        className="border-none"
+                        value={
+                          roomTypes.find(
+                            (view: any) => view.id.toString() === data.roomtype,
+                          )?.roomtype || 'Unknown Type'
+                        }
+                        className="border-none mt-1 text-sm text-gray-600"
                         readOnly
-                      ></Input>
+                      />
                     </TableCell>
+
                     <TableCell className="text-center px-4 py-2">
                       <Input
                         name="roomview"
-                        defaultValue={data.roomview}
-                        className="border-none"
+                        value={
+                          roomsViews.find(
+                            (view: any) => view.id.toString() === data.roomview,
+                          )?.roomview || 'Unknown View'
+                        }
+                        className="border-none mt-1 text-sm text-gray-600"
                         readOnly
-                      ></Input>
+                      />
                     </TableCell>
                     <TableCell className="text-center px-4 py-2">
                       <Input
@@ -358,32 +353,20 @@ export default function RoomPriceSchedule() {
                     <TableCell className="text-center px-4 py-2">
                       <Input className="bg-white" name="fbprice"></Input>
                     </TableCell>
-                    <TableCell className="text-center px-4 py-2">
-                      <div className="flex gap-5 ml-2">
-                        <div>
-                          <Button
-                            onClick={() => handleClear(data.id)}
-                            className="bg-blue-400 hover:bg-blue-500"
-                          >
-                            Clear
-                          </Button>
-                        </div>
-                      </div>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
-        </Form>
         <div className="lg:ml-[83%] mt-8 mb-5 ">
           <Button
-            onClick={handleSubmit}
+            type='submit'
             className="h-9 text-white bg-blue-500 hover:bg-blue-400 w-32"
           >
             Save
           </Button>
         </div>
+        </Form>
         <div className="bg-slate-100 w-[40%] h-44 ml-16 mt-20 rounded-lg shadow-xl">
           <h3 className="ml-5 mt-5">RO : Room Only</h3>
           <h3 className="ml-5 mt-5">BB : Bed & Breakfast</h3>
@@ -394,26 +377,26 @@ export default function RoomPriceSchedule() {
             FB : Full Board (Breakfast , Lunch & Dinner)
           </h3>
         </div>
-         {/* ToastContainer to display the notifications */}
+        {/* ToastContainer to display the notifications */}
 
-      <ToastContainer
-        position="bottom-right"
-        autoClose={2000}
-        hideProgressBar={false} // Show progress bar
-        newestOnTop={true} // Display newest toast on top
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss={false}
-        draggable={true}
-        pauseOnHover={true}
-        theme="colored" // You can change to "light" or "dark"
-        transition={Slide} // Slide animation for toast appearance
-        icon={true} // Show icons for success, error, etc.
-        className="custom-toast-container" // Add custom classes
-        bodyClassName="custom-toast-body"
-        closeButton={false} // No close button for a clean look
-        onClick={() => navigate('/room-type/list')}
-      />
+        <ToastContainer
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false} // Show progress bar
+          newestOnTop={true} // Display newest toast on top
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          pauseOnHover={true}
+          theme="colored" // You can change to "light" or "dark"
+          transition={Slide} // Slide animation for toast appearance
+          icon={true} // Show icons for success, error, etc.
+          className="custom-toast-container" // Add custom classes
+          bodyClassName="custom-toast-body"
+          closeButton={false} // No close button for a clean look
+          onClick={() => navigate('/room-type/list')}
+        />
       </div>
     </>
   )

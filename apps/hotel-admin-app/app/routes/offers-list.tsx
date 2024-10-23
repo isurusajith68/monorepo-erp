@@ -47,8 +47,8 @@ import {
 import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { client } from '~/db.server'
 import { Slide, ToastContainer, toast as notify } from 'react-toastify'
-import "react-toastify/dist/ReactToastify.css";
-import "../app-component/style.css"
+import 'react-toastify/dist/ReactToastify.css'
+import '../app-component/style.css'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const result = await client.query('SELECT * FROM hoteloffers')
@@ -70,7 +70,6 @@ function jsonWithSuccess(data: any, message: string) {
   })
 }
 
-
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
   const id = formData.get('id')
@@ -87,14 +86,14 @@ export async function action({ request }: ActionFunctionArgs) {
     )
   } else {
     // INSERT request
-    const offername = formData.get('offername');
-    const discount = formData.get('discount');
-    const startdate = formData.get('startdate');
-    const enddate = formData.get('enddate');
-    const hotelQuery = `INSERT INTO hoteloffers (offername, discount, startdate, enddate) VALUES ($1, $2, $3, $4)`;
-    await client.query(hotelQuery, [offername, discount, startdate, enddate]);
-     // Returning JSON with success toast data
-     return jsonWithSuccess(
+    const offername = formData.get('offername')
+    const discount = formData.get('discount')
+    const startdate = formData.get('startdate')
+    const enddate = formData.get('enddate')
+    const hotelQuery = `INSERT INTO hoteloffers (offername, discount, startdate, enddate) VALUES ($1, $2, $3, $4)`
+    await client.query(hotelQuery, [offername, discount, startdate, enddate])
+    // Returning JSON with success toast data
+    return jsonWithSuccess(
       { result: 'Hotel Offer saved successfully!' },
       'Hotel Offer saved successfully!',
     )
@@ -116,7 +115,6 @@ export default function Offers() {
       notify(actionData.toast.message, { type: actionData.toast.type })
     }
   }, [actionData])
-
 
   const handleEdit = (id: number) => {
     navigate(`/offers/${id}`)
@@ -152,7 +150,7 @@ export default function Offers() {
                     </h4>
                   </div>
                   <div className="grid gap-2 mt-5">
-                  <Form method="post">
+                    <Form method="post">
                       <div className="grid grid-cols-2 items-center gap-4">
                         <div>
                           <Label>Offers Name</Label>
@@ -192,28 +190,29 @@ export default function Offers() {
                             className="col-span-2 h-10 border-2 border-blue-300"
                           />
                         </div>
+                      </div>
+
+                      <div className="ml-[70%] mt-10 flex">
+                        <div>
+                          <Button
+                            type="submit"
+                            className="text-white bg-blue-500 hover:bg-blue-400 "
+                          >
+                            Add Offers
+                          </Button>
                         </div>
-                     
-                    <div className="ml-[70%] mt-10 flex">
-                      <div>
-                      <Button type="submit" 
-                        className="text-white bg-blue-500 hover:bg-blue-400 "
-                      >
-                        Add Offers
-                      </Button>
+                        <div>
+                          <Button
+                            onClick={() => setIsPopoverOpen(false)} // Close popover when clicked
+                            className=" text-white bg-orange-500 hover:bg-orange-400 ml-8"
+                          >
+                            Close
+                          </Button>
+                        </div>
                       </div>
-                      <div>
-                     <Button
-                        onClick={() => setIsPopoverOpen(false)} // Close popover when clicked
-                        className=" text-white bg-orange-500 hover:bg-orange-400 ml-8"
-                      >
-                        Close
-                      </Button>
-                      </div>
-                      </div>
-                     </Form>
-                     </div>
-                     </div>    
+                    </Form>
+                  </div>
+                </div>
               </PopoverContent>
             </Popover>
           </div>
@@ -241,101 +240,112 @@ export default function Offers() {
               </TableRow>
             </TableHeader>
             <TableBody className="bg-blue-50">
-              {data.map((data: any, index: any) => {
-                // Convert and format the startdate and enddate to yyyy.mm.dd
-                const startDateObj = new Date(data.startdate)
-                const formattedStartDate = `${startDateObj.getFullYear()}.${(
-                  startDateObj.getMonth() + 1
-                )
-                  .toString()
-                  .padStart(2, '0')}.${startDateObj
-                  .getDate()
-                  .toString()
-                  .padStart(2, '0')}`
+              {data.length > 0 ? (
+                data.map((data: any, index: number) => {
+                  // Convert and format the startdate and enddate to yyyy.mm.dd
+                  const startDateObj = new Date(data.startdate)
+                  const formattedStartDate = `${startDateObj.getFullYear()}.${(
+                    startDateObj.getMonth() + 1
+                  )
+                    .toString()
+                    .padStart(2, '0')}.${startDateObj
+                    .getDate()
+                    .toString()
+                    .padStart(2, '0')}`
 
-                const endDateObj = new Date(data.enddate)
-                const formattedEndDate = `${endDateObj.getFullYear()}.${(
-                  endDateObj.getMonth() + 1
-                )
-                  .toString()
-                  .padStart(2, '0')}.${endDateObj
-                  .getDate()
-                  .toString()
-                  .padStart(2, '0')}`
+                  const endDateObj = new Date(data.enddate)
+                  const formattedEndDate = `${endDateObj.getFullYear()}.${(
+                    endDateObj.getMonth() + 1
+                  )
+                    .toString()
+                    .padStart(2, '0')}.${endDateObj
+                    .getDate()
+                    .toString()
+                    .padStart(2, '0')}`
 
-                return (
-                  <TableRow key={index} className="hover:bg-blue-100">
-                    <TableCell className="text-center px-4 py-2">
-                      {data.id}
-                    </TableCell>
-                    <TableCell className="text-center px-4 py-2">
-                      {data.offername}
-                    </TableCell>
-                    <TableCell className="text-center px-4 py-2">
-                      {data.discount}
-                    </TableCell>
-                    <TableCell className="text-center px-4 py-2">
-                      {formattedStartDate}
-                    </TableCell>
-                    <TableCell className="text-center px-4 py-2">
-                      {formattedEndDate}
-                    </TableCell>
-                    <TableCell className="text-center py-2 px-4">
-                      <div className="flex items-center lg:ml-[20%]">
-                      <div>
-                        <Button onClick={() => handleEdit(data.id)} className="bg-blue-600">
-                          Edit
-                        </Button>
-                      </div>
-                        <div>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button className="ml-5 bg-blue-600 bg-destructive">
-                                Delete
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Are you absolutely sure?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone. This will
-                                  permanently delete the room type.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <Form method="post">
-                                  <input
-                                    type="hidden"
-                                    name="id"
-                                    value={data.id}
-                                  />
-                                  <AlertDialogAction asChild>
-                                    <Button
-                                      type="submit"
-                                      className="bg-red-500"
-                                    >
-                                      Continue
-                                    </Button>
-                                  </AlertDialogAction>
-                                </Form>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                  return (
+                    <TableRow key={index} className="hover:bg-blue-100">
+                      <TableCell className="text-center px-4 py-2">
+                        {data.id}
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-2">
+                        {data.offername}
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-2">
+                        {data.discount}
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-2">
+                        {formattedStartDate}
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-2">
+                        {formattedEndDate}
+                      </TableCell>
+                      <TableCell className="text-center py-2 px-4">
+                        <div className="flex items-center lg:ml-[20%]">
+                          <div>
+                            <Button
+                              onClick={() => handleEdit(data.id)}
+                              className="bg-blue-600"
+                            >
+                              Edit
+                            </Button>
+                          </div>
+                          <div>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button className="ml-5 bg-blue-600 bg-destructive">
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Are you absolutely sure?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete the room type.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <Form method="post">
+                                    <input
+                                      type="hidden"
+                                      name="id"
+                                      value={data.id}
+                                    />
+                                    <AlertDialogAction asChild>
+                                      <Button
+                                        type="submit"
+                                        className="bg-red-500"
+                                      >
+                                        Continue
+                                      </Button>
+                                    </AlertDialogAction>
+                                  </Form>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center px-4 py-2">
+                    No data available
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
-           {/* ToastContainer to display the notifications */}
-     
-           <ToastContainer
+        {/* ToastContainer to display the notifications */}
+
+        <ToastContainer
           position="bottom-right"
           autoClose={2000}
           hideProgressBar={false} // Show progress bar

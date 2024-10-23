@@ -145,7 +145,8 @@ export default function RoomType() {
               </TableRow>
             </TableHeader>
             <TableBody className="bg-blue-50">
-              {data.map((data: any, index: any) => (
+            {data.length > 0 ? (
+              data.map((data: any, index: any) => (
                 <TableRow key={index} className="hover:bg-blue-100">
                   <TableCell className="text-center px-4 py-2">{data.id}</TableCell>
                   <TableCell className="text-center px-4 py-2">{data.roomtype}</TableCell>
@@ -183,8 +184,15 @@ export default function RoomType() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center px-4 py-2">
+                  No data available
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
           </Table>
         </div>
         <ToastContainer

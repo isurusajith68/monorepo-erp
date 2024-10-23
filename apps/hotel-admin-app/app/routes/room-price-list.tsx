@@ -106,27 +106,20 @@ export default function RoomPriceList() {
     navigate(`/room-price-view/${id}`)
   }
 
-// Filter the data based on `id` and `oname`
-const filteredData = data.filter((item: any) => {
-  const matchesSearchCriteria =
-    item.scheduleid.toString().includes(searchId) &&
-    item.startdate.toString().includes(searchDate)&&
-    item.enddate.toString().includes(searchEndDate);
-  return matchesSearchCriteria;
-});
-// const filteredData = data.filter((item: any) => {
-//   const itemStartDate = new Date(item.startdate);
-//   const itemEndDate = new Date(item.enddate);
-//   const searchStartDate = new Date(searchDate);
-//   const SearchEndDate = new Date(searchEndDate);
 
-//   // Check if the item's date range falls within the search range
-//   const matchesSearchCriteria =
-//     itemStartDate >= searchStartDate && itemEndDate <= SearchEndDate  && 
-//      item.scheduleid.toString().includes(searchId);
+// Ensure `data` is an array before filtering
+const filteredData = Array.isArray(data)
+  ? data.filter((item: any) => {
+      // Make sure the search criteria are strings for `.includes()`
+      const matchesSearchCriteria =
+        item.scheduleid?.toString().includes(searchId || '') &&
+        item.startdate?.toString().includes(searchDate || '') &&
+        item.enddate?.toString().includes(searchEndDate || '');
 
-//   return matchesSearchCriteria;
-// });
+      return matchesSearchCriteria;
+    })
+  : [];
+
 
 
   return (
@@ -197,7 +190,8 @@ const filteredData = data.filter((item: any) => {
               </TableRow>
             </TableHeader>
             <TableBody className="bg-blue-50">
-              {filteredData.map((data: any, index: any) => {
+            {filteredData.length > 0 ? (
+              filteredData.map((data: any, index: any) => {
                 // Convert and format the startdate and enddate to yyyy.mm.dd
                 const startDateObj = new Date(data.startdate)
                 const formattedStartDate = `${startDateObj.getFullYear()}.${(
@@ -289,8 +283,15 @@ const filteredData = data.filter((item: any) => {
                       </div>
                     </TableCell>
                   </TableRow>
-                )
-              })}
+                 )
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center px-4 py-2">
+                    No data available
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>

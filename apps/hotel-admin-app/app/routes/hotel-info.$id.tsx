@@ -5,7 +5,7 @@ import {
   LoaderFunction,
   LoaderFunctionArgs,
 } from '@remix-run/node'
-import { json, useActionData, useFetcher, useLoaderData, useSubmit } from '@remix-run/react'
+import { json, useActionData, useFetcher, useLoaderData, useParams, useSubmit } from '@remix-run/react'
 import { client } from '~/db.server'
 import getUpdateQuery, { getDirtyValuesTF } from '~/lib/utils'
 import { useEffect } from 'react'
@@ -107,7 +107,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function HotelInfoForm() {
-  
+  const params = useParams();
+  const hotelId = params.id; // This gives you "23"
   const data = useLoaderData<typeof loader>()
   console.log('idh', data)
 
