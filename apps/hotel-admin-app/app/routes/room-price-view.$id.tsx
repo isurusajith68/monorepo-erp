@@ -36,7 +36,7 @@ export let loader: LoaderFunction = async ({ params }) => {
   console.log('kasun', id)
   // Perform the query, using hotelid if needed (e.g., filtering by hotelid)
   const result = await client.query(
-    'SELECT * FROM roomprices WHERE scheduleid = $1',
+    'SELECT * FROM hotelroompriceshedules WHERE id = $1',
     [id],
   )
   if (result.rows.length == 0) {
@@ -95,7 +95,7 @@ export default function RoomPriceScheduleView() {
                   type="search"
                   name="scheduleid"
                   className="pl-3 pr-3 py-2 border border-blue-300 rounded-2xl"
-                  defaultValue={singleData.scheduleid}
+                  defaultValue={singleData.id}
                 />
               </div>
               <div className="flex flex-col-2 gap-3 lg:w-[80%] ">

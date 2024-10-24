@@ -17,10 +17,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 function CreateWeb() {
   const params = useParams()
-  const hotelId = params.id // This gives you "23"
+  const hotelid = params.id // This gives you "23"
   const temp1id = 1;
   const temp2id = 2;
-  console.log('idh', hotelId)
+  console.log('idh', hotelid)
 
   return (
     <div>
@@ -48,7 +48,7 @@ function CreateWeb() {
                  <Button className='bg-blue-400 hover:bg-blue-500'>Live Demo</Button>
                 </div>
                 <div>
-                <Link to={`/create-web?hotelId=${hotelId}?tempid=${temp1id}`}>
+                <Link to={`/create-web?hotelid=${hotelid}?tempid=${temp1id}`}>
                   <Button>Use This</Button>
                 </Link>
                 </div>
@@ -70,7 +70,7 @@ function CreateWeb() {
                  <Button className='bg-blue-400 hover:bg-blue-500'>Live Demo</Button>
                 </div>
                <div>
-                <Link to={`/create-web?hotelId=${hotelId}?tempid=${temp2id}`}>
+                <Link to={`/create-web?hotelid=${hotelid}?tempid=${temp2id}`}>
                   <Button>Use This</Button>
                 </Link>
                </div>

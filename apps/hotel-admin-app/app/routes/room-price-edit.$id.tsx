@@ -42,7 +42,7 @@ export let loader: LoaderFunction = async ({ params }) => {
   console.log('kasun', id)
 
   // Perform the query, using hotelid if needed (e.g., filtering by hotelid)
-  const result = await client.query('SELECT * FROM roomprices WHERE id = $1', [
+  const result = await client.query('SELECT * FROM hotelroompriceshedules WHERE id = $1', [
     id,
   ])
 
@@ -182,9 +182,8 @@ export default function RoomPriceSchedule() {
                 type="search"
                 name='scheduleid'
                 className="pl-3 pr-3 py-2 border border-blue-300 rounded-2xl"
-                defaultValue={data.scheduleid}
-                // value={searchId}
-                // onChange={handleSearchChangeID}
+                defaultValue={data.id}
+                readOnly
               />
             </div>
             <div className="flex flex-col-2 gap-3 lg:w-[80%] ">

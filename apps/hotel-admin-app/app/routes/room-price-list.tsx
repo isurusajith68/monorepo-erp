@@ -38,7 +38,7 @@ import "../app-component/style.css"
 
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const result = await client.query('SELECT * FROM roomprices')
+  const result = await client.query('SELECT * FROM hotelroompriceshedules')
   if (result.rows.length === 0) {
     return {}
   } else {
@@ -59,27 +59,105 @@ function jsonWithSuccess(data: any, message: string) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData()
-  const id = formData.get('id')
+  try {
+    const formData = await request.formData();
 
-  if (id) {
-    // DELETE request
-    const query = `DELETE FROM roomprices WHERE id = $1`
-    await client.query(query, [id])
+    // Extract common fields
+    const startdate = formData.get('startdate');
+    const enddate = formData.get('enddate');
+    const remarks = formData.get('remarks') || '';
+
+    // Insert into hotelroompriceshedules table
+    const priceshcduleQuery = `
+      INSERT INTO public.hotelroompriceshedules(startdate, enddate, remarks, active) 
+      VALUES ($1, $2, $3, true) RETURNING id;
+    `;
+    const scheduleResult = await client.query(priceshcduleQuery, [startdate, enddate, remarks]);
+    const scheduleId = scheduleResult.rows[0].id;
+
+    // Function to group related prices by index
+    const groupPrices = (prefix) => {
+      const prices = [];
+      let i = 0;
+      while (formData.has(`${prefix}[${i}]`)) {
+        prices.push(formData.get(`${prefix}[${i}]`));
+        i++;
+      }
+      return prices;
+    };
+
+    // Extract arrays from FormData for both Standard and Non-Refundable prices
+    const roprice = groupPrices('roprice');
+    const bbprice = groupPrices('bbprice');
+    const hbprice = groupPrices('hbprice');
+    const fbprice = groupPrices('fbprice');
+
+    const nrroprice = groupPrices('nrroprice');
+    const nrbbprice = groupPrices('nrbbprice');
+    const nrhbprice = groupPrices('nrhbprice');
+    const nrfbprice = groupPrices('nrfbprice');
+
+    // Validate the lengths of price arrays
+    const priceArrayLength = roprice.length;
+    if (
+      priceArrayLength !== bbprice.length ||
+      priceArrayLength !== hbprice.length ||
+      priceArrayLength !== fbprice.length ||
+      priceArrayLength !== nrroprice.length ||
+      priceArrayLength !== nrbbprice.length ||
+      priceArrayLength !== nrhbprice.length ||
+      priceArrayLength !== nrfbprice.length
+    ) {
+      throw new Error('Mismatch in form data arrays lengths.');
+    }
+
+    // Create a single query for bulk insertion
+    const insertQuery = `
+      INSERT INTO hotelroomprices (scheduleid, roomtype, roomview, roprice, bbprice, hbprice, fbprice, nrroprice, nrbbprice, nrhbprice, nrfbprice) 
+      VALUES ${roprice
+        .map(
+          (_, i) =>
+            `($1, $2, $3, $${i * 8 + 4}, $${i * 8 + 5}, $${i * 8 + 6}, $${i * 8 + 7}, $${i * 8 + 8}, $${i * 8 + 9}, $${i * 8 + 10}, $${i * 8 + 11})`
+        )
+        .join(', ')}
+    `;
+
+    // Flatten the values into a single array
+    const values = roprice.reduce((acc, _, i) => {
+      return acc.concat(
+        scheduleId,
+        roomtype,
+        roomview,
+        roprice[i],
+        bbprice[i],
+        hbprice[i],
+        fbprice[i],
+        nrroprice[i],
+        nrbbprice[i],
+        nrhbprice[i],
+        nrfbprice[i]
+      );
+    }, []);
+
+    // Perform the bulk insertion
+    await client.query(insertQuery, values);
 
     // Returning JSON with success toast data
     return jsonWithSuccess(
-      { result: 'Data deleted successfully' },
-      'Room Price deleted successfully! 🗑️',
-    )
-  } else {
-    // If no ID, returning a generic success message
+      { result: 'Room Price Data successfully Inserted!' },
+      'Room Price Data successfully Inserted!'
+    );
+  } catch (error) {
+    console.error('Error saving room info:', error.message); // Log specific error message
+
+    // Return error toast data on failure
     return jsonWithSuccess(
-      { result: 'Operation unsuccessful' },
-      'Operation unsuccessful! 🎉',
-    )
+      { result: 'Error saving room info' },
+      'Error saving room info',
+    );
   }
 }
+
 
 export default function RoomPriceList() {
   const navigate = useNavigate()
@@ -112,7 +190,7 @@ const filteredData = Array.isArray(data)
   ? data.filter((item: any) => {
       // Make sure the search criteria are strings for `.includes()`
       const matchesSearchCriteria =
-        item.scheduleid?.toString().includes(searchId || '') &&
+        item.id?.toString().includes(searchId || '') &&
         item.startdate?.toString().includes(searchDate || '') &&
         item.enddate?.toString().includes(searchEndDate || '');
 
@@ -216,7 +294,7 @@ const filteredData = Array.isArray(data)
                 return (
                   <TableRow key={index} className="hover:bg-blue-100">
                     <TableCell className="text-center px-4 py-2">
-                      {data.scheduleid}
+                      {data.id}
                     </TableCell>
                     <TableCell className="text-center px-4 py-2">
                       {formattedStartDate}
@@ -228,7 +306,7 @@ const filteredData = Array.isArray(data)
                       <div className="flex items-center lg:ml-[20%]">
                       <div>
                           <Button
-                            onClick={() => handleView(data.scheduleid)}
+                            onClick={() => handleView(data.id)}
                             className="bg-blue-600 "
                           >
                             View

@@ -49,7 +49,9 @@ import { useToast } from '~/hooks/use-toast'
 import { useEffect } from 'react'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const result = await client.query('SELECT * FROM hotelrooms')
+  const result = await client.query(
+    'SELECT t.id AS roomtype_id, t.roomtype, v.id AS roomview_id, v.roomview FROM public.hotelroomtypes t, public.hotelroomview v',
+  )
   const resultview = await client.query('SELECT * FROM hotelroomview')
   const resulttype = await client.query('SELECT * FROM hotelroomtypes')
 
@@ -61,6 +63,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   ) {
     return {}
   } else {
+    //console.log("first",result.rows)
     // Return both datasets in an object
     return {
       hotelrooms: result.rows,
@@ -80,100 +83,112 @@ function jsonWithSuccess(data: any, message: string) {
     },
   })
 }
+/////////////////
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
-    const formData = await request.formData();
-    const id = formData.get('id');
-    console.log('Form Data:', Object.fromEntries(formData)); // Log the form data
+    const formData = await request.formData()
+    //console.log('Form Data:', Object.fromEntries(formData)); // Log the form data
+    console.log('Form Data:', formData) // Log the form data
 
-    if (id) {
-      // DELETE request
-      const query = `DELETE FROM roomprices WHERE id = $1`;
-      await client.query(query, [id]);
+    let scheduleId = formData.get('schedulid')
+    // Extract common fields
+    const startdate = formData.get('startdate')
+    const enddate = formData.get('enddate')
+    const remarks = formData.get('remarks')
 
-      return json({
-        success: true,
-        message: 'Hotel room-type deleted successfully!',
-      });
-    } else {
-      // Extract common fields
-      const scheduleid = formData.get('scheduleid');
-      const startdate = formData.get('startdate');
-      const enddate = formData.get('enddate');
-      const remarks = formData.get('remarks');
-
-      // Extract the arrays from FormData
-      const roomno = formData.getAll('roomno');
-      const roomtype = formData.getAll('roomtype');
-      const roomview = formData.getAll('roomview');
-      const noofbed = formData.getAll('noofbed');
-      const roprice = formData.getAll('roprice');
-      const bbprice = formData.getAll('bbprice');
-      const hbprice = formData.getAll('hbprice');
-      const fbprice = formData.getAll('fbprice');
-
-      // Validate the arrays have the same length
-      if (
-        roomno.length !== roomtype.length ||
-        roomno.length !== roomview.length ||
-        roomno.length !== noofbed.length ||
-        roomno.length !== roprice.length ||
-        roomno.length !== bbprice.length ||
-        roomno.length !== hbprice.length ||
-        roomno.length !== fbprice.length
-      ) {
-        throw new Error('Mismatch in form data arrays lengths.');
-      }
-
-      // Create a single query for bulk insertion
-      const insertQuery = `
-        INSERT INTO roomprices 
-        (scheduleid, startdate, enddate, remarks, roomno, roomtype, roomview, noofbed, roprice, bbprice, hbprice, fbprice) 
-        VALUES 
-        ${roomno
-          .map(
-            (_, index) =>
-              `($1, $2, $3, $4, $${5 + index * 8}, $${6 + index * 8}, $${7 + index * 8}, $${8 + index * 8}, $${9 + index * 8}, $${10 + index * 8}, $${11 + index * 8}, $${12 + index * 8})`
-          )
-          .join(', ')}
-      `;
-
-      // Flatten the array data into a single array of values
-      const values = [
-        scheduleid,
+    if (!scheduleId) {
+      // Insert into hotelroompriceshedules table
+      const priceshcduleQuery = `
+      INSERT INTO public.hotelroompriceshedules(startdate, enddate, remarks, active) 
+      VALUES ($1, $2, $3, true) RETURNING id;
+    `
+      const scheduleResult = await client.query(priceshcduleQuery, [
         startdate,
         enddate,
         remarks,
-        ...roomno,
-        ...roomtype,
-        ...roomview,
-        ...noofbed,
-        ...roprice,
-        ...bbprice,
-        ...hbprice,
-        ...fbprice,
-      ];
+      ])
+      scheduleId = scheduleResult.rows[0].id
 
-      await client.query(insertQuery, values);
+      ///delete all data in pricedetais table where table.shescuid =schedulid
+
+      // Function to group related prices by index (0, 1, 2, etc.)
+      const groupPrices = (prefix: any) => {
+        const prices = []
+        let i = 0
+        while (formData.has(`${prefix}[${i}]`)) {
+          prices.push(formData.get(`${prefix}[${i}]`))
+          i++
+        }
+        return prices
+      }
+
+      // Extract arrays from FormData
+      const roomtypes = groupPrices('roomtype')
+      const roomviews = groupPrices('roomview')
+
+      const roprices = groupPrices('roprice')
+      const bbprices = groupPrices('bbprice')
+      const hbprices = groupPrices('hbprice')
+      const fbprices = groupPrices('fbprice')
+      const nrroprices = groupPrices('nrroprice')
+      const nrbbprices = groupPrices('nrbbprice')
+      const nrhbprices = groupPrices('nrhbprice')
+      const nrfbprices = groupPrices('nrfbprice')
+
+      // const roomtype = formData.get('roomtype');
+      // const roomview = formData.get('roomview');
+
+      for (let index = 0; index < roprices.length; index++) {
+        const roomtype = roomtypes[index]
+        const roomview = roomviews[index]
+
+        const roprice = roprices[index]
+        const bbprice = bbprices[index]
+        const hbprice = hbprices[index]
+        const fbprice = fbprices[index]
+        const nrroprice = nrroprices[index]
+        const nrbbprice = nrbbprices[index]
+        const nrhbprice = nrhbprices[index]
+        const nrfbprice = nrfbprices[index]
+
+        console.log("roprice",roprice)
+        
+        const insertQuery = `INSERT INTO hotelroomprices (roomtypeid, roomviewid, sheduleid, roprice, bbprice, hbprice, fbprice, nrroprice, nrbbprice, nrhbprice, nrfbprice) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+
+        await client.query(insertQuery, [
+          roomtype,
+          roomview,
+          scheduleId,
+          roprice ? roprice : null,
+          bbprice ? bbprice : null,
+          hbprice ? hbprice : null,
+          fbprice ? fbprice : null,
+          nrroprice ? nrroprice : null,
+          nrbbprice ? nrbbprice : null,
+          nrhbprice ? nrhbprice : null,
+          nrfbprice ? nrfbprice : null,
+        ])
+      }
 
       // Returning JSON with success toast data
       return jsonWithSuccess(
-        { result: 'Room Price Data successfully Insert!' },
-        'Room Price Data successfully Insert!'
-      );
+        { result: 'Room Price Data successfully Inserted!' },
+        'Room Price Data successfully Inserted!',
+      )
+    } else {
     }
   } catch (error) {
-    console.error('Error saving room info:', error);
+    console.error('Error saving room info:', error.message) // Log specific error message
 
     // Return error toast data on failure
     return jsonWithSuccess(
       { result: 'Error saving room info' },
       'Error saving room info',
-    );
+    )
   }
 }
-
 
 export default function RoomPriceSchedule() {
   const navigate = useNavigate()
@@ -192,8 +207,6 @@ export default function RoomPriceSchedule() {
       notify(actionData.toast.message, { type: actionData.toast.type })
     }
   }, [actionData])
-
- 
 
   return (
     <>
@@ -219,9 +232,10 @@ export default function RoomPriceSchedule() {
                 </label>
                 <Input
                   type="text"
-                  name="scheduleid"
+                  name="schedulid"
                   className="pl-3 pr-3 py-2 border border-blue-300 rounded-2xl"
                   placeholder=""
+                  readOnly
                 />
               </div>
               <div className="flex flex-col-2 gap-3 lg:w-[80%] ">
@@ -259,7 +273,7 @@ export default function RoomPriceSchedule() {
           </div>
           <div>
             <h1 className="text-xl font-bold mt-10 ml-14">
-              Add Room Price Details
+              Standerd Room Price Details
             </h1>
           </div>
           <div className="overflow-x-auto mt-5 pl-12 pr-4  border-blue-300 w-[95%]">
@@ -268,17 +282,12 @@ export default function RoomPriceSchedule() {
                 <TableRow>
                   <TableHead className="text-center px-4 py-2">
                     {' '}
-                    Room NO
-                  </TableHead>
-                  <TableHead className="text-center px-4 py-2">
-                    {' '}
                     Room Type
                   </TableHead>
                   <TableHead className="text-center px-4 py-2">
                     {' '}
                     Room View
                   </TableHead>
-                  <TableHead className="text-center px-4 py-2"> Beds</TableHead>
                   <TableHead className="text-center px-4 py-2">
                     {' '}
                     RO Price
@@ -301,71 +310,173 @@ export default function RoomPriceSchedule() {
                 {hotelrooms.map((data: any, index: any) => (
                   <TableRow key={index} className="hover:bg-blue-100">
                     <TableCell className="text-center px-4 py-2">
-                      <Input
-                        name="roomno"
-                        defaultValue={data.roomno}
-                        className="border-none"
+                     <Input
+                        type="hidden"
+                        name={`roomtype[${index}]`}
+                        defaultValue={data.roomtype_id}
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
                         readOnly
-                      ></Input>
-                    </TableCell>
-                    <TableCell className="text-center px-4 py-2">
+                      />
                       <Input
-                        name="roomtype"
-                        value={
-                          roomTypes.find(
-                            (view: any) => view.id.toString() === data.roomtype,
-                          )?.roomtype || 'Unknown Type'
-                        }
-                        className="border-none mt-1 text-sm text-gray-600"
+                        //name={`roomtype[${index}]`}
+                        defaultValue={data.roomtype}
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
                         readOnly
                       />
                     </TableCell>
 
                     <TableCell className="text-center px-4 py-2">
+                    <Input
+                        type="hidden"
+                        name={`roomview[${index}]`}
+                        defaultValue={data.roomview_id}
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
                       <Input
-                        name="roomview"
-                        value={
-                          roomsViews.find(
-                            (view: any) => view.id.toString() === data.roomview,
-                          )?.roomview || 'Unknown View'
-                        }
-                        className="border-none mt-1 text-sm text-gray-600"
+                       // name={`roomview[${index}]`}
+                        defaultValue={data.roomview}
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
                         readOnly
                       />
                     </TableCell>
                     <TableCell className="text-center px-4 py-2">
                       <Input
-                        name="noofbed"
-                        defaultValue={data.noofbed}
-                        className="border-none"
-                        readOnly
+                        className="bg-white"
+                        name={`roprice[${index}]`}
                       ></Input>
                     </TableCell>
                     <TableCell className="text-center px-4 py-2">
-                      <Input className="bg-white" name="roprice"></Input>
+                      <Input
+                        className="bg-white"
+                        name={`bbprice[${index}]`}
+                      ></Input>
                     </TableCell>
                     <TableCell className="text-center px-4 py-2">
-                      <Input className="bg-white" name="bbprice"></Input>
+                      <Input
+                        className="bg-white"
+                        name={`hbprice[${index}]`}
+                      ></Input>
                     </TableCell>
                     <TableCell className="text-center px-4 py-2">
-                      <Input className="bg-white" name="hbprice"></Input>
-                    </TableCell>
-                    <TableCell className="text-center px-4 py-2">
-                      <Input className="bg-white" name="fbprice"></Input>
+                      <Input
+                        className="bg-white"
+                        name={`fbprice[${index}]`}
+                      ></Input>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
-        <div className="lg:ml-[83%] mt-8 mb-5 ">
-          <Button
-            type='submit'
-            className="h-9 text-white bg-blue-500 hover:bg-blue-400 w-32"
-          >
-            Save
-          </Button>
-        </div>
+
+          {/* non refundeble table */}
+          <div>
+            <h1 className="text-xl font-bold mt-10 ml-14">
+              Non Refundable Prices
+            </h1>
+          </div>
+          <div className="overflow-x-auto mt-5 pl-12 pr-4  border-blue-300 w-[95%]">
+            <Table className="rounded-xl border border-blue-300 overflow-hidden">
+              <TableHeader className="bg-blue-300 text-center border border-blue-300">
+                <TableRow>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    Room Type
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    Room View
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    NR RO Price
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    NR BB Price
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    NR HB Price
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    NR Fb Price
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="bg-blue-50">
+                {hotelrooms.map((data: any, index: any) => (
+                  <TableRow key={index} className="hover:bg-blue-100">
+                    <TableCell className="text-center px-4 py-2">
+                     <Input
+                        type="hidden"
+                        name={`roomtype[${index}]`}
+                        defaultValue={data.roomtype_id}
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
+                      <Input
+                        //name={`roomtype[${index}]`}
+                        defaultValue={data.roomtype}
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
+                    </TableCell>
+
+                    <TableCell className="text-center px-4 py-2">
+                    <Input
+                        type="hidden"
+                        name={`roomview[${index}]`}
+                        defaultValue={data.roomview_id}
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
+                      <Input
+                       // name={`roomview[${index}]`}
+                        defaultValue={data.roomview}
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        className="bg-white"
+                        name={`nrroprice[${index}]`}
+                      ></Input>
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        className="bg-white"
+                        name={`nrbbprice[${index}]`}
+                      ></Input>
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        className="bg-white"
+                        name={`nrhbprice[${index}]`}
+                      ></Input>
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        className="bg-white"
+                        name={`nrfbprice[${index}]`}
+                      ></Input>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="lg:ml-[83%] mt-8 mb-5 ">
+            <Button
+              type="submit"
+              className="h-9 text-white bg-blue-500 hover:bg-blue-400 w-32"
+            >
+              Save
+            </Button>
+          </div>
         </Form>
         <div className="bg-slate-100 w-[40%] h-44 ml-16 mt-20 rounded-lg shadow-xl">
           <h3 className="ml-5 mt-5">RO : Room Only</h3>

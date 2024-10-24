@@ -33,19 +33,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
+import { Label } from '~/components/ui/label'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const result = await client.query('SELECT * FROM hotelroomview')
   const resulttype = await client.query('SELECT * FROM hotelroomtypes')
+  const resultamenities = await client.query('SELECT * FROM roomamenities')
 
   // Check if both queries are empty
   if (result.rows.length === 0 && resulttype.rows.length === 0) {
     return {}
   } else {
     // Return both datasets in an object
+    console.log("first",resultamenities.rows)
     return {
       rooms: result.rows,
       roomTypes: resulttype.rows,
+      roomAmenities: resultamenities.rows,  
     }
   }
 }
@@ -65,6 +69,7 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     // Get the form data
     const formData = await request.formData()
+    console.log("first",formData)
 
     // Extract form fields
     const roomno = formData.get('roomno')
@@ -78,18 +83,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // SQL query to insert the hotel room data
     const hotelQuery = `
-      INSERT INTO hotelrooms (roomno, roomtype, noofbed, roomview, ac, tv, wifi, balcony) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO hotelrooms (roomno, roomtypeid, noofbed, roomviewid,amenityid) 
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING id`
     const hotelValues = [
       roomno,
       roomtype,
       noofbed,
       roomview,
-      ac,
-      tv,
-      wifi,
-      balcony,
     ]
 
     // Execute SQL query to insert room data
@@ -132,6 +133,7 @@ export default function RoomAddForm() {
   const data = useLoaderData<typeof loader>()
   const rooms = data?.rooms ?? []
   const roomTypes = data?.roomTypes ?? []
+  const amenities = data?.roomAmenities ?? []
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const actionData = useActionData()
   const toast = useToast() // Get the toast function from Remix or your UI library
@@ -270,39 +272,19 @@ export default function RoomAddForm() {
             </label>
           </div>
           <div className="grid grid-cols-4 gap-4 col-span-2">
-            <div>
-              <label htmlFor="ac" className="text-gray-600">
-                AC
-              </label>
-              <Checkbox name="ac" className="ml-5 w-10 h-10 border-blue-500" />
-            </div>
-
-            <div>
-              <label htmlFor="tv" className="text-gray-600">
-                TV
-              </label>
-              <Checkbox name="tv" className="ml-5 w-10 h-10 border-blue-500" />
-            </div>
-
-            <div>
-              <label htmlFor="wifi" className="text-gray-600">
-                Wi-Fi
-              </label>
-              <Checkbox
-                name="wifi"
-                className="ml-5 w-10 h-10 border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="balcony" className="text-gray-600">
-                Balcony
-              </label>
-              <Checkbox
-                name="balcony"
-                className="ml-5 w-10 h-10 border-blue-500"
-              />
-            </div>
+          {amenities.map((amenity :any) => (
+          <div key={amenity.id}>
+            <Label htmlFor={amenity.name.toLowerCase()} className="text-gray-600">
+              {amenity.name}
+            </Label>
+            <Input
+              type="checkbox"
+              name={amenity.name.toLowerCase()}
+              className="ml-5 w-10 h-10 border-blue-500"
+              // You can add more properties like checked state, onChange handler if necessary
+            />
+          </div>
+        ))}
           </div>
 
           {/* Image Upload */}
