@@ -94,7 +94,9 @@ app.put('/employee/:id', (req, res) => {
   }
 
   // Construct the SQL query
-  const updateSQL = `UPDATE employees SET ${colDefs.join(', ')} WHERE id = $${colDefs.length + 1} RETURNING *`
+  const updateSQL = `UPDATE employees SET ${colDefs.join(', ')} WHERE id = $${
+    colDefs.length + 1
+  } RETURNING *`
 
   // Execute the update query
   pool

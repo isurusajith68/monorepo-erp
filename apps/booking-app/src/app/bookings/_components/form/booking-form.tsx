@@ -97,6 +97,7 @@ const BookingForm = () => {
   const deleteMutation = useDeleteBookingMutation()
 
   const { data, isLoading, isError, error } = useGetBooking(id)
+  // console.log("kasun",data)
 
   useEffect(() => {
     form.reset(data)

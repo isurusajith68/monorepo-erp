@@ -70,6 +70,14 @@ function MainPage() {
     console.log('set unada', serviceFormData)
   }, [serviceFormData])
 
+  useEffect(() => {
+    console.log('room set unada', roomsFormData)
+  }, [roomsFormData])
+
+  useEffect(() => {
+    console.log('image set unada', aboutFormData)
+  }, [aboutFormData])
+
   // Function to handle form data change
   const handleAboutFormDataChange = (newData: any) => {
     setAboutFormData(newData)
@@ -114,49 +122,68 @@ function MainPage() {
       return null
     }
   }
+
+  ////////
   const handlserviceImage = () => {
     const formData = new FormData()
-
+    let imgKey = 0
     serviceFormData.forEach((service, index) => {
       // Append each image file for this service
+
       service.serviceimage.forEach((imageFile, imgIndex) => {
-        formData.append(
-          `service[${index}][serviceimage][${imgIndex}]`,
-          imageFile,
-        )
+        formData.append(`${imgKey}`, imageFile)
       })
+      imgKey++
     })
     return formData
   }
+
   const handleroomImage = () => {
     const formData = new FormData()
+    let imgKey = 0
 
-    // Iterate over the roomsFormData to append room details and images
-    roomsFormData.forEach((room, roomIndex) => {
-      // Append each image from the roomimage array
-      room.roomimage.forEach((file, imageIndex) => {
-        formData.append(`room[${roomIndex}][roomimage][${imageIndex}]`, file)
+    // Iterate over the serviceFormData to append service details and images
+    roomsFormData.forEach((room, index) => {
+      // Append each image file for this service
+      room.roomimage.forEach((imageFile, imgIndex) => {
+        formData.append(`${imgKey}`, imageFile) // Append each image with a unique key
+        imgKey++ // Increment imgKey for each image
       })
     })
 
     return formData
   }
+
+  ////////Submit function ////////////
 
   const handleSubmit = async (event: any) => {
     event.preventDefault()
 
     try {
-      // Call InsertHotelData, keeping metadata intact but removing file objects
+      // Update serviceFormData with serviceimage set to null
+      const updatedServiceFormData = serviceFormData.map((service) => ({
+        ...service,
+        serviceimage: null, // Set serviceimage to null
+        imageUrl: null,
+      }))
+      // Update roomsFormData with roomimage set to null
+      const updatedroomsFormData = roomsFormData.map((rooms) => ({
+        ...rooms,
+        roomimage: null, // Set serviceimage to null
+        imageUrl: null,
+      }))
+
+      // Call InsertHotelData with the updated serviceFormData
       const response = await InsertHotelData({
         data: { ...formData, fileRecords: null }, // Send sanitized formData
         aboutFormData: { ...aboutFormData, aboutimages: null },
-        serviceFormData: { ...serviceFormData, serviceimage: null },
-        roomsFormData: { ...roomsFormData, roomimage: null },
+        serviceFormData: updatedServiceFormData, // Use the updated serviceFormData
+        roomsFormData: updatedroomsFormData,
         contactdata: contactdata,
         imageData: handleImage(), // File data for image uploads
         aboutImageData: handleaboutImage(), // File data for about image uploads
         roomImageData: handleroomImage(), // File data for room image uploads
-        serviceImageData: handlserviceImage(),
+        serviceImageData: handlserviceImage(), // File data for service image uploads
       })
 
       if (response.success) {
@@ -194,6 +221,7 @@ function MainPage() {
         {/* Footer Content */}
         <FooterPage
           formData={formData}
+          aboutFormData={aboutFormData}
           contactdata={contactdata}
           services={serviceFormData}
         />

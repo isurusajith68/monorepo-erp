@@ -29,6 +29,10 @@ import AvailableRoomsRoute from './bookings/roomcheck/page'
 import AddRoomdetailsPage from './roomdetails/add/page'
 import RoomDetailsViewPage from './roomdetails/[id]/page'
 import LoginForm from './bookings/_components/form/tanstack'
+import BookingForm from './bookings/_components/form/test'
+import SpinnerLoader from '@/components/SpinnerLoader/SpinnerLoader'
+import Test from './bookings/_components/form/test'
+import RoomSelection from './bookings/_components/form/RoomSelection'
 
 // const getRoutes = (children: any[]) => {
 //    const res =  children &&
@@ -65,6 +69,9 @@ export const router = createBrowserRouter(
         <Route path="add" element={<AddRoomdetailsPage />} />
         <Route path=":id" element={<RoomDetailsViewPage />} />
       </Route>
+      <Route path="test" element={<Test />} />
+      <Route path="load" element={<SpinnerLoader />} />
+      <Route path="RoomSelection" element={<RoomSelection />} />
 
       {/* <Route path="view-booking" element={<ViewBooking />} />
       <Route path="guest-registration" element={<GuestRegistration />} />
