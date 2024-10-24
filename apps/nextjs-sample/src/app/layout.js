@@ -1,10 +1,13 @@
 "use strict";
 'use client';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = RootLayout;
 require("./globals.css");
-const Nav_1 = require("@erp/common/src/components/Nav");
-const SideBar_1 = require("@erp/common/src/components/SideBar");
+const Nav_1 = __importDefault(require("@erp/common/src/components/Nav"));
+const SideBar_1 = __importDefault(require("@erp/common/src/components/SideBar"));
 const navigation_1 = require("next/navigation");
 const hi_1 = require("react-icons/hi");
 const hi2_1 = require("react-icons/hi2");

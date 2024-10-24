@@ -1,11 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const button_1 = require("@/components/ui/button");
 const input_1 = require("@/components/ui/input");
-const react_1 = require("react");
+const react_1 = __importDefault(require("react"));
 const sl_1 = require("react-icons/sl");
 const io_1 = require("react-icons/io");
-function FooterPage({ formData, contactdata, services, }) {
+function FooterPage({ formData, aboutFormData, contactdata, services, }) {
     return (<div>
       <footer className="bg-gray-900 text-white py-12">
         {/* Newsletter Section */}
@@ -28,7 +31,7 @@ function FooterPage({ formData, contactdata, services, }) {
             <h3 className="text-2xl font-bold text-yellow-500 mb-4">
               {formData.name}
             </h3>
-            <p className="text-gray-400 mb-4">{formData.description}</p>
+            <p className="text-gray-400 mb-4">{aboutFormData.description}</p>
           </div>
 
           {/* Contact Section */}
@@ -95,12 +98,12 @@ function FooterPage({ formData, contactdata, services, }) {
           <div className="col-span-1">
             <h3 className="text-xl font-bold mb-4">SERVICES</h3>
             <ul className="space-y-2 text-gray-400">
-              {/* {services.map((services :any, index:any) => (
-     <div className="hover:text-yellow-500 flex space-x-1">
-      <IoIosArrowForward />
-     <li key={index}><a href="#">{services.serviceTitle}</a></li>
-     </div>
-    ))} */}
+              {services.map((services, index) => (<div className="hover:text-yellow-500 flex space-x-1">
+                  <io_1.IoIosArrowForward />
+                  <li key={index}>
+                    <a href="#">{services.servicetitle}</a>
+                  </li>
+                </div>))}
             </ul>
           </div>
         </div>
@@ -108,8 +111,7 @@ function FooterPage({ formData, contactdata, services, }) {
         {/* Footer Bottom */}
         <div className="max-w-7xl mx-auto px-4 mt-8 text-center text-gray-500">
           <p>
-            © {formData.name}, All Right Reserved. Designed By Ceyinfo
-            Soluation
+            © {formData.name}, All Right Reserved. Designed By Ceyinfo Soluation
           </p>
           <div className="flex justify-center space-x-4 mt-4">
             <a href="#" className="hover:text-yellow-500">

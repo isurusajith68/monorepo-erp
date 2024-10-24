@@ -1,12 +1,15 @@
 "use strict";
 'use client';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = RootLayout;
 const google_1 = require("next/font/google");
 require("./globals.css");
 const toaster_1 = require("@/components/ui/toaster");
-const navbar_1 = require("@/components/features/layouts/navbar");
-const sidebar_1 = require("@/components/features/layouts/sidebar");
+const navbar_1 = __importDefault(require("@/components/features/layouts/navbar"));
+const sidebar_1 = __importDefault(require("@/components/features/layouts/sidebar"));
 const navigation_1 = require("next/navigation");
 const inter = (0, google_1.Inter)({ subsets: ['latin'] });
 // export const metadata: Metadata = {

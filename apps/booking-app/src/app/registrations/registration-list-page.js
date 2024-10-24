@@ -4,62 +4,44 @@ const button_1 = require("@/components/ui/button");
 const table_1 = require("@/components/ui/table");
 const alert_dialog_1 = require("@/components/ui/alert-dialog");
 const react_1 = require("react");
-const axios_1 = require("axios");
 const react_router_dom_1 = require("react-router-dom");
 const use_toast_1 = require("@/hooks/use-toast");
+const queries_1 = require("./services/queries");
+const mutation_1 = require("./services/mutation");
+const react_query_1 = require("@tanstack/react-query");
 const RegistrationListPage = () => {
     const { toast } = (0, use_toast_1.useToast)();
     const [registration, setRegistration] = (0, react_1.useState)([]);
-    //   const [searchId, setSearchId] = useState("");
-    //   const [selectedCustomerType, setselectedCustomerType] = useState("all");
-    //   const [searchName, setSearchName] = useState("");
     const navigate = (0, react_router_dom_1.useNavigate)();
-    const fetchRegistration = async () => {
+    const { data, isSuccess } = (0, queries_1.useGetAllRegisrations)();
+    const deleteMutation = (0, mutation_1.useDeleteRegistrationMutation)();
+    const queryClient = (0, react_query_1.useQueryClient)();
+    (0, react_1.useEffect)(() => {
+        // Fetch registration data from the backend
         try {
-            // Make API request to get registration data by ID
-            const response = await axios_1.default.get(`http://localhost:4000/allregistration`);
-            if (response.data.success) {
-                // Reset the form with registration data
-                console.log('id', response.data.data);
-                const sortedData = response.data.data.sort((a, b) => b.id - a.id);
+            if (isSuccess) {
+                // console.log('id', data)
+                const sortedData = data.sort((a, b) => b.id - a.id);
                 setRegistration(sortedData);
-                // form.reset(response.data.data);
             }
             else {
-                console.error('Registration not found:', response.data.msg);
+                console.error('registration not found:', data.msg);
             }
         }
         catch (error) {
             console.error('Error fetching registration:', error);
         }
-    };
-    (0, react_1.useEffect)(() => {
-        // Fetch registration data from the backend
-        fetchRegistration();
-    }, []);
+    }, [data, isSuccess]);
     const handleEdit = (id) => {
         navigate(`/registration/${id}`);
     };
-    //   const filteredInvoices = customers.filter((customer: any) => {
-    //     const matchesId = customer.id
-    //       .toString()
-    //       .toLowerCase()
-    //       .includes(searchId.toLowerCase());
-    //     const matchesName = customer.cname
-    //       .toLowerCase()
-    //       .includes(searchName.toLowerCase());
-    //     const matchesProjectType =
-    //       selectedCustomerType === "all" ||
-    //       customer.ctype.toLowerCase() === selectedCustomerType.toLowerCase();
-    //     return matchesId && matchesName && matchesProjectType;
-    //   });
-    // customer delete function
     const deleteAction = async (id) => {
         if (id) {
             try {
                 console.log('Deleting registration with id:', id);
                 // Make the DELETE request to the backend API
-                await axios_1.default.delete(`http://localhost:4000/deleteregistration/${id}`);
+                await deleteMutation.mutateAsync({ id });
+                queryClient.invalidateQueries();
                 // Show success toast notification
                 toast({
                     className: 'text-red-600',
@@ -67,7 +49,7 @@ const RegistrationListPage = () => {
                     description: <span>Deleted successfully..</span>,
                     duration: 3000,
                 });
-                fetchRegistration();
+                // Navigate to the registration list after deletion
             }
             catch (error) {
                 // Handle any error that occurs during the delete process

@@ -1,12 +1,15 @@
 "use strict";
 'use client';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = SideBar;
-const link_1 = require("next/link");
+const link_1 = __importDefault(require("next/link"));
 const lucide_react_1 = require("lucide-react");
 const button_1 = require("@/components/ui/button");
 const dropdown_menu_1 = require("@/components/ui/dropdown-menu");
-const image_1 = require("next/image");
+const image_1 = __importDefault(require("next/image"));
 const react_1 = require("react");
 const navigation_1 = require("next/navigation");
 const auth_action_1 = require("../auth/auth-action");

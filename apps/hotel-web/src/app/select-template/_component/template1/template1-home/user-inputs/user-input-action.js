@@ -19,9 +19,13 @@ const fetchHotels = async () => {
     }
 };
 exports.fetchHotels = fetchHotels;
-const InsertHotelData = async ({ data, aboutFormData, contactdata, imageData, // FormData object containing main image files
+const InsertHotelData = async ({ data, aboutFormData, contactdata, serviceFormData, roomsFormData, imageData, // FormData object containing main image files
 aboutImageData, // FormData object containing multiple about image files
 roomImageData, serviceImageData, }) => {
+    console.log('zzzzzzzzzzzzzz', roomImageData);
+    console.log('ttttttttttt', roomsFormData);
+    console.log('dddddddddd', serviceImageData);
+    console.log('rrrrrrrrrr', serviceFormData);
     const client = await (0, db_1.connectToDatabase)();
     try {
         // Begin the transaction
@@ -44,8 +48,8 @@ roomImageData, serviceImageData, }) => {
             ? Buffer.from(await imageData.get('0').arrayBuffer())
             : null;
         // Insert the main image (if exists) into the Images table
-        const imageQuery = 'INSERT INTO Images (image, aboutimages, serviceimages, hotelid) VALUES ($1, $2, $3)';
-        const imageValues = [imageBuffer, null, hotelId]; // aboutimage is null for the main image
+        const imageQuery = 'INSERT INTO Images (image, aboutimages, serviceimages, roomimages, hotelid) VALUES ($1, $2, $3, $4, $5)';
+        const imageValues = [imageBuffer, null, null, null, hotelId]; // aboutimage is null for the main image
         if (imageBuffer) {
             await client.query(imageQuery, imageValues);
         }
@@ -53,17 +57,23 @@ roomImageData, serviceImageData, }) => {
         if (aboutImageData && aboutImageData.entries) {
             for (const [key, value] of aboutImageData.entries()) {
                 const aboutImageBuffer = Buffer.from(await value.arrayBuffer()); // Convert to Buffer
-                const aboutImageQuery = 'INSERT INTO Images (image, aboutimages, hotelid) VALUES ($1, $2, $3)';
-                const aboutImageValues = [null, aboutImageBuffer, hotelId]; // image is null for about images
+                const aboutImageQuery = 'INSERT INTO Images (image, aboutimages, serviceimages, roomimages, hotelid) VALUES ($1, $2, $3, $4, $5)';
+                const aboutImageValues = [null, aboutImageBuffer, null, null, hotelId]; // image is null for about images
                 await client.query(aboutImageQuery, aboutImageValues); // Insert each about image
             }
         }
-        // Loop through the `serviceImageData` and insert each about image
+        //  // Loop through the `serviceImageData` and insert each about image
         if (serviceImageData && serviceImageData.entries) {
             for (const [key, value] of serviceImageData.entries()) {
                 const serviceImageBuffer = Buffer.from(await value.arrayBuffer()); // Convert to Buffer
-                const serviceImageQuery = 'INSERT INTO Images (image, serviceimages, hotelid) VALUES ($1, $2, $3)';
-                const serviceImageValues = [null, serviceImageBuffer, hotelId]; // image is null for about images
+                const serviceImageQuery = 'INSERT INTO Images (image, aboutimages, serviceimages, roomimages, hotelid) VALUES ($1, $2, $3, $4, $5)';
+                const serviceImageValues = [
+                    null,
+                    null,
+                    serviceImageBuffer,
+                    null,
+                    hotelId,
+                ]; // image is null for about images
                 await client.query(serviceImageQuery, serviceImageValues); // Insert each about image
             }
         }
@@ -71,8 +81,8 @@ roomImageData, serviceImageData, }) => {
         if (roomImageData && roomImageData.entries) {
             for (const [key, value] of roomImageData.entries()) {
                 const roomImageBuffer = Buffer.from(await value.arrayBuffer()); // Convert to Buffer
-                const roomImageQuery = 'INSERT INTO Images (image, roomimages, hotelid) VALUES ($1, $2, $3)';
-                const roomImageValues = [null, roomImageBuffer, hotelId]; // image is null for about images
+                const roomImageQuery = 'INSERT INTO Images (image, aboutimages, serviceimages, roomimages, hotelid) VALUES ($1, $2, $3, $4, $5)';
+                const roomImageValues = [null, null, null, roomImageBuffer, hotelId]; // image is null for about images
                 await client.query(roomImageQuery, roomImageValues); // Insert each about image
             }
         }

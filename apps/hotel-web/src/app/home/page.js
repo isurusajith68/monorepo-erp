@@ -1,8 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const button_1 = require("@/components/ui/button");
-const link_1 = require("next/link");
-const react_1 = require("react");
+const link_1 = __importDefault(require("next/link"));
+const react_1 = __importDefault(require("react"));
 function page() {
     return (<div>
       <h1>Page</h1>

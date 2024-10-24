@@ -1,10 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = ContactForm;
 const accordion_1 = require("@/components/ui/accordion");
 const form_1 = require("@/components/ui/form");
 const input_1 = require("@/components/ui/input");
-const react_1 = require("react");
+const react_1 = __importDefault(require("react"));
 function ContactForm({ contactdata, handleContactFormDataChange, }) {
     // Handle change in the form and pass the updated data to the parent
     const handleChange = (e) => {

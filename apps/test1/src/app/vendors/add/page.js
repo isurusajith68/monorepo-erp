@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = AddVendor;
-const form_vendor_1 = require("@/components/features/vendors/form-vendor");
+const form_vendor_1 = __importDefault(require("@/components/features/vendors/form-vendor"));
 function AddVendor() {
     return (<>
       <form_vendor_1.default />

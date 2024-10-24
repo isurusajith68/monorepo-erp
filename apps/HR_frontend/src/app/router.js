@@ -1,19 +1,22 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.router = void 0;
 const react_router_dom_1 = require("react-router-dom");
-const Dashboard_1 = require("./Dashboard/Dashboard");
+const Dashboard_1 = __importDefault(require("./Dashboard/Dashboard"));
 // import Customer from "./Customer/Customer";
-const RootLayout_1 = require("./RootLayout");
+const RootLayout_1 = __importDefault(require("./RootLayout"));
 // import RegistrationListPage from "./registrations/registration-list-page";
 // import AddRegistrationPage from "./registrations/add/page";
 // import RegistrationViewPage from "./registrations/[id]/page";
 // import StoreListPage from "./store/store-list";
 // import ViewStorePage from "./store/[id]/page";
 // import AddStorePage from "./store/add/page";
-const employee_list_page_1 = require("./employee/employee-list-page");
-const page_1 = require("./employee/[id]/page");
-const page_2 = require("./employee/add/page");
+const employee_list_page_1 = __importDefault(require("./employee/employee-list-page"));
+const page_1 = __importDefault(require("./employee/[id]/page"));
+const page_2 = __importDefault(require("./employee/add/page"));
 // const getRoutes = (children: any[]) => {
 //    const res =  children &&
 //      children.map((c) => (

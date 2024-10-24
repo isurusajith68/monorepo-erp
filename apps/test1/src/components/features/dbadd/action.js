@@ -1,8 +1,11 @@
 "use strict";
 'use server';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertcustomer = exports.oneFile = exports.getFiles1 = void 0;
-const better_sqlite3_1 = require("better-sqlite3");
+const better_sqlite3_1 = __importDefault(require("better-sqlite3"));
 const fs = require('fs');
 // Recursive function to get files
 const getFiles1 = async (dir, files = []) => {

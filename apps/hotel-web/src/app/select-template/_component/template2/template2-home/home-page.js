@@ -1,6 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const react_1 = require("react");
+const react_1 = __importDefault(require("react"));
 const button_1 = require("@/components/ui/button");
 const input_1 = require("@/components/ui/input");
 const label_1 = require("@/components/ui/label");

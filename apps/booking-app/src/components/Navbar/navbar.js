@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.description = void 0;
 const react_router_dom_1 = require("react-router-dom");
 const lucide_react_1 = require("lucide-react");
-const badge_1 = require("@/components/ui/badge");
 const button_1 = require("@/components/ui/button");
 const dropdown_menu_1 = require("@/components/ui/dropdown-menu");
 const sheet_1 = require("@/components/ui/sheet");
@@ -31,22 +30,23 @@ const Navbar = () => {
             </react_router_dom_1.Link>
             <react_router_dom_1.Link to="/orders" className="mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground">
               <lucide_react_1.ShoppingCart className="h-5 w-5"/>
-              Orders
-              <badge_1.Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                6
-              </badge_1.Badge>
+              Add Booking
             </react_router_dom_1.Link>
             <react_router_dom_1.Link to="/products" className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground">
               <lucide_react_1.Package className="h-5 w-5"/>
-              Products
+              view Booking
             </react_router_dom_1.Link>
             <react_router_dom_1.Link to="/customers" className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground">
               <lucide_react_1.Users className="h-5 w-5"/>
-              Customers
+              Guest Registration
             </react_router_dom_1.Link>
             <react_router_dom_1.Link to="/analytics" className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground">
               <lucide_react_1.LineChart className="h-5 w-5"/>
-              Analytics
+              View Registration
+            </react_router_dom_1.Link>
+            <react_router_dom_1.Link to="/analytics" className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground">
+              <lucide_react_1.LineChart className="h-5 w-5"/>
+              Report
             </react_router_dom_1.Link>
           </nav>
         </sheet_1.SheetContent>

@@ -1,12 +1,15 @@
 "use strict";
 'use client';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = PurchaseList;
 const button_1 = require("@/components/ui/button");
 const alert_dialog_1 = require("@/components/ui/alert-dialog");
 const table_1 = require("@/components/ui/table");
 const react_1 = require("react");
-const link_1 = require("next/link");
+const link_1 = __importDefault(require("next/link"));
 const navigation_1 = require("next/navigation");
 const use_toast_1 = require("@/components/ui/use-toast");
 const purchase_action_1 = require("./purchase-action");

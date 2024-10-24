@@ -8,10 +8,10 @@ const button_1 = require("@/components/ui/button");
 const form_1 = require("@/components/ui/form");
 const input_1 = require("@/components/ui/input");
 const react_router_dom_1 = require("react-router-dom");
-const axios_1 = require("axios");
 const use_toast_1 = require("@/hooks/use-toast");
 const react_1 = require("react");
-const react_query_1 = require("@tanstack/react-query");
+const queries_1 = require("../../services/queries");
+const mutation_1 = require("../../services/mutation");
 const formSchema = zod_2.z.object({
     //   id: z.string().min(2, {
     //     message: "Username must be at least 2 characters.",
@@ -57,6 +57,9 @@ const RegistrationForm = () => {
         childrencount: '',
         bookingdate: '',
     });
+    const updateMutation = (0, mutation_1.useUpdateRegistrationMutation)();
+    const insertMutation = (0, mutation_1.useInsertRegistrationMutation)();
+    const deleteMutation = (0, mutation_1.useDeleteRegistrationMutation)();
     const form = (0, react_hook_form_1.useForm)({
         resolver: (0, zod_1.zodResolver)(formSchema),
         defaultValues: {
@@ -64,120 +67,11 @@ const RegistrationForm = () => {
         },
     });
     const { control, watch, setValue, getValues, formState: { isDirty, dirtyFields, isLoading, isSubmitSuccessful }, } = form;
-    //   useEffect(() => {
-    //     if (id) {
-    //       const fetchRegistration = async () => {
-    //         try {
-    //           // Make API request to get registration data by ID
-    //           const response = await Axios.get(
-    //             `http://localhost:4000/registration/${id}`
-    //           );
-    //           if (response.data.success) {
-    //             // Reset the form with registration data
-    //             console.log("id", response.data.data);
-    //             form.reset(response.data.data);
-    //           } else {
-    //             console.error("registration not found:", response.data.msg);
-    //           }
-    //         } catch (error) {
-    //           console.error("Error fetching registration:", error);
-    //         }
-    //       };
-    //       fetchRegistration();
-    //     }
-    //   }, [id]);
-    const { data, isError, error } = (0, react_query_1.useQuery)({
-        queryKey: ['registration', id],
-        queryFn: async () => {
-            let data1;
-            data1 = await axios_1.default.get(`http://localhost:4000/registration/${id ?? 0}`);
-            return data1.data.data;
-            // let data
-            // setTimeout(async() => {
-            //    data = await Axios.get(`http://localhost:4000/booking/${id?? 0}`);
-            //    return data.data;
-            // }, 2000);
-            // const p = new Promise((resolve) => {
-            //     setTimeout(async() => {
-            //        const data = await Axios.get(`http://localhost:4000/booking/${id?? 0}`);
-            //        console.log("data",data.data.data)
-            //         resolve(data.data.data);
-            //     }, 2000);
-            // })
-            // return p
-            // return fetchBookingData(id)
-        },
-    });
+    const { data, isError, error } = (0, queries_1.useGetRegistrations)(id);
     (0, react_1.useEffect)(() => {
         form.reset(data);
         console.log('firstgggggggggg');
     }, [data]);
-    //   useEffect(() => {
-    //     if (phoneNumber.length > 0) {
-    //       Axios.get(`http://localhost:4000/booking-by-phone/${phoneNumber}`)
-    //         .then((response) => {
-    //           if (response.data.success) {
-    //             setFormData(response.data.data); // Populate form with data
-    //           } else {
-    //             console.log('No booking found');
-    //           }
-    //         })
-    //         .catch((error) => {
-    //           console.error('Error fetching data:', error);
-    //         });
-    //     }
-    //   }, [phoneNumber]);
-    //   function onSubmit(data: z.infer<typeof formSchema>) {
-    //     // axios.post("https://reqres.in/api/login", userData).then((response) => {
-    //     //   console.log(response.status, response.data.token);
-    //     // });
-    //     // navigate("/");
-    //     // console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", values);
-    //     // toast({
-    //     //   className: "text-green-600",
-    //     //   title: "Registration",
-    //     //   description: <span>Added successfully..</span>,
-    //     //   duration: 2000,
-    //     // });
-    //     //from next js
-    //     console.log("data", data);
-    //     const id = getValues("id"); // this checks if the data already exists in the database
-    //     if (id) {
-    //       // If an `id` exists, update the customer with only the changed fields (dirtyFields)
-    //       let dirtyValues: any = {};
-    //       for (const key in dirtyFields) {
-    //         dirtyValues[key] = data[key];
-    //       }
-    //       console.log("dirtyValues", dirtyValues);
-    //       //   await updateCustomer(dirtyValues, id.toString());
-    //       toast({
-    //         className: "text-green-600",
-    //         title: "Customer",
-    //         description: <span>Updated successfully..</span>,
-    //         duration: 5000,
-    //       });
-    //     } else {
-    //       // If no `id` exists, insert a new customer and get the new `id`
-    //       console.log(data);
-    //       const sendData = async () => {
-    //         const response = await Axios.post(
-    //           "http://localhost:4000/registration",
-    //           data
-    //         );
-    //         console.log("response.data", response.data);
-    //       };
-    //       sendData();
-    //       setValue("id", objId.lastInsertRowid, { shouldDirty: false }); // Set the `id` to avoid adding the same data again
-    //       toast({
-    //         className: "text-green-600",
-    //         title: "Customer",
-    //         description: <span>Added successfully..</span>,
-    //         duration: 2000,
-    //       });
-    //       // After inserting, use the newly generated `id`
-    //       navigate(`/customers/${objId.lastInsertRowid}`);
-    //     }
-    //   }
     async function onSubmit(data) {
         const id = getValues('id'); // Check if data already exists
         console.log('Form data:', data);
@@ -190,20 +84,15 @@ const RegistrationForm = () => {
                     dirtyValues[key] = data[key];
                 }
                 console.log('Dirty Values (Fields to Update):', dirtyValues);
-                // Send update request
-                const response = await axios_1.default.put(`http://localhost:4000/registrations/${id}`, dirtyValues);
+                const resMutation = updateMutation.mutate({ id, dirtyValues });
                 // Check if update was successful
-                if (response.data.success) {
+                if (updateMutation.isSuccess) {
                     toast({
                         className: 'text-green-600',
                         title: 'registration',
                         description: <span>Updated successfully.</span>,
                         duration: 5000,
                     });
-                    // Update the UI with the new data (you can handle this as per your frontend logic)
-                    const updatedData = response.data.updatedRegistration;
-                    // Example: Set updated data into the form
-                    reset(updatedData);
                 }
             }
             catch (error) {
@@ -214,9 +103,9 @@ const RegistrationForm = () => {
             // If no `id`, insert a new registration
             try {
                 console.log('Inserting new registration:', data);
-                const response = await axios_1.default.post('http://localhost:4000/registration', data);
-                if (response.data.success) {
-                    const newId = response.data.lastInsertRowid;
+                const responseData = await insertMutation.mutateAsync({ data });
+                if (responseData.success) {
+                    const newId = responseData.lastInsertRowid;
                     // Set the newly inserted id to avoid duplicate insertions
                     setValue('id', newId, { shouldDirty: false });
                     toast({
@@ -228,8 +117,8 @@ const RegistrationForm = () => {
                     // Optionally navigate to the registration detail page after successful insert
                     navigate(`/registration/${newId}`);
                     // Fetch the newly inserted registration and display it in the UI
-                    const newRegisteration = response.data.newRegisteration;
-                    reset(newRegisteration); // Reset the form with new registration data
+                    const newRegisteration = data.newRegisteration;
+                    form.reset(newRegisteration); // Reset the form with new registration data
                 }
             }
             catch (error) {
@@ -242,7 +131,7 @@ const RegistrationForm = () => {
             try {
                 console.log('Deleting registration with id:', id);
                 // Make the DELETE request to the backend API
-                await axios_1.default.delete(`http://localhost:4000/deleteregistration/${id}`);
+                const resMutation = deleteMutation.mutate({ id });
                 // Show success toast notification
                 toast({
                     className: 'text-red-600',
@@ -265,27 +154,67 @@ const RegistrationForm = () => {
             }
         }
     };
+    const { data: prevItem, isLoading: prevLoading, error: prevError, } = (0, queries_1.useGetPrevRegistration)(id);
+    // console.log('prevvvvvvvvvvvvvvvvvvvvvvvv', prevItem)
+    const getPrevItem = () => {
+        if (prevItem && Object.keys(prevItem).length !== 0) {
+            navigate(`/registration/${prevItem.id}`);
+        }
+        else {
+            toast({
+                className: 'text-blue-600',
+                title: 'Document Traverse',
+                description: <span>Reached Start of registration ID</span>,
+                duration: 2000,
+            });
+        }
+    };
+    const { data: nextItem } = (0, queries_1.useGetNextRegistraion)(id);
+    const getNextItem = () => {
+        if (nextItem && Object.keys(nextItem).length !== 0) {
+            navigate(`/registration/${nextItem.id}`);
+        }
+        else {
+            toast({
+                className: 'text-blue-600',
+                title: 'Document Traverse',
+                description: <span>Reached End of registration ID</span>,
+                duration: 2000,
+            });
+        }
+    };
+    const { data: getphonedata, isFetched } = (0, queries_1.useGetPhoneNumber)(phoneNumber);
+    console.log('first', getphonedata);
+    (0, react_1.useEffect)(() => {
+        if (isFetched && getphonedata) {
+            setValue('telephone', getphonedata.telephone || '');
+            setValue('email', getphonedata.email || '');
+        }
+    }, [isFetched, getphonedata]);
     return (<div>
       <div className="flex items-center  justify-between ml-10 mt-5">
         {!id && <h1 className="text-2xl font-bold ">Add Guest Registration</h1>}
         {id && (<h1 className="text-2xl font-bold ">Update Guest Registration </h1>)}
-        {!id && (<button_1.Button onClick={() => navigate('/registrations')} className="bg-green-600">
-            View List
-          </button_1.Button>)}
+        <div className="gap-5 flex">
+          {!id && (<button_1.Button onClick={() => navigate('/registrations')} className="bg-green-600">
+              View List
+            </button_1.Button>)}
+          {id && (<div className="gap-5 flex">
+              <button_1.Button className="  bg-green-600" type="button" onClick={getPrevItem}>
+                previous
+              </button_1.Button>
+              <button_1.Button className="  bg-green-600" type="button" onClick={getNextItem}>
+                next
+              </button_1.Button>
+            </div>)}
+        </div>
         {id && (<button_1.Button onClick={() => navigate('/registration/add')} className="bg-green-600">
             + Add
           </button_1.Button>)}
-        {/* <Button>View List</Button> */}
       </div>
       <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
 
-      {/* <input
-          type="text"
-          placeholder="Enter Phone Number"
-          value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
-          className="mr-4 mt-5 p-2 border-2 border-green-600 rounded"
-        /> */}
+      {!id && (<input type="text" placeholder="Enter Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="mr-4 mt-5 p-2 border-2 border-green-600 rounded"/>)}
 
       <div className="mt-5 w-full h-2/3 bg-green-100 rounded border border-green-300 p-10 ">
         <form_1.Form {...form}>
@@ -390,7 +319,7 @@ const RegistrationForm = () => {
                       <alert_dialog_1.AlertDialogFooter>
                         <alert_dialog_1.AlertDialogCancel>Cancel</alert_dialog_1.AlertDialogCancel>
                         <alert_dialog_1.AlertDialogAction className="bg-red-600" onClick={() => {
-                deleteAction(id);
+                deleteAction(Number(id));
             }}>
                           Delete
                         </alert_dialog_1.AlertDialogAction>

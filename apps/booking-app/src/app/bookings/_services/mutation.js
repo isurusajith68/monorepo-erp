@@ -1,18 +1,19 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.useDeleteBookingMutation = exports.useInsertBookingMutation = exports.useUpdateBookingMutation = void 0;
+exports.useInsertGuestInformationMutation = exports.useDeleteBookingMutation = exports.useInsertBookingMutation = exports.useUpdateBookingMutation = void 0;
 const react_query_1 = require("@tanstack/react-query");
-const axios_1 = require("axios");
+const axios_1 = __importDefault(require("axios"));
+const bapi = import.meta.env.VITE_API_BOOKINGAPI;
 const useUpdateBookingMutation = () => {
-    const bapi = import.meta.env.VITE_API_BOOKINGAPI;
     // console.log("aaaqqq",bapi)
     const queryClient = (0, react_query_1.useQueryClient)();
     return (0, react_query_1.useMutation)({
         mutationFn: async (params) => {
-            // console.log("paramsss",params.dirtyValues )
-            // console.log("paramsss",bapi + params.id)
             try {
-                const res = await axios_1.default.put(`${bapi}${params.id}`, params.dirtyValues);
+                const res = await axios_1.default.put(`${bapi}bookings/${params.id}`, params.dirtyValues);
                 // console.log("ressssssssssssssssssssssss",res)
                 return res;
             }
@@ -21,27 +22,10 @@ const useUpdateBookingMutation = () => {
                 throw error;
             }
         },
-        // onSettled: async (_, error, variables) => {
-        //   if (error) {
-        //     console.log(error);
-        //   } else {
-        //     await queryClient.invalidateQueries({ queryKey: ["booking"] });
-        //     await queryClient.invalidateQueries({
-        //       queryKey: ["booking", { id: variables.id }],
-        //     });
-        //   }
-        // },
     });
-    // const mutation = useMutation({
-    //            mutationFn: (params : any) => {
-    //              return Axios.put(`${process.env.DB_NAME}${params.id}`, params.dirtyValues);
-    //            },
-    //          });
-    //  return mutation;
 };
 exports.useUpdateBookingMutation = useUpdateBookingMutation;
 const useInsertBookingMutation = () => {
-    const bapi = import.meta.env.VITE_API_BOOKINGAPI;
     // console.log("aaaqqq",bapi)
     const queryClient = (0, react_query_1.useQueryClient)();
     return (0, react_query_1.useMutation)({
@@ -49,7 +33,7 @@ const useInsertBookingMutation = () => {
             // console.log("helloooooo",data.data )
             // console.log("geeth",bapi + params.data.id)
             try {
-                const res = await axios_1.default.post(`${bapi}`, data.data);
+                const res = await axios_1.default.post(`${bapi}bookings`, data.data);
                 // console.log("ressssssssssssssssssssssss",res.data)
                 return res.data;
             }
@@ -62,7 +46,6 @@ const useInsertBookingMutation = () => {
 };
 exports.useInsertBookingMutation = useInsertBookingMutation;
 const useDeleteBookingMutation = () => {
-    const bapi = import.meta.env.VITE_API_BOOKINGAPI;
     // console.log("aaaqqq",bapi)
     const queryClient = (0, react_query_1.useQueryClient)();
     return (0, react_query_1.useMutation)({
@@ -70,7 +53,7 @@ const useDeleteBookingMutation = () => {
             // console.log("helloooooo",data.data )
             // console.log("geeth",bapi + params.data.id)
             try {
-                const res = await axios_1.default.delete(`${bapi}delete/${data.id}`, data.id);
+                const res = await axios_1.default.delete(`${bapi}bookings/delete/${data.id}`, data.id);
                 // console.log("ressssssssssssssssssssssss",res.data)
                 return res.data;
             }
@@ -82,3 +65,23 @@ const useDeleteBookingMutation = () => {
     });
 };
 exports.useDeleteBookingMutation = useDeleteBookingMutation;
+const useInsertGuestInformationMutation = () => {
+    // console.log("aaaqqq",bapi)
+    const queryClient = (0, react_query_1.useQueryClient)();
+    return (0, react_query_1.useMutation)({
+        mutationFn: async (data) => {
+            console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqq', data.data);
+            // console.log("geeth",bapi + params.data.id)
+            try {
+                const res = await axios_1.default.post(`${bapi}guestinformation`, data.data);
+                // console.log("ressssssssssssssssssssssss",res.data)
+                return res.data;
+            }
+            catch (error) {
+                console.error('Error in API call:', error);
+                throw error;
+            }
+        },
+    });
+};
+exports.useInsertGuestInformationMutation = useInsertGuestInformationMutation;

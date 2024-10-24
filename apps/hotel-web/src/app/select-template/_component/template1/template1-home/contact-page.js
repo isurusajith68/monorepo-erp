@@ -1,6 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const react_1 = require("react");
+const react_1 = __importDefault(require("react"));
 function ContactPage({ contactdata }) {
     return (<div id="contact" className="w-full bg-slate-100">
       <div className="mb-2 flex ml-[45%]">

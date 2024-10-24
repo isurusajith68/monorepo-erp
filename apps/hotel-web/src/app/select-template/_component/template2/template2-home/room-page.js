@@ -1,8 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = RoomList;
 // components/RoomList.tsx
-const image_1 = require("next/image");
+const image_1 = __importDefault(require("next/image"));
 function RoomList({ rooms, roomdescription, }) {
     return (<div className="bg-gray-50 py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,17 +1,43 @@
 "use strict";
 'use client';
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const react_1 = require("react");
-const home_page_1 = require("./home-page");
-const about_us_page_1 = require("./about-us-page");
-const service_page_1 = require("./service-page");
-const room_page_1 = require("./room-page");
-const footer_page_1 = require("./footer-page");
-const home_page_userinput_1 = require("./user-inputs/home-page-userinput");
-const about_page_userinput_1 = require("./user-inputs/about-page-userinput");
-const service_page_inputs_1 = require("./user-inputs/service-page-inputs");
-const room_page_inputs_1 = require("./user-inputs/room-page-inputs");
-const contact_page_inputs_1 = require("./user-inputs/contact-page-inputs");
+const react_1 = __importStar(require("react"));
+const home_page_1 = __importDefault(require("./home-page"));
+const about_us_page_1 = __importDefault(require("./about-us-page"));
+const service_page_1 = __importDefault(require("./service-page"));
+const room_page_1 = __importDefault(require("./room-page"));
+const footer_page_1 = __importDefault(require("./footer-page"));
+const home_page_userinput_1 = __importDefault(require("./user-inputs/home-page-userinput"));
+const about_page_userinput_1 = __importDefault(require("./user-inputs/about-page-userinput"));
+const service_page_inputs_1 = __importDefault(require("./user-inputs/service-page-inputs"));
+const room_page_inputs_1 = __importDefault(require("./user-inputs/room-page-inputs"));
+const contact_page_inputs_1 = __importDefault(require("./user-inputs/contact-page-inputs"));
 function MainPage() {
     // State to hold the data from the form
     const [formData, setFormData] = (0, react_1.useState)({

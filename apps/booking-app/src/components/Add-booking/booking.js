@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Booking;
-const react_1 = require("react");
+const react_1 = __importDefault(require("react"));
 const zod_1 = require("@hookform/resolvers/zod");
 const react_hook_form_1 = require("react-hook-form");
 const zod_2 = require("zod");
@@ -9,7 +12,7 @@ const button_1 = require("@/components/ui/button");
 const form_1 = require("@/components/ui/form");
 const input_1 = require("@/components/ui/input");
 const react_router_dom_1 = require("react-router-dom");
-const axios_1 = require("axios");
+const axios_1 = __importDefault(require("axios"));
 const formSchema = zod_2.z.object({
     roomnumber: zod_2.z.string().min(2, {
         message: 'Username must be at least 2 characters.',

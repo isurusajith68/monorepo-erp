@@ -1,16 +1,19 @@
 "use strict";
 'use server';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resetPassword = exports.verifyOTP = exports.sendMail = exports.getUserById = exports.getSessionToken = exports.logoutUser = exports.loginUser = exports.registerUser = void 0;
 exports.redirectToGoogleLogin = redirectToGoogleLogin;
 exports.handleGoogleCallback = handleGoogleCallback;
-const better_sqlite3_1 = require("better-sqlite3");
-const bcrypt_1 = require("bcrypt");
+const better_sqlite3_1 = __importDefault(require("better-sqlite3"));
+const bcrypt_1 = __importDefault(require("bcrypt"));
 const cookie_1 = require("cookie");
-const jsonwebtoken_1 = require("jsonwebtoken");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const headers_1 = require("next/headers");
 const jose_1 = require("jose");
-const nodemailer_1 = require("nodemailer");
+const nodemailer_1 = __importDefault(require("nodemailer"));
 const SALT_ROUNDS = 10;
 const registerUser = async (username, email, password) => {
     const db = new better_sqlite3_1.default(process.env.DB_NAME);

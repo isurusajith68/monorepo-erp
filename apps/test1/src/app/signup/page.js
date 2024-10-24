@@ -1,5 +1,8 @@
 "use strict";
 'use client';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const button_1 = require("@/components/ui/button");
 const input_1 = require("@/components/ui/input");
@@ -13,7 +16,7 @@ const use_toast_1 = require("@/components/ui/use-toast");
 const form_1 = require("@/components/ui/form");
 const auth_action_1 = require("@/components/features/auth/auth-action");
 const navigation_1 = require("next/navigation");
-const link_1 = require("next/link");
+const link_1 = __importDefault(require("next/link"));
 const FormSchema = zod_1.z.object({
     username: zod_1.z.string().min(3, 'Username must be at least 3 characters long'),
     email: zod_1.z.string().email('Please enter a valid email address'),

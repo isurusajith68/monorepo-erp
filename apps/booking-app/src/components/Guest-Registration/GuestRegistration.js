@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = GuestRegistration;
-const react_1 = require("react");
+const react_1 = __importDefault(require("react"));
 const zod_1 = require("@hookform/resolvers/zod");
 const react_hook_form_1 = require("react-hook-form");
 const zod_2 = require("zod");

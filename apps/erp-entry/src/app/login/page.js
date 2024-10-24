@@ -2,6 +2,9 @@
 // import { Button } from '@/components/ui/button';
 // import React from 'react'
 // import { useNavigate } from 'react-router-dom';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 // export default function Dashboard() {
 //     const navigate=useNavigate()
@@ -25,7 +28,7 @@ const zod_2 = require("zod");
 const button_1 = require("@/components/ui/button");
 const input_1 = require("@/components/ui/input");
 const lucide_react_1 = require("lucide-react");
-const axios_1 = require("axios");
+const axios_1 = __importDefault(require("axios"));
 const react_1 = require("react");
 const form_1 = require("@/components/ui/form");
 const use_toast_1 = require("@/hooks/use-toast");

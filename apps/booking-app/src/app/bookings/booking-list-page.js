@@ -1,60 +1,82 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = BookingListPage;
-const react_1 = require("react");
+const react_1 = __importStar(require("react"));
 const button_1 = require("@/components/ui/button");
 const table_1 = require("@/components/ui/table");
 const alert_dialog_1 = require("@/components/ui/alert-dialog");
 const react_router_dom_1 = require("react-router-dom");
-const axios_1 = require("axios");
 const use_toast_1 = require("@/hooks/use-toast");
+const queries_1 = require("./_services/queries");
 const mutation_1 = require("./_services/mutation");
+const react_query_1 = require("@tanstack/react-query");
 function BookingListPage() {
     const { toast } = (0, use_toast_1.useToast)();
     const [booking, setBooking] = (0, react_1.useState)([]);
     const navigate = (0, react_router_dom_1.useNavigate)();
     const deleteMutation = (0, mutation_1.useDeleteBookingMutation)();
-    const fetchBooking = async () => {
+    const queryClient = (0, react_query_1.useQueryClient)();
+    const { data, isSuccess, isLoading } = (0, queries_1.useGetAllBooking)();
+    // console.log("first",data)
+    (0, react_1.useEffect)(() => {
+        // Fetch booking data from the backend
         try {
-            // Make API request to get booking data by ID
-            const response = await axios_1.default.get(`http://localhost:4000/allbookings`);
-            if (response.data.success) {
-                // Reset the form with booking data
-                console.log('id', response.data.data);
-                const sortedData = response.data.data.sort((a, b) => b.id - a.id);
+            if (isSuccess) {
+                // console.log('id', data)
+                const sortedData = data.sort((a, b) => b.id - a.id);
                 setBooking(sortedData);
-                // form.reset(response.data.data);
             }
             else {
-                console.error('booking not found:', response.data.msg);
+                console.error('booking not found:', data.msg);
             }
         }
         catch (error) {
             console.error('Error fetching booking:', error);
         }
-    };
-    (0, react_1.useEffect)(() => {
-        // Fetch booking data from the backend
-        fetchBooking();
-    }, []);
+    }, [data, isSuccess]);
     const handleEdit = (id) => {
         navigate(`/booking/${id}`);
     };
+    // if(isLoading){
+    //   return <h1>Loading...</h1>
+    // }
     const deleteAction = async (id) => {
         if (id) {
             try {
-                // console.log('Deleting booking with id:', id)
-                // // Make the DELETE request to the backend API
-                // await Axios.delete(`http://localhost:4000/deletebooking/${id}`)
-                const resMutation = deleteMutation.mutate({ id });
+                // Trigger delete mutation
+                await deleteMutation.mutateAsync({ id });
+                // Invalidate the query to refetch the data
+                queryClient.invalidateQueries(); // Replace with the actual query key used in `useGetAllBooking`
                 // Show success toast notification
                 toast({
                     className: 'text-red-600',
                     title: 'Booking',
-                    description: <span>Deleted successfully..</span>,
+                    description: <span>Deleted successfully.</span>,
                     duration: 3000,
                 });
-                fetchBooking();
             }
             catch (error) {
                 // Handle any error that occurs during the delete process
@@ -62,7 +84,7 @@ function BookingListPage() {
                 toast({
                     className: 'text-red-600',
                     title: 'Error',
-                    description: <span>Failed to delete the booking..</span>,
+                    description: <span>Failed to delete the booking.</span>,
                     duration: 3000,
                 });
             }

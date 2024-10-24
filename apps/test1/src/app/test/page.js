@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = page;
-const react_1 = require("react");
+const react_1 = __importDefault(require("react"));
 function page() {
     return (<div className="w-[1440px] h-[766px] relative bg-white">
       <div className="w-6 h-6 left-[269px] top-[96px] absolute"/>

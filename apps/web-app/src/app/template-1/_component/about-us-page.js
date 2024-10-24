@@ -58,12 +58,14 @@ function AboutUsPage({ data, image }) {
               <div className="grid grid-cols-2 grid-rows-2 gap-4 mr-5">
                 {Image.length > 0 ? (Image.map((hotel, index) => hotel.aboutimages && ( // Only render if aboutimage exists
             <img key={index} src={hotel.aboutimages} alt={`Preview ${index + 1}`} className={`object-cover rounded-lg ${index === 0
-                    ? 'w-[100%] h-[110%] mt-10'
+                    ? 'w-[90%] h-[110%] mt-10'
                     : index === 1
-                        ? 'w-[120%] h-[120%] mr-5'
+                        ? 'w-[80%] h-[110%]'
                         : index === 2
-                            ? 'w-[80%] h-[80%] mt-20 ml-10'
-                            : 'w-[80%] h-[80%] mt-10'}`}/>))) : (<p>No images found.</p>)}
+                            ? 'w-[60%] h-[60%] mt-20 -ml-10 '
+                            : index === 3
+                                ? 'w-[70%] h-[100%] ml-16 mt-5'
+                                : 'w-[70%] h-[100%]'}`}/>))) : (<p>No images found.</p>)}
               </div>
             </div>
             {/* <div className="grid grid-cols-2 grid-rows-2 gap-4 mr-5">

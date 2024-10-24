@@ -1,12 +1,15 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const react_1 = require("react");
-const page_1 = require("./_component/template1/page");
-const page_2 = require("./_component/template2/page");
-const page_3 = require("./_component/template4/page");
-const page_4 = require("./_component/template3/page");
-const page_5 = require("./_component/template6/page");
-const page_6 = require("./_component/template5/page");
+const react_1 = __importDefault(require("react"));
+const page_1 = __importDefault(require("./_component/template1/page"));
+const page_2 = __importDefault(require("./_component/template2/page"));
+const page_3 = __importDefault(require("./_component/template4/page"));
+const page_4 = __importDefault(require("./_component/template3/page"));
+const page_5 = __importDefault(require("./_component/template6/page"));
+const page_6 = __importDefault(require("./_component/template5/page"));
 function page() {
     return (<div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-[90%] ml-10">

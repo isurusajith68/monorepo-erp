@@ -1,9 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const react_router_dom_1 = require("react-router-dom");
 const hi_1 = require("react-icons/hi");
 const hi2_1 = require("react-icons/hi2");
-const SideBar_1 = require("@erp/common/src/components/SideBar");
+const SideBar_1 = __importDefault(require("@erp/common/src/components/SideBar"));
 const index_1 = require("@erp/common/src/index");
 function App() {
     const items = [

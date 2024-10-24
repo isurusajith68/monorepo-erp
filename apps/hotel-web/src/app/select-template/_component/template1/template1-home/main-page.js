@@ -1,18 +1,44 @@
 "use strict";
 'use client';
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const react_1 = require("react");
-const home_page_1 = require("./home-page");
-const about_us_page_1 = require("./about-us-page");
-const service_page_1 = require("./service-page");
-const room_page_1 = require("./room-page");
-const contact_page_1 = require("./contact-page");
-const footer_page_1 = require("./footer-page");
-const home_page_userinput_1 = require("./user-inputs/home-page-userinput");
-const about_page_userinput_1 = require("./user-inputs/about-page-userinput");
-const service_page_inputs_1 = require("./user-inputs/service-page-inputs");
-const room_page_inputs_1 = require("./user-inputs/room-page-inputs");
-const contact_page_inputs_1 = require("./user-inputs/contact-page-inputs");
+const react_1 = __importStar(require("react"));
+const home_page_1 = __importDefault(require("./home-page"));
+const about_us_page_1 = __importDefault(require("./about-us-page"));
+const service_page_1 = __importDefault(require("./service-page"));
+const room_page_1 = __importDefault(require("./room-page"));
+const contact_page_1 = __importDefault(require("./contact-page"));
+const footer_page_1 = __importDefault(require("./footer-page"));
+const home_page_userinput_1 = __importDefault(require("./user-inputs/home-page-userinput"));
+const about_page_userinput_1 = __importDefault(require("./user-inputs/about-page-userinput"));
+const service_page_inputs_1 = __importDefault(require("./user-inputs/service-page-inputs"));
+const room_page_inputs_1 = __importDefault(require("./user-inputs/room-page-inputs"));
+const contact_page_inputs_1 = __importDefault(require("./user-inputs/contact-page-inputs"));
 const button_1 = require("@/components/ui/button");
 const user_input_action_1 = require("./user-inputs/user-input-action");
 function MainPage() {
@@ -62,6 +88,12 @@ function MainPage() {
     (0, react_1.useEffect)(() => {
         console.log('set unada', serviceFormData);
     }, [serviceFormData]);
+    (0, react_1.useEffect)(() => {
+        console.log('room set unada', roomsFormData);
+    }, [roomsFormData]);
+    (0, react_1.useEffect)(() => {
+        console.log('image set unada', aboutFormData);
+    }, [aboutFormData]);
     // Function to handle form data change
     const handleAboutFormDataChange = (newData) => {
         setAboutFormData(newData);
@@ -104,41 +136,59 @@ function MainPage() {
             return null;
         }
     };
+    ////////
     const handlserviceImage = () => {
         const formData = new FormData();
+        let imgKey = 0;
         serviceFormData.forEach((service, index) => {
             // Append each image file for this service
             service.serviceimage.forEach((imageFile, imgIndex) => {
-                formData.append(`service[${index}][serviceimage][${imgIndex}]`, imageFile);
+                formData.append(`${imgKey}`, imageFile);
             });
+            imgKey++;
         });
         return formData;
     };
     const handleroomImage = () => {
         const formData = new FormData();
-        // Iterate over the roomsFormData to append room details and images
-        roomsFormData.forEach((room, roomIndex) => {
-            // Append each image from the roomimage array
-            room.roomimage.forEach((file, imageIndex) => {
-                formData.append(`room[${roomIndex}][roomimage][${imageIndex}]`, file);
+        let imgKey = 0;
+        // Iterate over the serviceFormData to append service details and images
+        roomsFormData.forEach((room, index) => {
+            // Append each image file for this service
+            room.roomimage.forEach((imageFile, imgIndex) => {
+                formData.append(`${imgKey}`, imageFile); // Append each image with a unique key
+                imgKey++; // Increment imgKey for each image
             });
         });
         return formData;
     };
+    ////////Submit function ////////////
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
-            // Call InsertHotelData, keeping metadata intact but removing file objects
+            // Update serviceFormData with serviceimage set to null
+            const updatedServiceFormData = serviceFormData.map((service) => ({
+                ...service,
+                serviceimage: null, // Set serviceimage to null
+                imageUrl: null,
+            }));
+            // Update roomsFormData with roomimage set to null
+            const updatedroomsFormData = roomsFormData.map((rooms) => ({
+                ...rooms,
+                roomimage: null, // Set serviceimage to null
+                imageUrl: null,
+            }));
+            // Call InsertHotelData with the updated serviceFormData
             const response = await (0, user_input_action_1.InsertHotelData)({
                 data: { ...formData, fileRecords: null }, // Send sanitized formData
                 aboutFormData: { ...aboutFormData, aboutimages: null },
-                serviceFormData: { ...serviceFormData, serviceimage: null },
-                roomsFormData: { ...roomsFormData, roomimage: null },
+                serviceFormData: updatedServiceFormData, // Use the updated serviceFormData
+                roomsFormData: updatedroomsFormData,
                 contactdata: contactdata,
                 imageData: handleImage(), // File data for image uploads
                 aboutImageData: handleaboutImage(), // File data for about image uploads
                 roomImageData: handleroomImage(), // File data for room image uploads
-                serviceImageData: handlserviceImage(),
+                serviceImageData: handlserviceImage(), // File data for service image uploads
             });
             if (response.success) {
                 alert('Hotel data inserted successfully with ID: ' +
@@ -171,7 +221,7 @@ function MainPage() {
         <contact_page_1.default contactdata={contactdata}/>
 
         {/* Footer Content */}
-        <footer_page_1.default formData={formData} contactdata={contactdata} services={serviceFormData}/>
+        <footer_page_1.default formData={formData} aboutFormData={aboutFormData} contactdata={contactdata} services={serviceFormData}/>
       </div>
 
       <div className="lg:w-1/3 md:w-1/3 sm:w-1/3 bg-slate-50 relative h-screen overflow-y-auto">

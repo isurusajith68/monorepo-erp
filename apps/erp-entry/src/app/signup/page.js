@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const zod_1 = require("zod");
 const zod_2 = require("@hookform/resolvers/zod");
@@ -11,7 +14,7 @@ const button_1 = require("@/components/ui/button");
 const form_1 = require("@/components/ui/form");
 const react_hook_form_1 = require("react-hook-form");
 const input_with_icon_1 = require("@/components/ui/input-with-icon");
-const axios_1 = require("axios");
+const axios_1 = __importDefault(require("axios"));
 const use_toast_1 = require("@/hooks/use-toast");
 const FormSchema = zod_1.z.object({
     username: zod_1.z.string().min(3, 'Username must be at least 3 characters long'),

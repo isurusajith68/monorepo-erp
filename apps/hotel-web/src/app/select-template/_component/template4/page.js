@@ -1,9 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const button_1 = require("@/components/ui/button");
-const link_1 = require("next/link");
-const react_1 = require("react");
-const image_1 = require("next/image");
+const link_1 = __importDefault(require("next/link"));
+const react_1 = __importDefault(require("react"));
+const image_1 = __importDefault(require("next/image"));
 function Template4() {
     return (<div>
       <div className="ml-10">

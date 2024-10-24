@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = RootLayout;
 {
@@ -10,10 +13,9 @@ exports.default = RootLayout;
       <NavLink to="list">List Invoice</NavLink>
        */
 }
-const react_1 = require("react");
 const react_router_dom_1 = require("react-router-dom");
-const navbar_1 = require("../components/Navbar/navbar");
-const sidebar_1 = require("../components/Navbar/sidebar");
+const navbar_1 = __importDefault(require("../components/Navbar/navbar"));
+const sidebar_1 = __importDefault(require("../components/Navbar/sidebar"));
 const toaster_1 = require("@/components/ui/toaster");
 function RootLayout() {
     return (

@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Navbar;
-const link_1 = require("next/link");
+const link_1 = __importDefault(require("next/link"));
 const lucide_react_1 = require("lucide-react");
 const badge_1 = require("@/components/ui/badge");
 const button_1 = require("@/components/ui/button");
