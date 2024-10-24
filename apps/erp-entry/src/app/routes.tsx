@@ -29,7 +29,7 @@ export const router = createBrowserRouter(
         </Route>
       </Route>
       {/* this is a public route */}
-      <Route path="*" element={<Navigate to="/" />}></Route>
+      {/* <Route path="*" element={<Navigate to="/" />}></Route> */}
     </Route>,
   ),
 )

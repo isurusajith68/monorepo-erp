@@ -14,7 +14,7 @@ export default function RootLayout() {
   return (
     <div>
       {/* <div className="w-full flex float-start "> */}
-      <nav className="bg-blue-900 p-4 flex justify-between items-center">
+      <nav className="bg-blue-900 sticky top-0 z-50 p-4 flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <Link
             to="/"

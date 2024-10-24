@@ -8,9 +8,11 @@ export const useGetDocuments = () => {
     queryKey: ['documents'],
     queryFn: async () => {
       const response = await Axios.get(`${apiUrl}getdocuments`)
-      // console.log('response', response)
+      //console.log('response11', response)
 
       const grouped = Object.groupBy(response.data.documents, (d) => d.modname)
+      //console.log("grouped",grouped)
+
       return grouped
     },
   })
