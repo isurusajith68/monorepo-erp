@@ -27,8 +27,19 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '~/components/ui/alert-dialog'
-import { Form, json, Link, useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
-import { ActionFunctionArgs, LoaderFunction, LoaderFunctionArgs } from '@remix-run/node'
+import {
+  Form,
+  json,
+  Link,
+  useFetcher,
+  useLoaderData,
+  useNavigate,
+} from '@remix-run/react'
+import {
+  ActionFunctionArgs,
+  LoaderFunction,
+  LoaderFunctionArgs,
+} from '@remix-run/node'
 import { client } from '~/db.server'
 import { useEffect, useState } from 'react'
 import getUpdateQuery, { getDirtyValuesTF } from '~/lib/utils'
@@ -37,20 +48,49 @@ import 'react-toastify/dist/ReactToastify.css'
 import '../app-component/style.css'
 
 export let loader: LoaderFunction = async ({ params }) => {
+  //console.log("params",params)
+
   const { id } = params
 
-  console.log('kasun', id)
+  let result: { rows: any[] } = { rows: [] },
+    resultroom: any
 
   // Perform the query, using hotelid if needed (e.g., filtering by hotelid)
-  const result = await client.query('SELECT * FROM hotelroompriceshedules WHERE id = $1', [
-    id,
-  ])
-
-  if (result.rows.length == 0) {
-    return {}
+  if (id == '-1') {
+    result.rows = []
+    resultroom = await client.query(
+      'SELECT t.id AS roomtypeid, t.roomtype, v.id AS roomviewid, v.roomview FROM public.hotelroomtypes t, public.hotelroomview v',
+    )
   } else {
-    console.log('111111111', result.rows)
-    return result.rows[0]
+    result = await client.query(
+      'SELECT * FROM hotelroompriceshedules  WHERE id = $1',
+      [id],
+    )
+    resultroom = await client.query(
+      'SELECT * FROM hotelroomprices WHERE sheduleid = $1',
+      [id],
+    )
+  }
+
+  const resultview = await client.query('SELECT * FROM hotelroomview')
+  const resulttype = await client.query('SELECT * FROM hotelroomtypes')
+
+ // console.log('kasun', resultroom.rows)
+  if (result.rows.length == 0) {
+    return {
+      roomview: resultview.rows,
+      roomtype: resulttype.rows,
+      scheduldata: {},
+      roompricedata: resultroom.rows,
+    }
+  } else {
+    //console.log('111111111', resultview.rows)
+    return {
+      roomview: resultview.rows,
+      roomtype: resulttype.rows,
+      scheduldata: result.rows[0],
+      roompricedata: resultroom.rows,
+    }
   }
   // Return the fetched data from the database
 }
@@ -67,49 +107,137 @@ function jsonWithSuccess(data: any, message: string) {
   })
 }
 
-
 export async function action({ request }: ActionFunctionArgs) {
   try {
     const formData = await request.formData()
     const formDataCur = Object.fromEntries(formData)
-    console.log('curdata', formDataCur)
+   
+    const id = formDataCur.schedulid;
+    console.log(' formDataCur:', formDataCur) // Log the form data
 
-    if (formDataCur.id) {
-      const jsonPayload = formData.get('payload')
-      const initialdata = JSON.parse(jsonPayload as string)
+    if(id){
+    // First, delete related entries from hotelroomprices
+    const query1 = 'DELETE FROM hotelroomprices WHERE sheduleid = $1';
+    await client.query(query1, [id]);
 
-      const diff = getDirtyValuesTF(initialdata, formDataCur, [], 'id')
+    // Then, delete the entry from hotelroompriceshedules
+    const query = 'DELETE FROM hotelroompriceshedules WHERE id = $1';
+    await client.query(query, [id]);
 
-      const [uq, vals] = getUpdateQuery(diff, 'roomprices', 'id')
+    // Returning JSON with success toast data
+      return jsonWithSuccess(
+      { result: 'Data deleted successfully' },
+      'Room Price Shedules deleted successfully! 🗑️',
+    )
+    }
+    else{
+    let scheduleId = formData.get('schedulid')
+    // Extract common fields
+    const startdate = formData.get('startdate')
+    const enddate = formData.get('enddate')
+    const remarks = formData.get('remarks')
 
-      console.log('2222222', uq)
-      console.log('2222222', vals)
+    if (!scheduleId) {
+      // Insert into hotelroompriceshedules table
+      const priceshcduleQuery = `
+      INSERT INTO public.hotelroompriceshedules(startdate, enddate, remarks, active) 
+      VALUES ($1, $2, $3, true) RETURNING id;
+    `
+      const scheduleResult = await client.query(priceshcduleQuery, [
+        startdate,
+        enddate,
+        remarks,
+      ])
+      scheduleId = scheduleResult.rows[0].id
 
-      await client.query(uq, vals)
+      ///delete all data in pricedetais table where table.shescuid =schedulid
+
+      // Function to group related prices by index (0, 1, 2, etc.)
+      const groupPrices = (prefix: any) => {
+        const prices = []
+        let i = 0
+        while (formData.has(`${prefix}[${i}]`)) {
+          prices.push(formData.get(`${prefix}[${i}]`))
+          i++
+        }
+        return prices
+      }
+
+      // Extract arrays from FormData
+      const roomtypes = groupPrices('roomtype')
+      const roomviews = groupPrices('roomview')
+
+      const roprices = groupPrices('roprice')
+      const bbprices = groupPrices('bbprice')
+      const hbprices = groupPrices('hbprice')
+      const fbprices = groupPrices('fbprice')
+      const nrroprices = groupPrices('nrroprice')
+      const nrbbprices = groupPrices('nrbbprice')
+      const nrhbprices = groupPrices('nrhbprice')
+      const nrfbprices = groupPrices('nrfbprice')
+
+
+      for (let index = 0; index < roprices.length; index++) {
+        const roomtype = roomtypes[index]
+        const roomview = roomviews[index]
+
+        const roprice = roprices[index]
+        const bbprice = bbprices[index]
+        const hbprice = hbprices[index]
+        const fbprice = fbprices[index]
+        const nrroprice = nrroprices[index]
+        const nrbbprice = nrbbprices[index]
+        const nrhbprice = nrhbprices[index]
+        const nrfbprice = nrfbprices[index]
+
+        console.log('roprice', roprice)
+
+        const insertQuery = `INSERT INTO hotelroomprices (roomtypeid, roomviewid, sheduleid, roprice, bbprice, hbprice, fbprice, nrroprice, nrbbprice, nrhbprice, nrfbprice) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+
+        await client.query(insertQuery, [
+          roomtype,
+          roomview,
+          scheduleId,
+          roprice ? roprice : null,
+          bbprice ? bbprice : null,
+          hbprice ? hbprice : null,
+          fbprice ? fbprice : null,
+          nrroprice ? nrroprice : null,
+          nrbbprice ? nrbbprice : null,
+          nrhbprice ? nrhbprice : null,
+          nrfbprice ? nrfbprice : null,
+        ])
+      }
 
       // Returning JSON with success toast data
       return jsonWithSuccess(
-        { result: 'Data Update successfully' },
-        'Room Price Update successfully!!',
+        { result: 'Room Price Data successfully Inserted!' },
+        'Room Price Data successfully Inserted!',
       )
-    }
+    } else {
+    }}
   } catch (error) {
-    console.error('Error inserting hotel info:', error)
-    // Return error response with details to show in the alert
-     // Return error response with details to show in the alert
-     return jsonWithSuccess(
-      { result: 'Failed to save Room information. Please try again.' },
-      'Failed to save Room information. Please try again.',
+    console.error('Error saving room info:', error.message) // Log specific error message
+
+    // Return error toast data on failure
+    return jsonWithSuccess(
+      { result: 'Error saving room info' },
+      'Error saving room info',
     )
   }
   return 0
 }
 
-
 export default function RoomPriceSchedule() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const data = useLoaderData<typeof loader>()
-  console.log('idh', data)
+
+  const scheduleheder = data?.scheduldata
+  const roompricedata = data?.roompricedata
+  const roomview = data?.roomview
+  const roomtype = data?.roomtype
+  //console.log('idh', roomtype)
 
   const fetcher = useFetcher()
 
@@ -124,9 +252,11 @@ export default function RoomPriceSchedule() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
+    console.log(event, 'hhhh')
+
     // Access form data using the FormData API
-    const formElement = document.getElementById('myForm')
-    const formData = new FormData(formElement as HTMLFormElement)
+    const formElement = document.getElementById("myForm");
+  const formData = new FormData(formElement as HTMLFormElement);
 
     // Submit data to the server
     const jsonPayload = JSON.stringify(data)
@@ -136,220 +266,348 @@ export default function RoomPriceSchedule() {
 
     // Submit form data
     await fetcher.submit(formData, { method: 'post' })
-    
   }
 
-  const formatDate = (dateString : string) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Ensure 2 digits
-    const day = date.getDate().toString().padStart(2, "0"); // Ensure 2 digits
-    return `${year}-${month}-${day}`;
-  };
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0') // Ensure 2 digits
+    const day = date.getDate().toString().padStart(2, '0') // Ensure 2 digits
+    return `${year}-${month}-${day}`
+  }
 
   return (
     <>
       <div className="ml-[18.4%] h-screen mt-14">
         <div className="ml-5 mt-2 text-xl font-semibold">
           <div className="flex items-center">
-            <h1 className="text-3xl font-bold mt-12">Room Price Schedule</h1>
-            <Link to={'/room-price-list'} className="lg:ml-[60%] mt-5">
+          {!scheduleheder.id && (
+            <h1 className="text-3xl font-bold mt-12">Add Room Price Schedule</h1>
+            )}
+               {scheduleheder.id && (
+            <h1 className="text-3xl font-bold mt-12">Update Room Price Schedule</h1>
+            )}
+            <Link to={'/room-price-list'} className="lg:ml-[50%] mt-5">
               <Button className="h-9 text-white bg-blue-400 hover:bg-blue-500 ">
                 Price List
               </Button>
             </Link>
           </div>
           <hr className="bg-blue-400 h-0.5 mt-2" />
-          <div className="lg:ml-[80%] mt-8 mb-5">
-          <Button  onClick={handleSubmit} className="h-9 text-white bg-blue-400 hover:bg-blue-500 ">
-           Update
-          </Button>
-          <Button className="h-9 text-white bg-orange-400 hover:bg-orange-500 ml-8">
-            Close
-          </Button>
-          </div>
         </div>
-        
-        <Form method='post' id='myForm'>
-        <input name="id" type="hidden" defaultValue={data.id} />
-        <div className="flex justify-between items-center mt-4 w-full">
-          <div className="relative flex flex-col-3 gap-5 ml-28 mr-14">
-            <div className="flex flex-col-2 gap-3 lg:w-[70%] ">
-              <label className="font-extralight text-sm mt-2 w-full">
-                Schedule ID
-              </label>
-              <Input
-                type="search"
-                name='scheduleid'
-                className="pl-3 pr-3 py-2 border border-blue-300 rounded-2xl"
-                defaultValue={data.id}
-                readOnly
-              />
-            </div>
-            <div className="flex flex-col-2 gap-3 lg:w-[80%] ">
-              <label className="font-extralight text-sm mt-2 w-full">
-                Start Date
-              </label>
-              <Input
-                type="date"
-                name='startdate'
-                className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl"
-                defaultValue={formatDate(data.startdate)}
-                // value={searchName}
-                // onChange={handleSearchChangeName}
-              />
-            </div>
-            <div className="flex flex-col-2 gap-3 lg:w-[80%] ">
-              <label className="font-extralight text-sm mt-2 w-full">
-                End Date
-              </label>
-              <Input
-                type="date"
-                name='enddate'
-                className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl"
-                defaultValue={formatDate(data.enddate)}
-                // value={searchName}
-                // onChange={handleSearchChangeName}
-              />
-            </div>
-            <div className="flex flex-col-2 gap-3 lg:w-[80%] ">
-              <label className="font-extralight text-sm mt-2">Remarks</label>
-              <Input
-                type="text"
-                name='remarks'
-                className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl w-44"
-                defaultValue={data.remarks}
-                // value={searchName}
-                // onChange={handleSearchChangeName}
-              />
-            </div>
-          </div>
-        </div>
-        <div>
-          <h1 className="text-xl font-bold mt-10 ml-14">
-            Add Room Price Details
-          </h1>
-        </div>
-        <div className="overflow-x-auto mt-5 pl-12 pr-4  border-blue-300 w-[95%]">
-          <Table className="rounded-xl border border-blue-300 overflow-hidden">
-            <TableHeader className="bg-blue-300 text-center border border-blue-300">
-              <TableRow>
-                <TableHead className="text-center px-4 py-2">
-                  {' '}
-                  Room NO
-                </TableHead>
-                <TableHead className="text-center px-4 py-2">
-                  {' '}
-                  Room Type
-                </TableHead>
-                <TableHead className="text-center px-4 py-2">
-                  {' '}
-                  Room View
-                </TableHead>
-                <TableHead className="text-center px-4 py-2"> Beds</TableHead>
-                <TableHead className="text-center px-4 py-2">
-                  {' '}
-                  RO Price
-                </TableHead>
-                <TableHead className="text-center px-4 py-2">
-                  {' '}
-                  BB Price
-                </TableHead>
-                <TableHead className="text-center px-4 py-2">
-                  {' '}
-                  HB Price
-                </TableHead>
-                <TableHead className="text-center px-4 py-2">
-                  {' '}
-                  Fb Price
-                </TableHead>
-                <TableHead className="text-center px-4 py-2"> Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="bg-blue-50">
-                <TableRow className="hover:bg-blue-100">
-                  <TableCell className="text-center px-4 py-2">
-                    <Input name='roomno' defaultValue={data.roomno} className='border-none' readOnly></Input>
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-2">
-                  <Input name='roomtype' defaultValue={data.roomtype} className='border-none' readOnly></Input>
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-2">
-                  <Input name='roomview' defaultValue={data.roomview} className='border-none' readOnly></Input>
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-2">
-                  <Input name='noofbed' defaultValue={data.noofbed} className='border-none' readOnly></Input> 
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-2">
-                    <Input className="bg-white" name='roprice' defaultValue={data.roprice}></Input>
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-2">
-                    <Input className="bg-white"  name='bbprice' defaultValue={data.bbprice}></Input>
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-2">
-                    <Input className="bg-white"  name='hbprice' defaultValue={data.hbprice}></Input>
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-2">
-                    <Input className="bg-white"  name='fbprice' defaultValue={data.fbprice}></Input>
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-2">
-                    <div className="flex gap-5 ml-2">
-                      <div>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button className="ml-5 bg-blue-600 bg-destructive">
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Are you absolutely sure?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will
-                                permanently delete your account and remove your
-                                data from our servers.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                              // onClick={() => deleteAction(bank.id)}
-                              >
-                                Continue
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-            </TableBody>
-          </Table>
-        </div>
-        </Form>
-         {/* ToastContainer to display the notifications */}
 
-      <ToastContainer
-        position="bottom-right"
-        autoClose={2000}
-        hideProgressBar={false} // Show progress bar
-        newestOnTop={true} // Display newest toast on top
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss={false}
-        draggable={true}
-        pauseOnHover={true}
-        theme="colored" // You can change to "light" or "dark"
-        transition={Slide} // Slide animation for toast appearance
-        icon={true} // Show icons for success, error, etc.
-        className="custom-toast-container" // Add custom classes
-        bodyClassName="custom-toast-body"
-        closeButton={false} // No close button for a clean look
-        onClick={() => navigate('/room-view/list')}
-      />
+        <Form method="post" id="myForm">
+          <div className="flex justify-between items-center mt-4 w-full">
+            <div className="relative flex flex-col-3 gap-5 ml-28 mr-14">
+              <div className="flex flex-col-2 gap-3 lg:w-[70%] ">
+                <label className="font-extralight text-sm mt-2 w-full">
+                  Schedule ID
+                </label>
+                <Input
+                  type="text"
+                  name="schedulid"
+                  className="pl-3 pr-3 py-2 border border-blue-300 rounded-2xl"
+                  defaultValue={scheduleheder?.id}
+                  readOnly
+                />
+              </div>
+              <div className="flex flex-col-2 gap-3 lg:w-[80%] ">
+                <label className="font-extralight text-sm mt-2 w-full">
+                  Start Date
+                </label>
+                <Input
+                  type="date"
+                  name="startdate"
+                  className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl"
+                  defaultValue={formatDate(scheduleheder?.startdate)}
+                />
+              </div>
+              <div className="flex flex-col-2 gap-3 lg:w-[80%] ">
+                <label className="font-extralight text-sm mt-2 w-full">
+                  End Date
+                </label>
+                <Input
+                  type="date"
+                  name="enddate"
+                  className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl"
+                  defaultValue={formatDate(scheduleheder?.enddate)}
+                />
+              </div>
+              <div className="flex flex-col-2 gap-3 lg:w-[80%] ">
+                <label className="font-extralight text-sm mt-2">Remarks</label>
+                <Input
+                  type="text"
+                  name="remarks"
+                  className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl w-44"
+                  defaultValue={scheduleheder?.remarks}
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <h1 className="text-xl font-bold mt-10 ml-14">
+              Standerd Room Price Details
+            </h1>
+          </div>
+          <div className="overflow-x-auto mt-5 pl-12 pr-4  border-blue-300 w-[95%]">
+            <Table className="rounded-xl border border-blue-300 overflow-hidden">
+              <TableHeader className="bg-blue-300 text-center border border-blue-300">
+                <TableRow>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    Room Type
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    Room View
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    RO Price
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    BB Price
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    HB Price
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    Fb Price
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="bg-blue-50">
+                {roompricedata.map((data: any, index: any) => (
+                  <TableRow key={index} className="hover:bg-blue-100">
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        type="hidden"
+                        name={`roomtype[${index}]`}
+                        defaultValue={data.roomtypeid}
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
+                      <Input
+                        value={
+                          roomtype.find(
+                            (type: any) => type.id === data.roomtypeid,
+                          )?.roomtype || 'Unknown Type'
+                        }
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
+                    </TableCell>
+
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        type="hidden"
+                        name={`roomview[${index}]`}
+                        defaultValue={data.roomviewid}
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
+                      <Input
+                        value={
+                          roomview.find(
+                            (view: any) => view.id === data.roomviewid,
+                          )?.roomview || 'Unknown View'
+                        }
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        className="bg-white"
+                        name={`roprice[${index}]`}
+                        defaultValue={data.roprice}
+                      ></Input>
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        className="bg-white"
+                        name={`bbprice[${index}]`}
+                        defaultValue={data.bbprice}
+                      ></Input>
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        className="bg-white"
+                        name={`hbprice[${index}]`}
+                        defaultValue={data.hbprice}
+                      ></Input>
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        className="bg-white"
+                        name={`fbprice[${index}]`}
+                        defaultValue={data.fbprice}
+                      ></Input>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* non refundeble table */}
+          <div>
+            <h1 className="text-xl font-bold mt-10 ml-14">
+              Non Refundable Prices
+            </h1>
+          </div>
+          <div className="overflow-x-auto mt-5 pl-12 pr-4  border-blue-300 w-[95%]">
+            <Table className="rounded-xl border border-blue-300 overflow-hidden">
+              <TableHeader className="bg-blue-300 text-center border border-blue-300">
+                <TableRow>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    Room Type
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    Room View
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    NR RO Price
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    NR BB Price
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    NR HB Price
+                  </TableHead>
+                  <TableHead className="text-center px-4 py-2">
+                    {' '}
+                    NR Fb Price
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="bg-blue-50">
+                {roompricedata.map((data: any, index: any) => (
+                  <TableRow key={index} className="hover:bg-blue-100">
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        type="hidden"
+                        name={`roomtype[${index}]`}
+                        defaultValue={data.roomtypeid}
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
+                      <Input
+                        value={
+                          roomtype.find(
+                            (type: any) => type.id === data.roomtypeid,
+                          )?.roomtype || 'Unknown Type'
+                        }
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
+                    </TableCell>
+
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        type="hidden"
+                        name={`roomview[${index}]`}
+                        defaultValue={data.roomviewid}
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
+                      <Input
+                        value={
+                          roomview.find(
+                            (view: any) => view.id === data.roomviewid,
+                          )?.roomview || 'Unknown View'
+                        }
+                        className="border-none mt-1 text-sm text-gray-600 text-center"
+                        readOnly
+                      />
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        className="bg-white"
+                        name={`nrroprice[${index}]`}
+                        defaultValue={data.nrroprice}
+                      ></Input>
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        className="bg-white"
+                        name={`nrbbprice[${index}]`}
+                        defaultValue={data.nrbbprice}
+                      ></Input>
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        className="bg-white"
+                        name={`nrhbprice[${index}]`}
+                        defaultValue={data.nrhbprice}
+                      ></Input>
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <Input
+                        className="bg-white"
+                        name={`nrfbprice[${index}]`}
+                        defaultValue={data.nrfbprice}
+                      ></Input>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <div className="lg:ml-[80%] mt-8 mb-20 flex">
+              <div>
+                {!scheduleheder.id && (
+                  <Button
+                    onClick={handleSubmit}
+                    className="bg-blue-500 hover:bg-blue-400 px-4 py-2 rounded-lg"
+                  >
+                    Save
+                  </Button>
+                )}
+                {scheduleheder.id && (
+                  <Button
+                    onClick={handleSubmit}
+                    className="bg-blue-500 hover:bg-blue-400 px-4 py-2 rounded-lg"
+                  >
+                    Update
+                  </Button>
+                )}
+              </div>
+              <div>
+                <Button className="h-9 text-white bg-orange-400 hover:bg-orange-500 ml-8">
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Form>
+        {/* ToastContainer to display the notifications */}
+
+        <ToastContainer
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false} // Show progress bar
+          newestOnTop={true} // Display newest toast on top
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          pauseOnHover={true}
+          theme="colored" // You can change to "light" or "dark"
+          transition={Slide} // Slide animation for toast appearance
+          icon={true} // Show icons for success, error, etc.
+          className="custom-toast-container" // Add custom classes
+          bodyClassName="custom-toast-body"
+          closeButton={false} // No close button for a clean look
+          onClick={() => navigate('/room-view/list')}
+        />
       </div>
     </>
   )

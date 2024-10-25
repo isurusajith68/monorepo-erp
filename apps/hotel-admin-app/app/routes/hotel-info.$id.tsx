@@ -70,8 +70,8 @@ export async function action({ request }: ActionFunctionArgs) {
       )
     }else{
 
-    const hotelQuery = `INSERT INTO hotelinfo (name, email, mobile, address1, address2, city, country, province, telephone) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+    const hotelQuery = `INSERT INTO hotelinfo (name, email, mobile, address1, address2, city, country, province, telephone, url) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
     const hotelValues = [
       formDataCur.name,
@@ -83,6 +83,7 @@ export async function action({ request }: ActionFunctionArgs) {
       formDataCur.country,
       formDataCur.province,
       formDataCur.telephone,
+      formDataCur.url,
     ]
 
     // Execute the query
@@ -285,6 +286,18 @@ export default function HotelInfoForm() {
                 defaultValue={data.province}
               />
             </div>
+          </div>
+          <div className="flex flex-col col-span-2">
+            <label htmlFor="hotelUrl" className="text-gray-600">
+              Hotel Url
+            </label>
+            <Input
+              name="url"
+              type='url'
+              className="mt-1 border-blue-500"
+              placeholder="Enter primary Url"
+              defaultValue={data.url}
+            />
           </div>
         </form>
         <ToastContainer

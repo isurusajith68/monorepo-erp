@@ -58,103 +58,36 @@ function jsonWithSuccess(data: any, message: string) {
   })
 }
 
+
 export async function action({ request }: ActionFunctionArgs) {
   try {
     const formData = await request.formData();
-
-    // Extract common fields
-    const startdate = formData.get('startdate');
-    const enddate = formData.get('enddate');
-    const remarks = formData.get('remarks') || '';
-
-    // Insert into hotelroompriceshedules table
-    const priceshcduleQuery = `
-      INSERT INTO public.hotelroompriceshedules(startdate, enddate, remarks, active) 
-      VALUES ($1, $2, $3, true) RETURNING id;
-    `;
-    const scheduleResult = await client.query(priceshcduleQuery, [startdate, enddate, remarks]);
-    const scheduleId = scheduleResult.rows[0].id;
-
-    // Function to group related prices by index
-    const groupPrices = (prefix) => {
-      const prices = [];
-      let i = 0;
-      while (formData.has(`${prefix}[${i}]`)) {
-        prices.push(formData.get(`${prefix}[${i}]`));
-        i++;
-      }
-      return prices;
-    };
-
-    // Extract arrays from FormData for both Standard and Non-Refundable prices
-    const roprice = groupPrices('roprice');
-    const bbprice = groupPrices('bbprice');
-    const hbprice = groupPrices('hbprice');
-    const fbprice = groupPrices('fbprice');
-
-    const nrroprice = groupPrices('nrroprice');
-    const nrbbprice = groupPrices('nrbbprice');
-    const nrhbprice = groupPrices('nrhbprice');
-    const nrfbprice = groupPrices('nrfbprice');
-
-    // Validate the lengths of price arrays
-    const priceArrayLength = roprice.length;
-    if (
-      priceArrayLength !== bbprice.length ||
-      priceArrayLength !== hbprice.length ||
-      priceArrayLength !== fbprice.length ||
-      priceArrayLength !== nrroprice.length ||
-      priceArrayLength !== nrbbprice.length ||
-      priceArrayLength !== nrhbprice.length ||
-      priceArrayLength !== nrfbprice.length
-    ) {
-      throw new Error('Mismatch in form data arrays lengths.');
+    const id = formData.get('id');
+    console.log("id", id);
+    
+    if (!id) {
+      throw new Error("No id provided for deletion.");
     }
 
-    // Create a single query for bulk insertion
-    const insertQuery = `
-      INSERT INTO hotelroomprices (scheduleid, roomtype, roomview, roprice, bbprice, hbprice, fbprice, nrroprice, nrbbprice, nrhbprice, nrfbprice) 
-      VALUES ${roprice
-        .map(
-          (_, i) =>
-            `($1, $2, $3, $${i * 8 + 4}, $${i * 8 + 5}, $${i * 8 + 6}, $${i * 8 + 7}, $${i * 8 + 8}, $${i * 8 + 9}, $${i * 8 + 10}, $${i * 8 + 11})`
-        )
-        .join(', ')}
-    `;
+    // First, delete related entries from hotelroomprices
+    const query1 = 'DELETE FROM hotelroomprices WHERE sheduleid = $1';
+    await client.query(query1, [id]);
 
-    // Flatten the values into a single array
-    const values = roprice.reduce((acc, _, i) => {
-      return acc.concat(
-        scheduleId,
-        roomtype,
-        roomview,
-        roprice[i],
-        bbprice[i],
-        hbprice[i],
-        fbprice[i],
-        nrroprice[i],
-        nrbbprice[i],
-        nrhbprice[i],
-        nrfbprice[i]
-      );
-    }, []);
-
-    // Perform the bulk insertion
-    await client.query(insertQuery, values);
+    // Then, delete the entry from hotelroompriceshedules
+    const query = 'DELETE FROM hotelroompriceshedules WHERE id = $1';
+    await client.query(query, [id]);
 
     // Returning JSON with success toast data
-    return jsonWithSuccess(
-      { result: 'Room Price Data successfully Inserted!' },
-      'Room Price Data successfully Inserted!'
-    );
+      return jsonWithSuccess(
+      { result: 'Data deleted successfully' },
+      'Room Price Shedules deleted successfully! 🗑️',
+    )
   } catch (error) {
-    console.error('Error saving room info:', error.message); // Log specific error message
-
-    // Return error toast data on failure
+    console.error('Error deleting data:', error);
     return jsonWithSuccess(
-      { result: 'Error saving room info' },
-      'Error saving room info',
-    );
+      { result: 'Data deleted successfully' },
+      'Error In Room Price Shedules deleted successfully! 🗑️',
+    )
   }
 }
 
@@ -206,12 +139,10 @@ const filteredData = Array.isArray(data)
         <div className="ml-5 mt-2 text-xl font-semibold">
           <div className="flex items-center">
             <h1 className="text-3xl font-bold mt-12">Room Price Schedule</h1>
-            <Link to={'/room-price-add'} className="lg:ml-[60%] mt-5">
-              <Button className="h-9 text-white bg-blue-400 hover:bg-blue-500 ">
+            <Button className="h-9 text-white bg-blue-400 hover:bg-blue-500 lg:ml-[60%] mt-5" onClick={() => handleEdit(-1)}>
                 {' '}
                 + Add New
               </Button>
-            </Link>
           </div>
           <hr className="bg-blue-400 h-0.5 mt-2" />
         </div>
@@ -338,21 +269,21 @@ const filteredData = Array.isArray(data)
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <Form method="post">
-                                  <input
-                                    type="hidden"
-                                    name="id"
-                                    value={data.id}
-                                  />
-                                  <AlertDialogAction asChild>
-                                    <Button
-                                      type="submit"
-                                      className="bg-red-500"
-                                    >
-                                      Continue
-                                    </Button>
-                                  </AlertDialogAction>
+                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <Form method="post">
+                                    <input
+                                      type="hidden"
+                                      name="id"
+                                      value={data.id}
+                                    />
+                                    <AlertDialogAction asChild>
+                                      <Button
+                                        type="submit"
+                                        className="bg-red-500"
+                                      >
+                                        Continue
+                                      </Button>
+                                    </AlertDialogAction>
                                 </Form>
                               </AlertDialogFooter>
                             </AlertDialogContent>
