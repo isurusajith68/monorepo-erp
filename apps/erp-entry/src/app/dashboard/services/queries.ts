@@ -8,7 +8,7 @@ export const useGetUserPermission = (rid: any) => {
     queryKey: ['userPermissions', rid],
     queryFn: async () => {
       const response = await Axios.get(`${apiUrl}userpermissions/${rid}`)
-      console.log('response login q ', response)
+      //console.log('response login q ', response)
       return response.data
     },
   })

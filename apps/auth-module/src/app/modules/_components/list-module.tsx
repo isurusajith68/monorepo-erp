@@ -24,7 +24,7 @@ export default function ListModule() {
             Module List
           </p>
 
-          <div className="flex justify-end w-full mr-10 mt-6">
+          {/* <div className="flex justify-end w-full mr-10 mt-6">
             <div className="relative">
               <FaUserCircle className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-600" />
               <input
@@ -33,7 +33,7 @@ export default function ListModule() {
                 className="border rounded-full pl-10 pr-4 py-2 focus:outline-none"
               />
             </div>
-          </div>
+          </div> */}
         </div>
         <div className="m-10 ">
           <Table className="rounded-md overflow-hidden">

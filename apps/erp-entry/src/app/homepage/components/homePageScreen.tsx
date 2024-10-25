@@ -8,17 +8,16 @@ export default function HomePageScreen() {
 
   const [data, setData] = useState('')
 
-  const getData = async () => {
-    const response = await Axios.get('http://localhost:10000/getData', {
-      withCredentials: true, // This ensures cookies are sent with the request
-    })
-    console.log('first')
-    setData(response.data)
-  }
+  // const getData = async () => {
+  //   const response = await Axios.get('http://localhost:10000/getData', {
+  //     withCredentials: true, // This ensures cookies are sent with the request
+  //   })
+  //   setData(response.data)
+  // }
 
-  useEffect(() => {
-    getData()
-  }, [])
+  // useEffect(() => {
+  //   getData()
+  // }, [])
 
   return (
     <div className="flex  h-screen bg-gradient-to-r from-blue-600 to-cyan-200 ">

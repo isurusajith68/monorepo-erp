@@ -36,10 +36,10 @@ const LoginForm = () => {
 
   useEffect(() => {
     if (modules != undefined) {
-      console.log('modules11', modules.list)
+      // console.log('modules11', modules.list)
 
       setModule(modules.list)
-      console.log('module22', modules.list)
+      // console.log('module22', modules.list)
     }
   }, [modules])
 
@@ -96,8 +96,6 @@ const LoginForm = () => {
     }
 
     await login()
-
-    // navigate("/");
   }
 
   return (

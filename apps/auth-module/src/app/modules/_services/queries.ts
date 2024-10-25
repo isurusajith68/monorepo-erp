@@ -8,7 +8,7 @@ export const useGetModules = () => {
     queryKey: ['models'],
     queryFn: async () => {
       const response = await Axios.get(`${apiUrl}getmodules`)
-      console.log('response', response)
+      //console.log('response', response)
       return response.data
     },
   })
