@@ -26,6 +26,7 @@
     { icon: Home, label: 'RequestForm', path: '/form' },
     { icon: Archive, label: 'RequestTable', path: '/table' },
     { icon: Archive, label: 'Items', path: '/items' },
+    { icon: Archive, label: 'Units', path: '/units' },
     // { icon: Shuffle, label: 'Transaction', path: '/transaction' },
     // { icon: Inbox, label: 'Requests', path: '/requests' },
     // { icon: Box, label: 'Inventory', path: '/inventory' },

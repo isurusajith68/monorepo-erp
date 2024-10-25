@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import RequestForm from '@/views/RequestForm.vue'
 import RequestTable  from '@/views/RequestTable.vue'
 import ItemTable from '@/views/ItemTable.vue'
+import UnitTable from '@/views/UnitTable.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -39,6 +40,12 @@ const router = createRouter({
     path: '/items',
     name: 'items',
     component: ItemTable
+  },
+
+  {
+    path: '/units',
+    name: 'units',
+    component: UnitTable
   }
   
   ]

@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 
-//insert new 
+//insert new request
 app.post('/', async (req, res) => {
     try {
         console.log('Received data:', req.body);
@@ -52,6 +52,45 @@ app.get('/items', async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 });
+
+//insert new item
+app.post('/additem', async (req, res) => {
+    console.log("Api working",res)
+    // res.status(200).json({
+    //     message: 'API is working, no data processed.'
+    // });
+    try {
+      
+        console.log('Received data:', req.body);
+
+        const { id, name, categoryid, defaultunit,description } = req.body;
+
+   
+        const insertSTMT = `INSERT INTO items (id, name, categoryid, defaultunit,description) VALUES ($1, $2, $3, $4,$5)`;
+        await pool.query(insertSTMT, [id, name, categoryid, defaultunit,description]);
+
+        
+        res.send('Data inserted successfully');
+    } catch (error) {
+        console.error('Error processing request:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+
+
+app.get('/units', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM units');
+        console.log('Fetched Data:', result.rows); 
+        res.json(result.rows); 
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
