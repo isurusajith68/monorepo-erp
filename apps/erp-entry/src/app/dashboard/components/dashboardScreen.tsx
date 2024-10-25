@@ -1,11 +1,27 @@
 import { toast } from '@/hooks/use-toast'
 import Axios from 'axios'
-import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import {
+  useGetPermittedModules,
+  useGetUserPermission,
+} from '../services/queries'
+import useModuleStore from '@/app/stores/modules-store'
 
 export default function DashboardScreen() {
   const navigate = useNavigate()
   const [data, setData] = useState('')
+
+  const { addModules } = useModuleStore()
+
+  const { rid } = useParams()
+
+  const { data: permissions } = useGetUserPermission(rid)
+  const { data: modules } = useGetPermittedModules(rid)
+
+  useEffect(() => {
+    addModules(modules)
+  }, [modules])
 
   const logout = async () => {
     const response = await Axios.get('http://localhost:10000/logout', {

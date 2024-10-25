@@ -47,7 +47,7 @@ app.post('/registerUser', async (req, res) => {
   const { email, password, role, username } = req.body
 
   try {
-    const sqlDelete = `SELECT 1 as name FROM users WHERE email = $1 `
+    const sqlCheck = `SELECT 1 as name FROM users WHERE email = $1 `
 
     const res1 = await pool.query(sqlCheck, [email])
 
@@ -105,9 +105,10 @@ app.post('/login', (req, res1) => {
   const { email, password } = req.body
   console.log('Received data:', { password, email })
 
-  const select = `SELECT *
-                  FROM users
-                  WHERE email='${email}';`
+  const select = `SELECT e.rid,e.erpuser,u.password,u.username
+                FROM employees AS e
+                INNER JOIN users AS u
+                ON e.id = u.empid AND e.ememail='${email}'`
 
   pool
     .query(select)
@@ -116,9 +117,8 @@ app.post('/login', (req, res1) => {
 
       if (res.rows.length > 0) {
         const userData = {
-          email: res.rows[0].email,
           password: res.rows[0].password,
-          id: res.rows[0].id,
+          rid: res.rows[0].rid,
           username: res.rows[0].username,
         }
         console.log('userData', userData)
@@ -166,6 +166,7 @@ app.post('/login', (req, res1) => {
         return res1.send({
           success: true,
           username: userData.username,
+          rid: userData.rid,
           message: 'User logged in successfully',
         })
       } else {
@@ -385,7 +386,7 @@ app.post('/addpermission', async (req, res) => {
 
   console.log('rid', req.body)
   try {
-    const sqlDelete = `DELETE FROM permissions WHERE rid=${rid}`
+    const sqlDelete = `DELETE FROM permissions WHERE rid=${rid} and modid=${module}`
     const res1 = await pool.query(sqlDelete)
 
     truePermissions.map(async (p) => {
@@ -402,6 +403,40 @@ app.post('/addpermission', async (req, res) => {
   }
 })
 
+app.get('/userpermissions/:roleid', (req, res) => {
+  const roleid = req.params.roleid
+
+  console.log('roleid', roleid)
+
+  const query = `SELECT p.modid,m.modname,m.url FROM permissions AS p INNER JOIN modules AS m 
+                 ON p.modid=m.modid AND p.rid='${roleid}'`
+
+  pool.query(query).then((dbres) => {
+    console.log('dbres', dbres)
+
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, list: dbres.rows })
+    }
+  })
+})
+
+app.get('/permittedModules/:roleid', (req, res) => {
+  const roleid = req.params.roleid
+
+  console.log('roleid', roleid)
+
+  const query = `SELECT p.modid,m.modname,m.url,m.icon FROM permissions AS p INNER JOIN modules AS m 
+                 ON p.modid=m.modid AND p.rid='${roleid}'
+                 group by p.modid,m.modname,m.url,m.icon  `
+
+  pool.query(query).then((dbres) => {
+    console.log('dbres', dbres)
+
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, list: dbres.rows })
+    }
+  })
+})
 app.listen(port, () => {
   console.log(`app listening on port ${port}`)
 })

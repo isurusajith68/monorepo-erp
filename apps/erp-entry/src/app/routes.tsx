@@ -24,7 +24,7 @@ export const router = createBrowserRouter(
       <Route path="/signup" element={<SignUp />}></Route>
       <Route path="/" element={<RootLayout />}>
         <Route element={<ProtectedRoute></ProtectedRoute>}>
-          <Route path="/dashboard" element={<Dashboard />}></Route>
+          <Route path="/dashboard/:rid" element={<Dashboard />}></Route>
           <Route path="/loginl" element={<Navigate to="/login" />}></Route>
         </Route>
       </Route>
