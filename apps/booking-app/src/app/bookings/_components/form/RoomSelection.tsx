@@ -457,10 +457,36 @@ const RoomSelection = () => {
       // }
     })
   }
+  const bookingBasishandle = (
+    checked: boolean,
+    typeid: number,
+    viewid: number,
+    price: number,
+    type: string,
+    view: string,
+    basis: string,
+  ) => {
+    console.log('xxtypeid', typeid)
+    console.log('xxviewid', viewid)
+
+    setselectedRoomBasis((p) => {
+      console.log('falsee', checked)
+      if (checked) {
+        const t = p.filter((r) => !(r.typeid == typeid && r.viewid == viewid))
+        return [...t, { typeid, viewid, price, type, view, basis }]
+      }
+      // else{
+      //   return p.filter(r=> r.typeid !== typeid && r.viewid !== viewid)
+      // }
+    })
+  }
 
   useEffect(() => {
     console.log('selectedRooms', selectedRooms)
   }, [selectedRooms])
+  useEffect(() => {
+    console.log('selectedRoomBasis', selectedRoomBasis)
+  }, [selectedRoomBasis])
 
   return (
     <>
@@ -766,9 +792,39 @@ const RoomSelection = () => {
                               type="radio"
                               name="deal"
                               className="mr-2"
-                              checked={selectedDeal === prices?.hbprice}
-                              onChange={() => setSelectedDeal(prices?.hbprice)}
+                              checked={
+                                selectedRoomBasis.find(
+                                  (rb) =>
+                                    rb.typeid == roomcat.roomtypeid &&
+                                    rb.viewid == roomcat.roomviewid &&
+                                    rb.basis == 'hb',
+                                )
+                                  ? true
+                                  : false
+                              }
+                              onChange={(e) => {
+                                bookingBasishandle(
+                                  e.target.checked,
+                                  roomcat.roomtypeid,
+                                  roomcat.roomviewid,
+                                  prices?.roprice,
+                                  roomcat.roomtype,
+                                  roomcat.roomview,
+                                  'hb',
+                                )
+                              }}
                             />
+                            {/* onChange={(e) => {
+                                bookingBasishandle(e.target.checked,
+                                  roomcat.roomtypeid,
+                                  roomcat.roomviewid,
+                                  prices?.hbprice,
+                                  roomcat.roomtype,
+                                  roomcat.roomview,
+                                  'hb',
+                                )
+                                }}
+                            /> */}
                             <p className="text-red-600 font-bold">
                               Deal: <span className="text-black">HB Price</span>
                             </p>
@@ -791,8 +847,27 @@ const RoomSelection = () => {
                               type="radio"
                               name="deal"
                               className="mr-2"
-                              checked={selectedDeal === prices?.fbprice}
-                              onChange={() => setSelectedDeal(prices?.fbprice)}
+                              checked={
+                                selectedRoomBasis.find(
+                                  (rb) =>
+                                    rb.typeid == roomcat.roomtypeid &&
+                                    rb.viewid == roomcat.roomviewid &&
+                                    rb.basis == 'fb',
+                                )
+                                  ? true
+                                  : false
+                              }
+                              onChange={(e) => {
+                                bookingBasishandle(
+                                  e.target.checked,
+                                  roomcat.roomtypeid,
+                                  roomcat.roomviewid,
+                                  prices?.roprice,
+                                  roomcat.roomtype,
+                                  roomcat.roomview,
+                                  'fb',
+                                )
+                              }}
                             />
                             <p className="text-red-600 font-bold">
                               Deal: <span className="text-black">FB Price</span>
@@ -816,17 +891,26 @@ const RoomSelection = () => {
                               type="radio"
                               name="deal"
                               className="mr-2"
-                              // checked={
-                              // selectedRooms.find(
-                              //   (r) =>
-                              //     r.typeid === roomcat.roomtypeid &&
-                              //     r.viewid === roomcat.roomviewid,
-                              // )
-                              //   ? true
-                              //   : false
-                              // }
+                              checked={
+                                selectedRoomBasis.find(
+                                  (rb) =>
+                                    rb.typeid == roomcat.roomtypeid &&
+                                    rb.viewid == roomcat.roomviewid &&
+                                    rb.basis == 'ro',
+                                )
+                                  ? true
+                                  : false
+                              }
                               onChange={(e) => {
-                                setSelectedDeal(prices.roprice)
+                                bookingBasishandle(
+                                  e.target.checked,
+                                  roomcat.roomtypeid,
+                                  roomcat.roomviewid,
+                                  prices?.roprice,
+                                  roomcat.roomtype,
+                                  roomcat.roomview,
+                                  'ro',
+                                )
                               }}
                             />
                             <p className="text-red-600 font-bold">
@@ -851,8 +935,27 @@ const RoomSelection = () => {
                               type="radio"
                               name="deal"
                               className="mr-2"
-                              checked={selectedDeal === prices?.bbprice}
-                              onChange={() => setSelectedDeal(prices?.bbprice)}
+                              checked={
+                                selectedRoomBasis.find(
+                                  (rb) =>
+                                    rb.typeid == roomcat.roomtypeid &&
+                                    rb.viewid == roomcat.roomviewid &&
+                                    rb.basis == 'bb',
+                                )
+                                  ? true
+                                  : false
+                              }
+                              onChange={(e) => {
+                                bookingBasishandle(
+                                  e.target.checked,
+                                  roomcat.roomtypeid,
+                                  roomcat.roomviewid,
+                                  prices?.roprice,
+                                  roomcat.roomtype,
+                                  roomcat.roomview,
+                                  'bb',
+                                )
+                              }}
                             />
                             <p className="text-red-600 font-bold">
                               Deal: <span className="text-black">BB Price</span>
