@@ -1,12 +1,20 @@
-import React, { useState } from 'react'
-import { useGetAllRoom } from '../../_services/queries'
+import React, { useEffect, useState } from 'react'
+import {
+  useGetBooking,
+  useGetPhoneNumber,
+  useGetPrice,
+  useGetRoomtype,
+} from '../../_services/queries'
 import { useForm } from '@tanstack/react-form'
 import { Button } from '@/components/ui/button'
 import {
   useInsertBookingMutation,
   useInsertGuestInformationMutation,
+  useUpdateBookingMutation,
 } from '../../_services/mutation'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
+import { getDirtyValuesTF } from '@/lib/utils'
+import { useToast } from '@/hooks/use-toast'
 // import { useGetAllRoom } from './queries/queries'
 // import { Button } from '../ui/button'
 
@@ -90,24 +98,110 @@ const rooms: Room[] = [
     size: '388 ft² / 36 m²',
   },
 ]
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler) // Cleanup on unmount or value change
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+
+// const array = [
+//   { id: 1, name: 'a1', sub: { id: 6, name: 'a1 sub' } },
+//   { id: 2, name: 'a2', sub: null },
+//   { id: 3, name: 'a3', sub: { id: 8, name: 'a3 sub' } },
+//   { id: 4, name: 'a4', sub: null },
+//   { id: 5, name: 'a5', sub: { id: 10, name: 'a5 sub' } },
+// ];
+
+// const anotherArray = [
+//   { id: 1, name: 'a1', sub: { id: 6, name: 'a1 sub' } },
+//   { id: 2, name: 'a2', sub: null },
+//   { id: 5, name: 'a5', sub: { id: 10, name: 'a5 sub' } },
+// ];
+
+// const r = array.filter((elem) => !anotherArray.find(({ id }) => elem.id === id) && elem.sub);
+
+// console.log("testtttttttttttttttttttttttttttttt",r);
+
+type SelectedRoomType = {
+  type?: string
+  typeid?: number | null
+  view?: string | null
+  viewid?: number | null
+  price?: number | null
+  basis?: string | null
+}
 
 const RoomSelection = () => {
+  const { id } = useParams()
+  const { toast } = useToast()
+  const navigate = useNavigate()
   const [currency, setCurrency] = useState('LKR')
   const [exchangeRate, setExchangeRate] = useState(1)
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [selectedDeal, setSelectedDeal] = useState<string | null>(null)
-
+  const [phone, setphone] = useState()
   //--------------------------------------
   const [useSameAddress, setUseSameAddress] = useState(false)
   const [notifySpecialOffers, setNotifySpecialOffers] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
-  const navigate = useNavigate()
 
   const insertMutation = useInsertBookingMutation()
+  const updateMutation = useUpdateBookingMutation()
+  const debouncedPhone = useDebounce(phone, 500)
+  const { data: getphonedata, isFetched } = useGetPhoneNumber(debouncedPhone)
 
+  const [checkindate, setcheckindate] = useState<string | undefined>(undefined)
+  const [checkoutdate, setcheckoutdate] = useState<string | undefined>(
+    undefined,
+  )
+  const { data: roomprices } = useGetPrice(checkindate)
+
+  const [selectedRooms, setselectedRooms] = useState<SelectedRoomType[]>([])
+  const [selectedRoomBasis, setselectedRoomBasis] = useState<
+    SelectedRoomType[]
+  >([])
+
+  // console.log('roomtypes', roomtypes)
+  console.log('price', roomprices)
+
+  // useEffect(() => {
+  //   console.log("debouncedPhone",debouncedPhone)
+  // }, [phone,debouncedPhone]);
+
+  useEffect(() => {
+    if (getphonedata) {
+      // form.setFieldValue('booking_id', q.booking_id)
+      // form.setFieldValue('checkoutdate', q.checkoutdate)
+      //form.setFieldValue('flexibledates', q.flexibledates)
+
+      form.setFieldValue('firstname', getphonedata.firstname)
+      form.setFieldValue('lastname', getphonedata.lastname)
+      form.setFieldValue('email', getphonedata.email)
+      form.setFieldValue('phonenumber', getphonedata.phonenumber)
+      form.setFieldValue('address', getphonedata.address)
+      form.setFieldValue('city', getphonedata.city)
+      form.setFieldValue('country', getphonedata.country)
+      form.setFieldValue('postalcode', getphonedata.postalcode)
+    } else {
+      form.reset()
+    }
+  }, [getphonedata])
+
+  // form.setFieldValue('roles', roles.roles)
   const form = useForm({
     defaultValues: {
+      booking_id: null,
       checkindate: new Date().toISOString().split('T')[0],
       checkoutdate: new Date().toISOString().split('T')[0],
       flexibledates: false,
@@ -124,71 +218,188 @@ const RoomSelection = () => {
       postalcode: '',
     },
     onSubmit: async ({ value: data }) => {
-      // Do something with form data
-      console.log('hloooooooooooooooooooooooo', data)
-      const responseData = await insertMutation.mutateAsync({ data })
-      const id = getValues('id') // Check if data already exists
-
+      console.log('dataaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', data)
       if (id) {
-        // If `id` exists, fetch updated data and display it in frontend
-        try {
-          let dirtyValues: any = {}
+        // If id exists, we're updating the booking
+        const dirtyValues = getDirtyValuesTF(q, data, [], 'booking_id')
+        console.log('dirtyvaluessssssss', dirtyValues)
 
-          // Capture only modified fields
-          for (const key in dirtyFields) {
-            dirtyValues[key] = data[key]
-          }
+        if (dirtyValues) {
+          console.log('Dirty values to update:', dirtyValues)
 
-          const resMutation = updateMutation.mutate({ id, dirtyValues })
+          // Make the PUT request with only dirty fields
+          const responseData = await updateMutation.mutateAsync({
+            id,
+            dirtyValues,
+          })
 
-          // Check if update was successful
-          if (!updateMutation.isError) {
+          if (responseData) {
             toast({
               className: 'text-green-600',
               title: 'Booking',
               description: <span>Updated successfully.</span>,
-              duration: 5000,
+              duration: 2000,
             })
+
+            navigate(`/booking/${id}`)
           }
-        } catch (error) {
-          console.error('Error updating booking:', error)
+        } else {
+          console.log('No fields were changed')
+          toast({
+            className: 'text-blue-600',
+            title: 'Booking',
+            description: <span>No changes to update.</span>,
+            duration: 2000,
+          })
         }
       } else {
-        // If no `id`, insert a new booking
-        try {
-          const responseData = await insertMutation.mutateAsync({ data })
+        // Insert new booking
+        const responseData = await insertMutation.mutateAsync({ data })
 
-          if (responseData.success) {
-            const newId = responseData.lastInsertRowid
+        if (responseData.success) {
+          const newId = responseData.bookingId
 
-            setValue('id', newId, { shouldDirty: false })
+          toast({
+            className: 'text-green-600',
+            title: 'Booking',
+            description: <span>Added successfully.</span>,
+            duration: 2000,
+          })
 
-            toast({
-              className: 'text-green-600',
-              title: 'Booking',
-              description: <span>Added successfully.</span>,
-              duration: 2000,
-            })
-
-            navigate(`/booking/${newId}`)
-
-            // Fetch the newly inserted booking and display it in the UI
-            const newBooking = data.newBooking
-            form.reset(newBooking) // Reset the form with new booking data
-          } else {
-            toast({
-              className: 'text-red-600',
-              title: 'Booking',
-              description: <span>{responseData.msg}</span>,
-              duration: 2000,
-            })
-          }
-        } catch (error) {
-          console.error('Error inserting booking:', error)
+          navigate(`/booking/${newId}`)
         }
       }
     },
   })
+
+  const handleSearch = () => {
+    const checkindate = form.getFieldValue('checkindate')
+    const checkoutdate = form.getFieldValue('checkoutdate')
+    console.log('Searching for rooms with:', checkindate, checkoutdate)
+
+    if (checkindate && checkoutdate) {
+      // Set the state variables
+      setcheckindate(checkindate)
+      setcheckoutdate(checkoutdate)
+
+      // Make API call with checkindate and checkoutdate
+      console.log('Searching for rooms with:', checkindate, checkoutdate)
+      // Call your search function here
+    } else {
+      console.error('Both check-in and check-out dates are required.')
+    }
+  }
+
+  console.log('checkindateeeeeeeeeeeeeeeeeeeeeeee', checkindate)
+
+  const { data: roomviewtypes, isFetched: a } = useGetRoomtype(
+    checkindate,
+    checkoutdate,
+  )
+
+  console.log('roomviewtypes', roomviewtypes)
+
+  // const checkindate = form.getValue('checkindate');
+  // const checkoutdate = form.getValue('checkoutdate');
+
+  // const handleSearch = () => {
+  //   const searchData = {
+  //     checkindate,
+  //     checkoutdate
+  //   };
+
+  //   // Send searchData to your backend API
+  //   console.log('Sending data to backend:', searchData);
+  // };
+
+  // const form = useForm({
+  //   defaultValues: {
+  //     booking_id: null,
+  //     checkindate: new Date().toISOString().split('T')[0],
+  //     checkoutdate: new Date().toISOString().split('T')[0],
+  //     flexibledates: false,
+  //     adults: 1,
+  //     children: 0,
+  //     currency: 'USD',
+  //     firstname: '',
+  //     lastname: '',
+  //     email: '',
+  //     phonenumber: '',
+  //     address: '',
+  //     city: '',
+  //     country: '',
+  //     postalcode: '',
+  //   },
+  //   onSubmit: async ({ value: data }) => {
+  //     if (id) {
+  //       const res = getDirtyValuesTF(q, data)
+  //       console.log('wwwwwwwwwwwwww', q, data, res)
+  //       // const responseData = await insertMutation.mutateAsync({ res })
+  //     } else {
+  //       // Do something with form data
+  //       // console.log('hloooooooooooooooooooooooo', data)
+  //       const responseData = await insertMutation.mutateAsync({ data })
+
+  //       if (responseData.success) {
+  //         const newId = responseData.bookingId
+
+  //         // setValue('id', newId, { shouldDirty: false })
+
+  //         toast({
+  //           className: 'text-green-600',
+  //           title: 'Booking',
+  //           description: <span>Added successfully.</span>,
+  //           duration: 2000,
+  //         })
+
+  //         navigate(`/booking/${newId}`)
+  //         // getDirtyValuesTF
+  //       }
+  //     }
+  //   },
+  // })
+
+  const { data: q, isLoading, isError, error } = useGetBooking(id)
+  // console.log('data', q)
+
+  useEffect(() => {
+    if (q) {
+      try {
+        // const { data:q, isLoading, isError, error } = useGetBooking(id)
+        // Replace with your API endpoint
+        // console.log("aaaaaaaaaaaaaaaaaaaaaaaaa",id)
+
+        // console.log('testtttttttttttttttttttttttt', q)
+
+        // Populate the form with fetched data
+        // form.setFieldValue('checkindate', q.checkindate)
+        form.setFieldValue('booking_id', q.booking_id)
+        // form.setFieldValue('checkoutdate', q.checkoutdate)
+        form.setFieldValue('flexibledates', q.flexibledates)
+        form.setFieldValue('adults', q.adults)
+        form.setFieldValue('children', q.children)
+        form.setFieldValue('currency', q.currency)
+        form.setFieldValue('firstname', q.firstname)
+        form.setFieldValue('lastname', q.lastname)
+        form.setFieldValue('email', q.email)
+        form.setFieldValue('phonenumber', q.phonenumber)
+        form.setFieldValue('address', q.address)
+        form.setFieldValue('city', q.city)
+        form.setFieldValue('country', q.country)
+        form.setFieldValue('postalcode', q.postalcode)
+      } catch (error) {
+        console.error('Error fetching booking data:', error)
+        toast({
+          className: 'text-red-600',
+          title: 'Error',
+          description: <span>Something went wrong while fetching data.</span>,
+          duration: 2000,
+        })
+      }
+    }
+
+    // console.log('rrrrrrrrrrrrrrrrrrrrrrrrrr', id)
+  }, [q])
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCurrency = e.target.value
@@ -203,13 +414,53 @@ const RoomSelection = () => {
   const formatPrice = (price: number) => {
     return (price * exchangeRate).toFixed(2)
   }
-
   const openModal = (room: Room) => {
     setSelectedRoom(room)
     setShowModal(true)
   }
-  const { data } = useGetAllRoom()
+  // const { data } = useGetAllRoom()
   // console.log('first', data)
+
+  // const handleSearch = async () => {
+
+  //   if (checkindate && checkoutdate) {
+  //     // Make API call with checkindate and checkoutdate
+  //     try {
+  //       const response = await fetch(`/api/searchRooms`, {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: JSON.stringify({ checkindate, checkoutdate }),
+  //       });
+  //       const data = await response.json();
+  //       console.log('Available rooms:', data);
+  //     } catch (error) {
+  //       console.error('Error fetching rooms:', error);
+  //     }
+  //   }
+  // };
+
+  const bookinghandle = (
+    typeid: number,
+    viewid: number,
+    price: number,
+    type: string,
+    view: string,
+    basis: string,
+  ) => {
+    setselectedRooms((p) => {
+      // if(1){
+      return [...p, { typeid, viewid, price, type, view, basis }]
+      // }else{
+      //   return p.filter(r=> r.typeid !== typeid && r.viewid !== viewid)
+      // }
+    })
+  }
+
+  useEffect(() => {
+    console.log('selectedRooms', selectedRooms)
+  }, [selectedRooms])
 
   return (
     <>
@@ -250,6 +501,21 @@ const RoomSelection = () => {
                   </div> */}
               {/* Check-in Date */}
 
+              {/* <form.Field
+                name="booking_id"
+                children={(field) => (
+                  <div className="col-span-1">
+                    <label className="block text-sm font-semibold">
+                      Check in
+                    </label>
+                    <input
+                      type="hidden"
+                      value={field.state.value}
+                     
+                    />
+                  </div>
+                )}
+              /> */}
               <form.Field
                 name="checkindate"
                 children={(field) => (
@@ -259,9 +525,22 @@ const RoomSelection = () => {
                     </label>
                     <input
                       type="date"
-                      value={field.state.value}
+                      value={
+                        field.state.value
+                          ? new Date(field.state.value)
+                              .toISOString()
+                              .split('T')[0]
+                          : ''
+                      }
                       onChange={(e) => field.handleChange(e.target.value)}
                       className="w-full border border-gray-300 p-2 rounded"
+                      // value={
+                      //   field.value
+                      //     ? new Date(field.value)
+                      //         .toISOString()
+                      //         .split('T')[0]
+                      //     : ''
+                      // }
                     />
                   </div>
                 )}
@@ -276,7 +555,13 @@ const RoomSelection = () => {
                     </label>
                     <input
                       type="date"
-                      value={field.state.value}
+                      value={
+                        field.state.value
+                          ? new Date(field.state.value)
+                              .toISOString()
+                              .split('T')[0]
+                          : ''
+                      }
                       onChange={(e) => field.handleChange(e.target.value)}
                       className="w-full border border-gray-300 p-2 rounded"
                     />
@@ -394,7 +679,10 @@ const RoomSelection = () => {
                 </label>
               </div>
               <div className="col-span-1">
-                <button className="bg-yellow-500 text-white py-2 px-4 rounded w-full">
+                <button
+                  className="bg-yellow-500 text-white py-2 px-4 rounded w-full"
+                  onClick={handleSearch}
+                >
                   Search
                 </button>
               </div>
@@ -424,12 +712,194 @@ const RoomSelection = () => {
             </select>
           </div>
         </div>
+        {a && roomprices && (
+          <div>
+            {roomviewtypes.map((roomcat, index) => {
+              const prices = roomprices.find(
+                (r) =>
+                  r.roomtypeid === roomcat.roomtypeid ||
+                  r.roomviewid === roomcat.roomviewid,
+              )
 
-        <div className="grid grid-cols-3 gap-4">
+              return (
+                <div key={index} className="ml-4">
+                  <nav className="h-2 bg-red-600 items-center"></nav>
+                  <div className="border-b py-4 grid grid-cols-2 gap-1">
+                    <div className="ml-4">
+                      <div className="flex items-center ">
+                        <h3 className="text-2xl font-bold">
+                          {roomcat.roomtype} -{' '}
+                        </h3>
+                        <p className="text-xl font-bold">{roomcat.roomview}</p>
+                      </div>
+                      {/* <button
+                      className="text-blue-600 underline mt-2"
+                      onClick={() => openModal(roomcat)}
+                    >
+                      View Room Details
+                    </button> */}
+
+                      {/* {prices && (
+                        <p className="text-sm">Ro Price: {prices.roprice}</p>
+                      )}
+                      {prices && (
+                        <p className="text-sm">BB Price: {prices.bbprice}</p>
+                      )}
+                      {prices && (
+                        <p className="text-sm">FB Price: {prices.fbprice}</p>
+                      )}
+                      {prices && (
+                        <p className="text-sm">HB Price: {prices.hbprice}</p>
+                      )} */}
+                      <button
+                        className="text-blue-600 underline mt-2"
+                        onClick={() => openModal(roomcat)}
+                      >
+                        View Room Details
+                      </button>
+                    </div>
+                    <div>
+                      <label className="">
+                        <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                          <div className="flex items-center">
+                            <input
+                              type="radio"
+                              name="deal"
+                              className="mr-2"
+                              checked={selectedDeal === prices?.hbprice}
+                              onChange={() => setSelectedDeal(prices?.hbprice)}
+                            />
+                            <p className="text-red-600 font-bold">
+                              Deal: <span className="text-black">HB Price</span>
+                            </p>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="line-through mr-2 text-gray-400">
+                              {/* {formatPrice(roomcat.hbprice)} {currency} */}
+                            </span>
+                            <span className="font-bold">
+                              {/* {formatPrice(deal.discountedPrice)} {currency} */}
+                              {prices && prices.hbprice}
+                            </span>
+                          </div>
+                        </div>
+                      </label>
+                      <label>
+                        <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                          <div className="flex items-center">
+                            <input
+                              type="radio"
+                              name="deal"
+                              className="mr-2"
+                              checked={selectedDeal === prices?.fbprice}
+                              onChange={() => setSelectedDeal(prices?.fbprice)}
+                            />
+                            <p className="text-red-600 font-bold">
+                              Deal: <span className="text-black">FB Price</span>
+                            </p>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="line-through mr-2 text-gray-400">
+                              {/* {formatPrice(roomcat.hbprice)} {currency} */}
+                            </span>
+                            <span className="font-bold">
+                              {/* {formatPrice(deal.discountedPrice)} {currency} */}
+                              {prices && prices.fbprice}
+                            </span>
+                          </div>
+                        </div>
+                      </label>
+                      <label>
+                        <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                          <div className="flex items-center">
+                            <input
+                              type="radio"
+                              name="deal"
+                              className="mr-2"
+                              // checked={
+                              // selectedRooms.find(
+                              //   (r) =>
+                              //     r.typeid === roomcat.roomtypeid &&
+                              //     r.viewid === roomcat.roomviewid,
+                              // )
+                              //   ? true
+                              //   : false
+                              // }
+                              onChange={(e) => {
+                                setSelectedDeal(prices.roprice)
+                              }}
+                            />
+                            <p className="text-red-600 font-bold">
+                              Deal: <span className="text-black">RO Price</span>
+                            </p>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="line-through mr-2 text-gray-400">
+                              {/* {formatPrice(roomcat.hbprice)} {currency} */}
+                            </span>
+                            <span className="font-bold">
+                              {/* {formatPrice(deal.discountedPrice)} {currency} */}
+                              {prices && prices.roprice}
+                            </span>
+                          </div>
+                        </div>
+                      </label>
+                      <label>
+                        <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                          <div className="flex items-center">
+                            <input
+                              type="radio"
+                              name="deal"
+                              className="mr-2"
+                              checked={selectedDeal === prices?.bbprice}
+                              onChange={() => setSelectedDeal(prices?.bbprice)}
+                            />
+                            <p className="text-red-600 font-bold">
+                              Deal: <span className="text-black">BB Price</span>
+                            </p>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="line-through mr-2 text-gray-400">
+                              {/* {formatPrice(roomcat.hbprice)} {currency} */}
+                            </span>
+                            <span className="font-bold">
+                              {/* {formatPrice(deal.discountedPrice)} {currency} */}
+                              {prices && prices.bbprice}
+                            </span>
+                          </div>
+                        </div>
+                      </label>
+
+                      <div className="border border-green-500 flex items-center justify-between p-2 rounded-lg">
+                        <div>{selectedDeal}</div>
+                        <button
+                          className="bg-orange-300 text-black py-2 px-4 mt-4"
+                          onClick={() =>
+                            bookinghandle(
+                              roomcat.roomtypeid,
+                              roomcat.roomviewid,
+                              1000,
+                              roomcat.roomtype,
+                              roomcat.roomview,
+                              'trgrdgg',
+                            )
+                          }
+                        >
+                          Book
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+        {/* <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2">
-            {/* Room List */}
-            {rooms.map((room) => (
-              <div key={room.name}>
+            
+            {rooms.map((room, index) => (
+              <div key={index}>
                 <nav className="h-2 bg-red-600 items-center"></nav>
                 <div className="border-b py-4 grid grid-cols-2 gap-1">
                   <div className="ml-4">
@@ -489,7 +959,7 @@ const RoomSelection = () => {
             ))}
           </div>
 
-          {/* Price Summary */}
+          Price Summary
           <div className="col-span-1">
             <div>
               <h2 className="text-lg font-semibold mb-2">Price Summary</h2>
@@ -498,7 +968,7 @@ const RoomSelection = () => {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Modal */}
         {showModal && selectedRoom && (
@@ -555,6 +1025,28 @@ const RoomSelection = () => {
             </p>
             <div className="space-y-4">
               <form.Field
+                name="phonenumber"
+                children={(field) => (
+                  <input
+                    type="text"
+                    placeholder="Phone Number"
+                    className="w-full border border-gray-300 p-2 rounded"
+                    required
+                    value={field.state.value}
+                    // onChange={(e) => {
+                    //   console.log("q111111",e.target.value)
+                    //   field.handleChange(e.target.value)}}
+                    onChangeCapture={(e) => {
+                      console.log('q122222', e.target.value)
+                      field.handleChange(e.target.value)
+
+                      setphone(e.target.value)
+                    }}
+                  />
+                )}
+              />
+
+              <form.Field
                 name="firstname"
                 validators={{
                   onChange: (value) => {
@@ -594,20 +1086,6 @@ const RoomSelection = () => {
                   <input
                     type="email"
                     placeholder="Email Address"
-                    className="w-full border border-gray-300 p-2 rounded"
-                    required
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                  />
-                )}
-              />
-
-              <form.Field
-                name="phonenumber"
-                children={(field) => (
-                  <input
-                    type="text"
-                    placeholder="Phone Number"
                     className="w-full border border-gray-300 p-2 rounded"
                     required
                     value={field.state.value}

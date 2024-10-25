@@ -44,7 +44,10 @@ const formSchema = z.object({
   //     message: "Username must be at least 2 characters.",
   //   }),
   id: z.number().optional(),
-  fullname: z.string().min(2, {
+  firstname: z.string().min(2, {
+    message: 'Username must be at least 2 characters.',
+  }),
+  lastname: z.string().min(2, {
     message: 'Username must be at least 2 characters.',
   }),
   address: z.string().min(2, {
@@ -53,15 +56,15 @@ const formSchema = z.object({
   email: z.string().min(2, {
     message: 'Username must be at least 2 characters.',
   }),
-  telephone: z.string().min(2, {
+  phonenumber: z.string().min(2, {
     message: 'Username must be at least 2 characters.',
   }),
   city: z.string().min(2, {
     message: 'Username must be at least 2 characters.',
   }),
-  province: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
-  }),
+  // province: z.string().min(2, {
+  //   message: 'Username must be at least 2 characters.',
+  // }),
   country: z.string().min(2, {
     message: 'Username must be at least 2 characters.',
   }),
@@ -69,6 +72,22 @@ const formSchema = z.object({
     message: 'Username must be at least 2 characters.',
   }),
 })
+
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler) // Cleanup on unmount or value change
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
 
 const RegistrationForm = () => {
   const { id } = useParams()
@@ -88,10 +107,30 @@ const RegistrationForm = () => {
   const updateMutation = useUpdateRegistrationMutation()
   const insertMutation = useInsertRegistrationMutation()
   const deleteMutation = useDeleteRegistrationMutation()
+  const debouncedPhone = useDebounce(phoneNumber, 2000)
+  const { data: getphonenumber } = useGetPhoneNumber(debouncedPhone)
+
+  console.log('qqqqqqqqqqqqqqqqqqqqqqqqq', getphonenumber)
+
+  useEffect(() => {
+    if (getphonenumber) {
+      setValue('firstname', getphonenumber.firstname)
+      setValue('lastname', getphonenumber.lastname)
+      setValue('email', getphonenumber.email)
+      setValue('address', getphonenumber.address)
+      // setValue('phonenumber', getphonenumber.phonenumber)
+      setValue('city', getphonenumber.city)
+      setValue('country', getphonenumber.country)
+      setValue('postalcode', getphonenumber.postalcode)
+    } else {
+      form.reset()
+    }
+  }, [getphonenumber])
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullname: '',
+      // fullname: '',
     },
   })
 
@@ -235,15 +274,15 @@ const RegistrationForm = () => {
     }
   }
 
-  const { data: getphonedata, isFetched } = useGetPhoneNumber(phoneNumber)
-  console.log('first', getphonedata)
+  // const { data: getphonedata, isFetched } = useGetPhoneNumber(phoneNumber)
+  // console.log('first', getphonedata)
 
-  useEffect(() => {
-    if (isFetched && getphonedata) {
-      setValue('telephone', getphonedata.telephone || '')
-      setValue('email', getphonedata.email || '')
-    }
-  }, [isFetched, getphonedata])
+  // useEffect(() => {
+  //   if (isFetched && getphonedata) {
+  //     setValue('phonenumber', getphonedata.telephone || '')
+  //     setValue('email', getphonedata.email || '')
+  //   }
+  // }, [isFetched, getphonedata])
 
   return (
     <div>
@@ -291,7 +330,7 @@ const RegistrationForm = () => {
       </div>
       <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
 
-      {!id && (
+      {/* {!id && (
         <input
           type="text"
           placeholder="Enter Phone Number"
@@ -299,7 +338,7 @@ const RegistrationForm = () => {
           onChange={(e) => setPhoneNumber(e.target.value)}
           className="mr-4 mt-5 p-2 border-2 border-green-600 rounded"
         />
-      )}
+      )} */}
 
       <div className="mt-5 w-full h-2/3 bg-green-100 rounded border border-green-300 p-10 ">
         <Form {...form}>
@@ -308,10 +347,10 @@ const RegistrationForm = () => {
               <div className=" w-full grid grid-cols-4 gap-4 ">
                 <FormField
                   control={form.control}
-                  name="fullname"
+                  name="firstname"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel>First Name</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
@@ -327,10 +366,10 @@ const RegistrationForm = () => {
                 />
                 <FormField
                   control={form.control}
-                  name="address"
+                  name="lastname"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Address</FormLabel>
+                      <FormLabel>Last Name</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
@@ -344,6 +383,7 @@ const RegistrationForm = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="email"
@@ -364,9 +404,30 @@ const RegistrationForm = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
-                  name="telephone"
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          className="rounded border-2 border-green-600 bg-white"
+                          placeholder=""
+                          {...field}
+                        />
+                      </FormControl>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phonenumber"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Telephone</FormLabel>
@@ -375,6 +436,9 @@ const RegistrationForm = () => {
                           type="text"
                           className="rounded border-2 border-green-600 bg-white"
                           placeholder=""
+                          onChangeCapture={(e) => {
+                            setPhoneNumber(e.target.value)
+                          }}
                           {...field}
                           // value={getphonedata.bookingdate}
                         />
@@ -384,8 +448,7 @@ const RegistrationForm = () => {
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="w-full grid grid-cols-4 gap-4">
+
                 <FormField
                   control={form.control}
                   name="city"
@@ -405,7 +468,7 @@ const RegistrationForm = () => {
                     </FormItem>
                   )}
                 />
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="province"
                   render={({ field }) => (
@@ -423,7 +486,7 @@ const RegistrationForm = () => {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
                 <FormField
                   control={form.control}
                   name="country"
