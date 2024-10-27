@@ -38,20 +38,9 @@ import SelectContent from '@/components/ui/select/SelectContent.vue';
 import SelectGroup from '@/components/ui/select/SelectGroup.vue';
 import SelectLabel from '@/components/ui/select/SelectLabel.vue';
 import SelectItem from '@/components/ui/select/SelectItem.vue';
-import DialogContent from '@/components/ui/dialog/Dialog.vue';
-import DialogDescription from '@/components/ui/dialog/Dialog.vue';
-import DialogFooter from '@/components/ui/dialog/Dialog.vue';
-import DialogTitle from '@/components/ui/dialog/Dialog.vue';
-import DialogTrigger from '@/components/ui/dialog/Dialog.vue';
-import Dialog from '@/components/ui/dialog/Dialog.vue';
 
 // Ensure you have this or relevant CSS import
-// DialogContent,
-//   DialogDescription,
-//   DialogFooter,
-//   DialogHeader,
-//   DialogTitle,
-//   DialogTrigger,
+
 
 //import axios from 'axios'
 
@@ -273,36 +262,50 @@ const description = ref('');
 
 
 <!-- submit form -->
-<dialog ref="dialogRef" class="modal bg-white rounded-md p-6 w-[450px]">
+<!-- <dialog ref="dialogRef" class="modal bg-white rounded-md p-6 w-[450px]"> -->
     <form @submit.prevent="onSubmit">
+      <h3 class="text-lg font-bold mb-4">Add New Item</h3>
+
+
       <FormField v-slot="{ componentField }" name="categoryid">
-        <FormItem>
-          <FormLabel>Category</FormLabel>
-          <FormControl class="w-full">
-            <Select v-bind="componentField">
-              <SelectTrigger class="border rounded-md px-3 py-2">
-                <SelectValue placeholder="Select Category" />
-              </SelectTrigger>
-              <SelectContent>
-  <Teleport to="body">
-    <SelectGroup>
-      <SelectLabel>Categories</SelectLabel>
-      <SelectItem v-for="cat in category" :key="cat.id" :value="cat.id">
-        {{ cat.category }}
-      </SelectItem>
-    </SelectGroup>
-  </Teleport>
-</SelectContent>
-            </Select>
-          </FormControl>
-        </FormItem>
-      </FormField>
+      <FormItem>
+        <FormLabel>Category</FormLabel>
+        <FormControl class="w-full">
+          <Select v-bind="componentField">
+            <SelectTrigger class="border border-gray-300 rounded-md px-3 py-2">
+              <SelectValue placeholder="Select Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Categories</SelectLabel>
+                <SelectItem
+                  v-for="cat in category"
+                  :key="cat.id"
+                  :value="cat.id"
+                >
+                  {{ cat.category }}
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </FormControl>
+      </FormItem>
+    </FormField>
+
+
+
 
       <FormField v-slot="{ componentField }" name="id">
         <FormItem>
           <FormLabel>Id</FormLabel>
           <FormControl class="w-full">
-            <Input v-bind="componentField" placeholder="Id" class="border px-3 py-2 rounded-md" />
+            <Input
+              type="text"
+              placeholder="Id"
+              v-bind="componentField"
+              
+              class="border border-gray-300 rounded-md px-3 py-2"
+            />
           </FormControl>
         </FormItem>
       </FormField>
@@ -311,16 +314,29 @@ const description = ref('');
         <FormItem>
           <FormLabel>Name</FormLabel>
           <FormControl class="w-full">
-            <Input v-bind="componentField" placeholder="Name" class="border px-3 py-2 rounded-md" />
+            <Input
+              type="text"
+              placeholder="Name"
+              v-bind="componentField"
+              class="border border-gray-300 rounded-md px-3 py-2"
+            />
           </FormControl>
         </FormItem>
       </FormField>
+
+
+
 
       <FormField v-slot="{ componentField }" name="defaultunit">
         <FormItem>
           <FormLabel>Default Unit</FormLabel>
           <FormControl class="w-full">
-            <Input v-bind="componentField" placeholder="Default Unit" class="border px-3 py-2 rounded-md" />
+            <Input
+              type="text"
+              placeholder="Default Unit"
+              v-bind="componentField"
+              class="border border-gray-300 rounded-md px-3 py-2"
+            />
           </FormControl>
         </FormItem>
       </FormField>
@@ -329,13 +345,17 @@ const description = ref('');
         <FormItem>
           <FormLabel>Description</FormLabel>
           <FormControl class="w-full">
-            <Textarea v-bind="componentField" placeholder="Description" class="border px-3 py-2 rounded-md" />
+            <Textarea
+              placeholder="Description"
+              v-bind="componentField"
+              class="border border-gray-300 rounded-md px-3 py-2"
+            />
           </FormControl>
         </FormItem>
       </FormField>
 
       <div class="flex justify-end gap-4 mt-6">
-        <Button type="button" class="bg-red-600 text-white" @click="closeModal">
+        <Button @click="closeModal" type="button" class="bg-red-600 text-white">
           Cancel
         </Button>
         <Button type="submit" class="bg-blue-600 text-white">
@@ -343,7 +363,7 @@ const description = ref('');
         </Button>
       </div>
     </form>
-  </dialog>
+  <!-- </dialog> -->
 
 
 
