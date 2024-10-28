@@ -168,6 +168,16 @@ app.put('/editunit/:unit', async (req, res) => {
 });
 
 
+app.get('/allcategories', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM itemcategories');
+        console.log('Fetched Data:', result.rows); 
+        res.json(result.rows); 
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 
 

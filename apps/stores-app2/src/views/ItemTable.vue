@@ -45,6 +45,9 @@ import DialogTitle from '@/components/ui/dialog/Dialog.vue';
 import DialogTrigger from '@/components/ui/dialog/Dialog.vue';
 import Dialog from '@/components/ui/dialog/Dialog.vue';
 
+
+import VueSelect from "vue3-select-component";
+
 // Ensure you have this or relevant CSS import
 // DialogContent,
 //   DialogDescription,
@@ -71,6 +74,7 @@ type FormData = {
   categoryid: string;
   defaultunit: string;
   description: string;
+  selected: string;
 };
 
 type Category={
@@ -85,6 +89,7 @@ const formSchema = toTypedSchema(z.object({
    categoryid:z.string(),
    defaultunit:z.string(),
    description:z.string(),
+   selected:z.string(),
 }))
 
 const form = useForm({
@@ -100,7 +105,8 @@ const form = useForm({
 
 const fetchedData = ref<FormData[]>([]);
 // const useToastInstance = useToast();
-const submittedData = ref(<FormData[]>[])
+
+// const submittedData = ref(<FormData[]>[])
 
 const category = ref<Category[]>([])
 
@@ -115,6 +121,8 @@ const fetchData = async () => {
   }
 };
 
+
+//fetch category data 
 const categorydata=async()=>{
   try {
   const response = await axios.get('http://localhost:3000/categoryid');
@@ -141,14 +149,18 @@ onMounted(() => {
    
 
 // })
+
+
+
+//submit the form data
 const onSubmit = form.handleSubmit(async(values) => {
   console.log("Form submitted!", values);
 
-  const response = await axios.post('http://localhost:3000/additem', values);
-    console.log('Response:', response.data);
+  // const response = await axios.post('http://localhost:3000/additem', values);
+  //   console.log('Response:', response.data);
 
    
-    submittedData.value.push(values);
+  //   submittedData.value.push(values);
     closeModal();
     fetchData();
 //   submittedData.value.push(values);
@@ -165,11 +177,12 @@ const closeModal = () => dialogRef.value?.close();
 
 
 
-const itemName = ref('');
-const itemType = ref('');
-const itemCategory = ref('');
-const unit = ref('');
-const description = ref('');
+// const itemName = ref('');
+// const itemType = ref('');
+// const itemCategory = ref('');
+// const unit = ref('');
+// const description = ref('');
+const selected = ref("");
 </script>
 
 <template class="bg-gray-600">
@@ -275,28 +288,7 @@ const description = ref('');
 <!-- submit form -->
 <dialog ref="dialogRef" class="modal bg-white rounded-md p-6 w-[450px]">
     <form @submit.prevent="onSubmit">
-      <FormField v-slot="{ componentField }" name="categoryid">
-        <FormItem>
-          <FormLabel>Category</FormLabel>
-          <FormControl class="w-full">
-            <Select v-bind="componentField">
-              <SelectTrigger class="border rounded-md px-3 py-2">
-                <SelectValue placeholder="Select Category" />
-              </SelectTrigger>
-              <SelectContent>
-  <Teleport to="body">
-    <SelectGroup>
-      <SelectLabel>Categories</SelectLabel>
-      <SelectItem v-for="cat in category" :key="cat.id" :value="cat.id">
-        {{ cat.category }}
-      </SelectItem>
-    </SelectGroup>
-  </Teleport>
-</SelectContent>
-            </Select>
-          </FormControl>
-        </FormItem>
-      </FormField>
+     
 
       <FormField v-slot="{ componentField }" name="id">
         <FormItem>
@@ -316,6 +308,20 @@ const description = ref('');
         </FormItem>
       </FormField>
 
+      <FormField v-slot="{ componentField }" name="categoryid">
+        <FormItem>
+          <FormLabel>Category</FormLabel>
+          <FormControl class="w-full">
+            <VueSelect
+            v-bind="componentField"
+             v-model="selected"
+              :options="category.map(cat => ({ label: cat.category, value: cat.id }))"
+              placeholder="Select a category"
+           />
+          </FormControl>
+        </FormItem>
+      </FormField>
+    
       <FormField v-slot="{ componentField }" name="defaultunit">
         <FormItem>
           <FormLabel>Default Unit</FormLabel>
