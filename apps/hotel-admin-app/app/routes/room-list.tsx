@@ -77,6 +77,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }, [])
   const resultview = await client.query('SELECT * FROM hotelroomview')
   const resulttype = await client.query('SELECT * FROM hotelroomtypes')
+  // const resultamt = await client.query('SELECT * FROM roomamenitydetails WH')
+
 
   // Check if there are no rows, return an empty object
   if (
@@ -113,6 +115,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (id) {
     // DELETE request
+    const delamenity = `DELETE FROM roomamenitydetails WHERE roomid = $1`
+    await client.query(delamenity, [id])
+
     const query = `DELETE FROM hotelrooms WHERE id = $1`
     await client.query(query, [id])
 
@@ -136,7 +141,6 @@ export default function RoomList() {
   const data = Data?.hotels ?? []
   const roomview = Data?.resultview ?? []
   const roomTypes = Data?.roomTypes ?? []
-  console.log('first', roomTypes)
   console.log('first', data)
 
   const actionData = useActionData() // Capture action data (including toast data)
@@ -205,13 +209,13 @@ export default function RoomList() {
 
                     {/* Room Type - Display the name instead of the ID */}
                     <TableCell className="text-center px-4 py-2">
-                      {roomTypes.find((type :any) => type.id.toString() === item.roomtype)
+                      {roomTypes.find((type :any) => type.id.toString() === item.roomtypeid.toString())
                         ?.roomtype || 'Unknown Type'}
                     </TableCell>
 
                     {/* Room View - Display the name instead of the ID */}
                     <TableCell className="text-center px-4 py-2">
-                      {roomview.find((view : any) => view.id.toString() === item.roomview)
+                      {roomview.find((view : any) => view.id.toString() === item.roomviewid.toString())
                         ?.roomview || 'Unknown View'}
                     </TableCell>
 

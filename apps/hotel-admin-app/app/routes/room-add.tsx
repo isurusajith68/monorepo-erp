@@ -45,11 +45,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return {}
   } else {
     // Return both datasets in an object
-    console.log("first",resultamenities.rows)
+    console.log('first', resultamenities.rows)
     return {
       rooms: result.rows,
       roomTypes: resulttype.rows,
-      roomAmenities: resultamenities.rows,  
+      roomAmenities: resultamenities.rows,
     }
   }
 }
@@ -69,34 +69,46 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     // Get the form data
     const formData = await request.formData()
-    console.log("first",formData)
+    console.log('first', formData)
 
     // Extract form fields
     const roomno = formData.get('roomno')
     const roomtype = formData.get('roomtype')
     const noofbed = formData.get('noofbed')
     const roomview = formData.get('roomview')
-    const ac = formData.get('ac')
-    const tv = formData.get('tv')
-    const wifi = formData.get('wifi')
-    const balcony = formData.get('balcony')
+    // Retrieve amenities as an array of checked amenity IDs
+    const selectedAmenities = formData.getAll('amenities')
+
+    console.log('selectedAmenities', selectedAmenities)
 
     // SQL query to insert the hotel room data
+
     const hotelQuery = `
-      INSERT INTO hotelrooms (roomno, roomtypeid, noofbed, roomviewid,amenityid) 
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO hotelrooms (roomno, roomtypeid, noofbed, roomviewid) 
+      VALUES ($1, $2, $3, $4)
       RETURNING id`
-    const hotelValues = [
-      roomno,
-      roomtype,
-      noofbed,
-      roomview,
-    ]
+    const hotelValues = [roomno, roomtype, noofbed, roomview]
 
     // Execute SQL query to insert room data
     const result = await client.query(hotelQuery, hotelValues)
     const roomId = result.rows[0].id // Get inserted room ID
 
+  for (let index = 0; index < selectedAmenities.length; index++) {
+
+    const element = selectedAmenities[index];
+
+
+    const hotelamtQuery = `
+    INSERT INTO roomamenitydetails (roomid, amenityid) 
+    VALUES ($1, $2)
+    RETURNING id`
+    const hotelAmtValues = [roomId, element]
+    const hotelResult = await client.query(hotelamtQuery, hotelAmtValues)
+
+    /////////////////
+
+  }
+    
     // Handle image uploads
     const images = formData.getAll('images') // Get all images
     for (const image of images) {
@@ -272,19 +284,23 @@ export default function RoomAddForm() {
             </label>
           </div>
           <div className="grid grid-cols-4 gap-4 col-span-2">
-          {amenities.map((amenity :any) => (
-          <div key={amenity.id}>
-            <Label htmlFor={amenity.name.toLowerCase()} className="text-gray-600">
-              {amenity.name}
-            </Label>
-            <Input
-              type="checkbox"
-              name={amenity.name.toLowerCase()}
-              className="ml-5 w-10 h-10 border-blue-500"
-              // You can add more properties like checked state, onChange handler if necessary
-            />
-          </div>
-        ))}
+            {amenities.map((amenity: any) => (
+              <div key={amenity.name}>
+                <Label
+                  htmlFor={amenity.name.toLowerCase()}
+                  className="text-gray-600"
+                >
+                  {amenity.name}
+                </Label>
+                <Input
+                  type="checkbox"
+                  name="amenities"
+                  className="ml-5 w-10 h-10 border-blue-500"
+                  value={`${amenity.id}`}
+                  // You can add more properties like checked state, onChange handler if necessary
+                />
+              </div>
+            ))}
           </div>
 
           {/* Image Upload */}

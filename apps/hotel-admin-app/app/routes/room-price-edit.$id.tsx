@@ -107,127 +107,187 @@ function jsonWithSuccess(data: any, message: string) {
   })
 }
 
+
 export async function action({ request }: ActionFunctionArgs) {
   try {
-    const formData = await request.formData()
-    const formDataCur = Object.fromEntries(formData)
-   
+    const formData = await request.formData();
+    const formDataCur = Object.fromEntries(formData);
+
     const id = formDataCur.schedulid;
-    console.log(' formDataCur:', formDataCur) // Log the form data
+    console.log('Form Data:', formDataCur);
 
-    if(id){
-    // First, delete related entries from hotelroomprices
-    const query1 = 'DELETE FROM hotelroomprices WHERE sheduleid = $1';
-    await client.query(query1, [id]);
+    if (id) {
+      // Update hotelroompriceshedules with new data
+      const startdate = formData.get('startdate');
+      const enddate = formData.get('enddate');
+      const remarks = formData.get('remarks');
 
-    // Then, delete the entry from hotelroompriceshedules
-    const query = 'DELETE FROM hotelroompriceshedules WHERE id = $1';
-    await client.query(query, [id]);
-
-    // Returning JSON with success toast data
-      return jsonWithSuccess(
-      { result: 'Data deleted successfully' },
-      'Room Price Shedules deleted successfully! 🗑️',
-    )
-    }
-    else{
-    let scheduleId = formData.get('schedulid')
-    // Extract common fields
-    const startdate = formData.get('startdate')
-    const enddate = formData.get('enddate')
-    const remarks = formData.get('remarks')
-
-    if (!scheduleId) {
-      // Insert into hotelroompriceshedules table
-      const priceshcduleQuery = `
-      INSERT INTO public.hotelroompriceshedules(startdate, enddate, remarks, active) 
-      VALUES ($1, $2, $3, true) RETURNING id;
-    `
-      const scheduleResult = await client.query(priceshcduleQuery, [
+      const updateScheduleQuery = `
+        UPDATE hotelroompriceshedules 
+        SET startdate = $1, enddate = $2, remarks = $3, active = true
+        WHERE id = $4
+      `;
+      await client.query(updateScheduleQuery, [
         startdate,
         enddate,
         remarks,
-      ])
-      scheduleId = scheduleResult.rows[0].id
+        id,
+      ]);
 
-      ///delete all data in pricedetais table where table.shescuid =schedulid
+      // Delete existing entries in hotelroomprices for this schedule to avoid duplicates
+      const deletePricesQuery = 'DELETE FROM hotelroomprices WHERE sheduleid = $1';
+      await client.query(deletePricesQuery, [id]);
 
-      // Function to group related prices by index (0, 1, 2, etc.)
-      const groupPrices = (prefix: any) => {
-        const prices = []
-        let i = 0
+      // Re-insert updated room prices
+      const groupPrices = (prefix : string) => {
+
+        const prices = [];
+        let i = 0;
         while (formData.has(`${prefix}[${i}]`)) {
-          prices.push(formData.get(`${prefix}[${i}]`))
-          i++
+          prices.push(formData.get(`${prefix}[${i}]`));
+          i++;
         }
-        return prices
+        return prices;
+      };
+
+      // Extract data arrays for room prices
+      const roomtypes = groupPrices('roomtype');
+      const roomviews = groupPrices('roomview');
+      const roprices = groupPrices('roprice');
+      const bbprices = groupPrices('bbprice');
+      const hbprices = groupPrices('hbprice');
+      const fbprices = groupPrices('fbprice');
+      const nrroprices = groupPrices('nrroprice');
+      const nrbbprices = groupPrices('nrbbprice');
+      const nrhbprices = groupPrices('nrhbprice');
+      const nrfbprices = groupPrices('nrfbprice');
+
+      // Insert updated room prices with existing schedule ID
+      for (let index = 0; index < roprices.length; index++) {
+        const roomtype = roomtypes[index];
+        const roomview = roomviews[index];
+        const roprice = roprices[index];
+        const bbprice = bbprices[index];
+        const hbprice = hbprices[index];
+        const fbprice = fbprices[index];
+        const nrroprice = nrroprices[index];
+        const nrbbprice = nrbbprices[index];
+        const nrhbprice = nrhbprices[index];
+        const nrfbprice = nrfbprices[index];
+
+        const insertQuery = `
+          INSERT INTO hotelroomprices (roomtypeid, roomviewid, sheduleid, roprice, bbprice, hbprice, fbprice, nrroprice, nrbbprice, nrhbprice, nrfbprice) 
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `;
+
+        await client.query(insertQuery, [
+          roomtype,
+          roomview,
+          id, // Use existing schedule ID
+          roprice || null,
+          bbprice || null,
+          hbprice || null,
+          fbprice || null,
+          nrroprice || null,
+          nrbbprice || null,
+          nrhbprice || null,
+          nrfbprice || null,
+        ]);
       }
 
-      // Extract arrays from FormData
-      const roomtypes = groupPrices('roomtype')
-      const roomviews = groupPrices('roomview')
+      // Return success message for update
+      return jsonWithSuccess(
+        { result: 'Room Price Schedule updated successfully!' },
+        'Room Price Schedule updated successfully!',
+      );
+    } else {
+      // Insert new schedule as no id was found
+      const startdate = formData.get('startdate');
+      const enddate = formData.get('enddate');
+      const remarks = formData.get('remarks');
 
-      const roprices = groupPrices('roprice')
-      const bbprices = groupPrices('bbprice')
-      const hbprices = groupPrices('hbprice')
-      const fbprices = groupPrices('fbprice')
-      const nrroprices = groupPrices('nrroprice')
-      const nrbbprices = groupPrices('nrbbprice')
-      const nrhbprices = groupPrices('nrhbprice')
-      const nrfbprices = groupPrices('nrfbprice')
+      const insertScheduleQuery = `
+        INSERT INTO public.hotelroompriceshedules (startdate, enddate, remarks, active) 
+        VALUES ($1, $2, $3, true) RETURNING id;
+      `;
+      const scheduleResult = await client.query(insertScheduleQuery, [
+        startdate,
+        enddate,
+        remarks,
+      ]);
+      const scheduleId = scheduleResult.rows[0].id;
 
+      // Insert new room prices associated with the new scheduleId
+      const groupPrices = (prefix :any) => {
+        const prices = [];
+        let i = 0;
+        while (formData.has(`${prefix}[${i}]`)) {
+          prices.push(formData.get(`${prefix}[${i}]`));
+          i++;
+        }
+        return prices;
+      };
+
+      const roomtypes = groupPrices('roomtype');
+      const roomviews = groupPrices('roomview');
+      const roprices = groupPrices('roprice');
+      const bbprices = groupPrices('bbprice');
+      const hbprices = groupPrices('hbprice');
+      const fbprices = groupPrices('fbprice');
+      const nrroprices = groupPrices('nrroprice');
+      const nrbbprices = groupPrices('nrbbprice');
+      const nrhbprices = groupPrices('nrhbprice');
+      const nrfbprices = groupPrices('nrfbprice');
 
       for (let index = 0; index < roprices.length; index++) {
-        const roomtype = roomtypes[index]
-        const roomview = roomviews[index]
+        const roomtype = roomtypes[index];
+        const roomview = roomviews[index];
+        const roprice = roprices[index];
+        const bbprice = bbprices[index];
+        const hbprice = hbprices[index];
+        const fbprice = fbprices[index];
+        const nrroprice = nrroprices[index];
+        const nrbbprice = nrbbprices[index];
+        const nrhbprice = nrhbprices[index];
+        const nrfbprice = nrfbprices[index];
 
-        const roprice = roprices[index]
-        const bbprice = bbprices[index]
-        const hbprice = hbprices[index]
-        const fbprice = fbprices[index]
-        const nrroprice = nrroprices[index]
-        const nrbbprice = nrbbprices[index]
-        const nrhbprice = nrhbprices[index]
-        const nrfbprice = nrfbprices[index]
-
-        console.log('roprice', roprice)
-
-        const insertQuery = `INSERT INTO hotelroomprices (roomtypeid, roomviewid, sheduleid, roprice, bbprice, hbprice, fbprice, nrroprice, nrbbprice, nrhbprice, nrfbprice) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+        const insertQuery = `
+          INSERT INTO hotelroomprices (roomtypeid, roomviewid, sheduleid, roprice, bbprice, hbprice, fbprice, nrroprice, nrbbprice, nrhbprice, nrfbprice) 
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `;
 
         await client.query(insertQuery, [
           roomtype,
           roomview,
           scheduleId,
-          roprice ? roprice : null,
-          bbprice ? bbprice : null,
-          hbprice ? hbprice : null,
-          fbprice ? fbprice : null,
-          nrroprice ? nrroprice : null,
-          nrbbprice ? nrbbprice : null,
-          nrhbprice ? nrhbprice : null,
-          nrfbprice ? nrfbprice : null,
-        ])
+          roprice || null,
+          bbprice || null,
+          hbprice || null,
+          fbprice || null,
+          nrroprice || null,
+          nrbbprice || null,
+          nrhbprice || null,
+          nrfbprice || null,
+        ]);
       }
 
-      // Returning JSON with success toast data
+      // Return success message for insertion
       return jsonWithSuccess(
-        { result: 'Room Price Data successfully Inserted!' },
-        'Room Price Data successfully Inserted!',
-      )
-    } else {
-    }}
+        { result: 'Room Price Data successfully inserted!' },
+        'Room Price Data successfully inserted!',
+      );
+    }
   } catch (error) {
-    console.error('Error saving room info:', error.message) // Log specific error message
+    console.error('Error processing room info:', error.message);
 
-    // Return error toast data on failure
     return jsonWithSuccess(
-      { result: 'Error saving room info' },
-      'Error saving room info',
-    )
+      { result: 'Error processing room info' },
+      'Error processing room info',
+    );
   }
-  return 0
 }
+
+
 
 export default function RoomPriceSchedule() {
   const navigate = useNavigate()
