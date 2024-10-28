@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   useGetBooking,
   useGetPhoneNumber,
@@ -15,6 +15,9 @@ import {
 import { useNavigate, useParams } from 'react-router-dom'
 import { getDirtyValuesTF } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
+import { CiCircleRemove } from 'react-icons/ci'
+import RoomCountSelector from './room-counter'
+
 // import { useGetAllRoom } from './queries/queries'
 // import { Button } from '../ui/button'
 
@@ -131,6 +134,12 @@ function useDebounce(value, delay) {
 // const r = array.filter((elem) => !anotherArray.find(({ id }) => elem.id === id) && elem.sub);
 
 // console.log("testtttttttttttttttttttttttttttttt",r);
+type RoomCountDta = {
+  typeid: number
+  viewid: number
+  basis: string
+  count: number
+}
 
 type SelectedRoomType = {
   type?: string
@@ -139,6 +148,7 @@ type SelectedRoomType = {
   viewid?: number | null
   price?: number | null
   basis?: string | null
+  count?: number | null
 }
 
 const RoomSelection = () => {
@@ -167,13 +177,14 @@ const RoomSelection = () => {
   )
   const { data: roomprices } = useGetPrice(checkindate)
 
+  const [totalAmount, settotalAmount] = useState<number>(0)
+
   const [selectedRooms, setselectedRooms] = useState<SelectedRoomType[]>([])
   const [selectedRoomBasis, setselectedRoomBasis] = useState<
     SelectedRoomType[]
   >([])
 
-  // console.log('roomtypes', roomtypes)
-  console.log('price', roomprices)
+  console.log('roomprice', roomprices)
 
   // useEffect(() => {
   //   console.log("debouncedPhone",debouncedPhone)
@@ -362,6 +373,63 @@ const RoomSelection = () => {
   const { data: q, isLoading, isError, error } = useGetBooking(id)
   // console.log('data', q)
 
+  //----------------------------------------------------------------------------------------
+  const SelectedRoomsList = ({ selectedRooms }) => (
+    <div className="p-4 border-l border-gray-300">
+      <h3 className="text-xl font-bold mb-4">Selected Rooms</h3>
+      {selectedRooms.length > 0 ? (
+        selectedRooms.map((room, index) => (
+          <div className="  key={index} flex justify-between gap-2 mt-2">
+            <div className="flex ">
+              <div>
+                <p className="font-bold">
+                  {room.type} - {room.view}
+                </p>
+                <p className="text-gray-600">Basis: {room.basis}</p>
+              </div>
+              <div>
+                <p className="text-gray-600">Price: {room.price}</p>
+                <RoomCountSelector
+                  typeid={room.typeid}
+                  viewid={room.viewid}
+                  basis={room.basis}
+                  roomCount={room.count}
+                  callback={handleRoomcount}
+                />
+              </div>
+            </div>
+
+            <button
+              className="bg-red-500 text-white py-1 px-2 rounded"
+              onClick={() => handleremove(room.typeid, room.viewid, room.basis)}
+            >
+              <CiCircleRemove className="text-4xl" />
+            </button>
+          </div>
+        ))
+      ) : (
+        <p className="text-gray-500">No rooms selected.</p>
+      )}
+      {totalAmount}
+    </div>
+  )
+
+  const handleRoomcount = useCallback(
+    (typeid: number, viewid: number, basis: string, roomCount: number) => {
+      // setselectedRooms(p=> {
+
+      //   const o= p.find(r=> r.typeid== typeid && r.viewid==viewid && r.basis == basis)
+
+      //   return [...p.filter(r=> !(r.typeid== typeid && r.viewid==viewid && r.basis == basis)), {...o,count:roomCount }]
+
+      // })
+      console.log('typeid', roomCount)
+    },
+    [],
+  )
+
+  //--------------------------------------------------------------------
+
   useEffect(() => {
     if (q) {
       try {
@@ -441,6 +509,21 @@ const RoomSelection = () => {
   //   }
   // };
 
+  const handleremove = (typeid: number, viewid: number, basis: string) => {
+    setselectedRoomBasis((p) => {
+      return p.filter(
+        (rb) =>
+          !(rb.typeid == typeid && rb.viewid == viewid && rb.basis == basis),
+      )
+    })
+    setselectedRooms((p) => {
+      return p.filter(
+        (rb) =>
+          !(rb.typeid == typeid && rb.viewid == viewid && rb.basis == basis),
+      )
+    })
+  }
+
   const bookinghandle = (
     typeid: number,
     viewid: number,
@@ -450,8 +533,27 @@ const RoomSelection = () => {
     basis: string,
   ) => {
     setselectedRooms((p) => {
-      // if(1){
-      return [...p, { typeid, viewid, price, type, view, basis }]
+      const res = selectedRoomBasis.find(
+        (r) => r.typeid == typeid && r.viewid == viewid,
+      )
+      if (res) {
+        return [
+          ...p,
+          {
+            typeid,
+            viewid,
+            price: res.price,
+            type,
+            view,
+            basis: res.basis,
+            count: 1,
+          },
+        ]
+      } else {
+        return p
+
+        // if(1){
+      }
       // }else{
       //   return p.filter(r=> r.typeid !== typeid && r.viewid !== viewid)
       // }
@@ -470,7 +572,7 @@ const RoomSelection = () => {
     console.log('xxviewid', viewid)
 
     setselectedRoomBasis((p) => {
-      console.log('falsee', checked)
+      console.log('selectedRoomBasis falsee', checked)
       if (checked) {
         const t = p.filter((r) => !(r.typeid == typeid && r.viewid == viewid))
         return [...t, { typeid, viewid, price, type, view, basis }]
@@ -480,6 +582,12 @@ const RoomSelection = () => {
       // }
     })
   }
+
+  useEffect(() => {
+    selectedRooms.map((r) => {
+      settotalAmount((p) => p + r.count * r.price)
+    })
+  }, [selectedRooms])
 
   useEffect(() => {
     console.log('selectedRooms', selectedRooms)
@@ -738,34 +846,38 @@ const RoomSelection = () => {
             </select>
           </div>
         </div>
-        {a && roomprices && (
+        <div className="flex justify-between">
           <div>
-            {roomviewtypes.map((roomcat, index) => {
-              const prices = roomprices.find(
-                (r) =>
-                  r.roomtypeid === roomcat.roomtypeid ||
-                  r.roomviewid === roomcat.roomviewid,
-              )
+            {a && roomprices && (
+              <div>
+                {roomviewtypes.map((roomcat, index) => {
+                  const prices = roomprices.find(
+                    (r) =>
+                      r.roomtypeid === roomcat.roomtypeid &&
+                      r.roomviewid === roomcat.roomviewid,
+                  )
 
-              return (
-                <div key={index} className="ml-4">
-                  <nav className="h-2 bg-red-600 items-center"></nav>
-                  <div className="border-b py-4 grid grid-cols-2 gap-1">
-                    <div className="ml-4">
-                      <div className="flex items-center ">
-                        <h3 className="text-2xl font-bold">
-                          {roomcat.roomtype} -{' '}
-                        </h3>
-                        <p className="text-xl font-bold">{roomcat.roomview}</p>
-                      </div>
-                      {/* <button
+                  return (
+                    <div key={index} className="ml-4">
+                      <nav className="h-2 bg-green-400 items-center"></nav>
+                      <div className="border-b py-4 grid grid-cols-2 gap-1">
+                        <div className="ml-4">
+                          <div className="flex items-center ">
+                            <h3 className="text-2xl font-bold">
+                              {roomcat.roomtype} -{' '}
+                            </h3>
+                            <p className="text-xl font-bold">
+                              {roomcat.roomview}
+                            </p>
+                          </div>
+                          {/* <button
                       className="text-blue-600 underline mt-2"
                       onClick={() => openModal(roomcat)}
                     >
                       View Room Details
                     </button> */}
 
-                      {/* {prices && (
+                          {/* {prices && (
                         <p className="text-sm">Ro Price: {prices.roprice}</p>
                       )}
                       {prices && (
@@ -777,44 +889,52 @@ const RoomSelection = () => {
                       {prices && (
                         <p className="text-sm">HB Price: {prices.hbprice}</p>
                       )} */}
-                      <button
-                        className="text-blue-600 underline mt-2"
-                        onClick={() => openModal(roomcat)}
-                      >
-                        View Room Details
-                      </button>
-                    </div>
-                    <div>
-                      <label className="">
-                        <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
-                          <div className="flex items-center">
-                            <input
-                              type="radio"
-                              name="deal"
-                              className="mr-2"
-                              checked={
-                                selectedRoomBasis.find(
-                                  (rb) =>
-                                    rb.typeid == roomcat.roomtypeid &&
-                                    rb.viewid == roomcat.roomviewid &&
-                                    rb.basis == 'hb',
-                                )
-                                  ? true
-                                  : false
-                              }
-                              onChange={(e) => {
-                                bookingBasishandle(
-                                  e.target.checked,
-                                  roomcat.roomtypeid,
-                                  roomcat.roomviewid,
-                                  prices?.roprice,
-                                  roomcat.roomtype,
-                                  roomcat.roomview,
-                                  'hb',
-                                )
-                              }}
-                            />
-                            {/* onChange={(e) => {
+                          <button
+                            className="text-blue-600 underline mt-2"
+                            onClick={() => openModal(roomcat)}
+                          >
+                            View Room Details
+                          </button>
+                        </div>
+                        <div>
+                          <label className="">
+                            <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                              <div className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  className="mr-2"
+                                  checked={
+                                    selectedRoomBasis.find((rb) => {
+                                      // console.log("ioi",rb )
+
+                                      return (
+                                        rb.typeid == roomcat.roomtypeid &&
+                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.basis == 'hb'
+                                      )
+                                    })
+                                      ? true
+                                      : false
+                                  }
+                                  onChange={(e) => {
+                                    console.log(
+                                      'e.target.value',
+                                      e.target.checked,
+                                    )
+
+                                    bookingBasishandle(
+                                      e.target.checked,
+                                      roomcat.roomtypeid,
+                                      roomcat.roomviewid,
+                                      prices?.hbprice,
+                                      roomcat.roomtype,
+                                      roomcat.roomview,
+                                      'hb',
+                                    )
+                                  }}
+                                />
+                                {/* onChangeCapture={(e) => {
                                 bookingBasishandle(e.target.checked,
                                   roomcat.roomtypeid,
                                   roomcat.roomviewid,
@@ -825,179 +945,212 @@ const RoomSelection = () => {
                                 )
                                 }}
                             /> */}
-                            <p className="text-red-600 font-bold">
-                              Deal: <span className="text-black">HB Price</span>
-                            </p>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="line-through mr-2 text-gray-400">
-                              {/* {formatPrice(roomcat.hbprice)} {currency} */}
-                            </span>
-                            <span className="font-bold">
-                              {/* {formatPrice(deal.discountedPrice)} {currency} */}
-                              {prices && prices.hbprice}
-                            </span>
-                          </div>
-                        </div>
-                      </label>
-                      <label>
-                        <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
-                          <div className="flex items-center">
-                            <input
-                              type="radio"
-                              name="deal"
-                              className="mr-2"
-                              checked={
-                                selectedRoomBasis.find(
-                                  (rb) =>
-                                    rb.typeid == roomcat.roomtypeid &&
-                                    rb.viewid == roomcat.roomviewid &&
-                                    rb.basis == 'fb',
-                                )
-                                  ? true
-                                  : false
-                              }
-                              onChange={(e) => {
-                                bookingBasishandle(
-                                  e.target.checked,
-                                  roomcat.roomtypeid,
-                                  roomcat.roomviewid,
-                                  prices?.roprice,
-                                  roomcat.roomtype,
-                                  roomcat.roomview,
-                                  'fb',
-                                )
-                              }}
-                            />
-                            <p className="text-red-600 font-bold">
-                              Deal: <span className="text-black">FB Price</span>
-                            </p>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="line-through mr-2 text-gray-400">
-                              {/* {formatPrice(roomcat.hbprice)} {currency} */}
-                            </span>
-                            <span className="font-bold">
-                              {/* {formatPrice(deal.discountedPrice)} {currency} */}
-                              {prices && prices.fbprice}
-                            </span>
-                          </div>
-                        </div>
-                      </label>
-                      <label>
-                        <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
-                          <div className="flex items-center">
-                            <input
-                              type="radio"
-                              name="deal"
-                              className="mr-2"
-                              checked={
-                                selectedRoomBasis.find(
-                                  (rb) =>
-                                    rb.typeid == roomcat.roomtypeid &&
-                                    rb.viewid == roomcat.roomviewid &&
-                                    rb.basis == 'ro',
-                                )
-                                  ? true
-                                  : false
-                              }
-                              onChange={(e) => {
-                                bookingBasishandle(
-                                  e.target.checked,
-                                  roomcat.roomtypeid,
-                                  roomcat.roomviewid,
-                                  prices?.roprice,
-                                  roomcat.roomtype,
-                                  roomcat.roomview,
-                                  'ro',
-                                )
-                              }}
-                            />
-                            <p className="text-red-600 font-bold">
-                              Deal: <span className="text-black">RO Price</span>
-                            </p>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="line-through mr-2 text-gray-400">
-                              {/* {formatPrice(roomcat.hbprice)} {currency} */}
-                            </span>
-                            <span className="font-bold">
-                              {/* {formatPrice(deal.discountedPrice)} {currency} */}
-                              {prices && prices.roprice}
-                            </span>
-                          </div>
-                        </div>
-                      </label>
-                      <label>
-                        <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
-                          <div className="flex items-center">
-                            <input
-                              type="radio"
-                              name="deal"
-                              className="mr-2"
-                              checked={
-                                selectedRoomBasis.find(
-                                  (rb) =>
-                                    rb.typeid == roomcat.roomtypeid &&
-                                    rb.viewid == roomcat.roomviewid &&
-                                    rb.basis == 'bb',
-                                )
-                                  ? true
-                                  : false
-                              }
-                              onChange={(e) => {
-                                bookingBasishandle(
-                                  e.target.checked,
-                                  roomcat.roomtypeid,
-                                  roomcat.roomviewid,
-                                  prices?.roprice,
-                                  roomcat.roomtype,
-                                  roomcat.roomview,
-                                  'bb',
-                                )
-                              }}
-                            />
-                            <p className="text-red-600 font-bold">
-                              Deal: <span className="text-black">BB Price</span>
-                            </p>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="line-through mr-2 text-gray-400">
-                              {/* {formatPrice(roomcat.hbprice)} {currency} */}
-                            </span>
-                            <span className="font-bold">
-                              {/* {formatPrice(deal.discountedPrice)} {currency} */}
-                              {prices && prices.bbprice}
-                            </span>
-                          </div>
-                        </div>
-                      </label>
+                                <p className="text-red-600 font-bold">
+                                  Deal:{' '}
+                                  <span className="text-black">HB Price</span>
+                                </p>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="line-through mr-2 text-gray-400">
+                                  {/* {formatPrice(roomcat.hbprice)} {currency} */}
+                                </span>
+                                <span className="font-bold">
+                                  {/* {formatPrice(deal.discountedPrice)} {currency} */}
+                                  {prices && prices.hbprice}
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+                          <label>
+                            <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                              <div className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  className="mr-2"
+                                  checked={
+                                    selectedRoomBasis.find(
+                                      (rb) =>
+                                        rb.typeid == roomcat.roomtypeid &&
+                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.basis == 'fb',
+                                    )
+                                      ? true
+                                      : false
+                                  }
+                                  onChange={(e) => {
+                                    console.log(
+                                      'e.target.value 1',
+                                      e.target.checked,
+                                    )
 
-                      <div className="border border-green-500 flex items-center justify-between p-2 rounded-lg">
-                        <div>{selectedDeal}</div>
-                        <button
-                          className="bg-orange-300 text-black py-2 px-4 mt-4"
-                          onClick={() =>
-                            bookinghandle(
-                              roomcat.roomtypeid,
-                              roomcat.roomviewid,
-                              1000,
-                              roomcat.roomtype,
-                              roomcat.roomview,
-                              'trgrdgg',
-                            )
-                          }
-                        >
-                          Book
-                        </button>
+                                    bookingBasishandle(
+                                      e.target.checked,
+                                      roomcat.roomtypeid,
+                                      roomcat.roomviewid,
+                                      prices?.fbprice,
+                                      roomcat.roomtype,
+                                      roomcat.roomview,
+                                      'fb',
+                                    )
+                                  }}
+                                />
+                                <p className="text-red-600 font-bold">
+                                  Deal:{' '}
+                                  <span className="text-black">FB Price</span>
+                                </p>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="line-through mr-2 text-gray-400">
+                                  {/* {formatPrice(roomcat.hbprice)} {currency} */}
+                                </span>
+                                <span className="font-bold">
+                                  {/* {formatPrice(deal.discountedPrice)} {currency} */}
+                                  {prices && prices.fbprice}
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+                          <label>
+                            <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                              <div className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  className="mr-2"
+                                  checked={
+                                    selectedRoomBasis.find(
+                                      (rb) =>
+                                        rb.typeid == roomcat.roomtypeid &&
+                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.basis == 'ro',
+                                    )
+                                      ? true
+                                      : false
+                                  }
+                                  onChange={(e) => {
+                                    console.log(
+                                      'e.target.value 2',
+                                      e.target.checked,
+                                    )
+
+                                    bookingBasishandle(
+                                      e.target.checked,
+                                      roomcat.roomtypeid,
+                                      roomcat.roomviewid,
+                                      prices?.roprice,
+                                      roomcat.roomtype,
+                                      roomcat.roomview,
+                                      'ro',
+                                    )
+                                  }}
+                                />
+                                <p className="text-red-600 font-bold">
+                                  Deal:{' '}
+                                  <span className="text-black">RO Price</span>
+                                </p>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="line-through mr-2 text-gray-400">
+                                  {/* {formatPrice(roomcat.hbprice)} {currency} */}
+                                </span>
+                                <span className="font-bold">
+                                  {/* {formatPrice(deal.discountedPrice)} {currency} */}
+                                  {prices && prices.roprice}
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+                          <label>
+                            <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                              <div className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  className="mr-2"
+                                  checked={
+                                    selectedRoomBasis.find(
+                                      (rb) =>
+                                        rb.typeid == roomcat.roomtypeid &&
+                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.basis == 'bb',
+                                    )
+                                      ? true
+                                      : false
+                                  }
+                                  onChange={(e) => {
+                                    console.log(
+                                      'e.target.value 3',
+                                      e.target.checked,
+                                    )
+
+                                    bookingBasishandle(
+                                      e.target.checked,
+                                      roomcat.roomtypeid,
+                                      roomcat.roomviewid,
+                                      prices?.bbprice,
+                                      roomcat.roomtype,
+                                      roomcat.roomview,
+                                      'bb',
+                                    )
+                                  }}
+                                />
+                                <p className="text-red-600 font-bold">
+                                  Deal:{' '}
+                                  <span className="text-black">BB Price</span>
+                                </p>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="line-through mr-2 text-gray-400">
+                                  {/* {formatPrice(roomcat.hbprice)} {currency} */}
+                                </span>
+                                <span className="font-bold">
+                                  {/* {formatPrice(deal.discountedPrice)} {currency} */}
+                                  {prices && prices.bbprice}
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+
+                          {selectedRoomBasis.find(
+                            (r) =>
+                              r.typeid == roomcat.roomtypeid &&
+                              r.viewid == roomcat.roomviewid,
+                          ) && (
+                            <div className="border border-green-500 flex items-center justify-between p-2 rounded-lg">
+                              <div>{selectedDeal}</div>
+                              <button
+                                className="bg-orange-300 text-black py-2 px-4 mt-4"
+                                onClick={() =>
+                                  bookinghandle(
+                                    roomcat.roomtypeid,
+                                    roomcat.roomviewid,
+                                    1000,
+                                    roomcat.roomtype,
+                                    roomcat.roomview,
+                                    'trgrdgg',
+                                  )
+                                }
+                              >
+                                Book
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              )
-            })}
+                  )
+                })}
+              </div>
+            )}
           </div>
-        )}
+          <div>
+            <SelectedRoomsList
+              selectedRooms={selectedRooms}
+              // handleRemove={bookinghandle}
+            />
+          </div>
+        </div>
         {/* <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2">
             

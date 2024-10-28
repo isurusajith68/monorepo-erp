@@ -181,6 +181,7 @@ app.put('/bookings/:id', (req, res) => {
 
   // Prepare arrays for guestinformation and booking updates
   const guestInfoFields = [
+    'checkindate',
     'firstname',
     'lastname',
     'email',
