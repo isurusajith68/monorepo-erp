@@ -42,18 +42,25 @@ import { useEffect } from 'react'
 import { Slide, ToastContainer, toast as notify } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import '../app-component/style.css'
+import { Label } from '~/components/ui/label'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Query to fetch hotel rooms and their associated images using INNER JOIN
   const query = `
     SELECT hotelrooms.*, roomimages.images
     FROM hotelrooms
-    INNER JOIN roomimages
-    ON hotelrooms.id = roomimages.roomid;
+    INNER JOIN roomimages ON hotelrooms.id = roomimages.roomid;
   `
 
-  // Execute the joined query
+  // Execute the joined query for hotel rooms and images
   const result = await client.query(query)
+
+  // Query to fetch room amenities
+  const amenitiesQuery = `
+    SELECT roomid, amenityid FROM roomamenitydetails;
+  `
+  const amenitiesResult = await client.query(amenitiesQuery)
+  // console.log("amenitiesResult",amenitiesResult.rows)
 
   // Process and map the results to convert the images from Buffer to Base64
   const hotels = result.rows.reduce((acc: any, row: any) => {
@@ -71,31 +78,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
       acc.push({
         ...row,
         images: imageBase64 ? [imageBase64] : [],
+        amenities: [], // Initialize amenities array for each hotel
       })
     }
     return acc
   }, [])
+
+  // Map amenities to the corresponding hotel room
+  hotels.forEach((hotel: any) => {
+    hotel.amenities = amenitiesResult.rows
+      .filter((amenity: any) => amenity.roomid === hotel.id)
+      .map((amenity: any) => amenity.amenityid)
+  })
+
+  // Additional queries for views and room types
   const resultview = await client.query('SELECT * FROM hotelroomview')
   const resulttype = await client.query('SELECT * FROM hotelroomtypes')
-  // const resultamt = await client.query('SELECT * FROM roomamenitydetails WH')
+  const resultamt = await client.query('SELECT * FROM roomamenities')
 
-
-  // Check if there are no rows, return an empty object
-  if (
-    hotels.length === 0 &&
-    resultview.rows.length === 0 &&
-    resulttype.rows.length === 0
-  ) {
-    return json({})
-  } else {
-    // Return the processed hotel data with images
-    // console.log('Processed hotels data: ',  resultview.rows )
-    return json({
-      hotels,
-      resultview: resultview.rows,
-      roomTypes: resulttype.rows,
-    })
-  }
+  // Return processed hotel data with images, amenities, views, and room types
+  return json({
+    hotels,
+    resultview: resultview.rows,
+    roomTypes: resulttype.rows,
+    roomAmenities: resultamt.rows,
+  })
 }
 
 // Helper to return json with toast
@@ -117,6 +124,9 @@ export async function action({ request }: ActionFunctionArgs) {
     // DELETE request
     const delamenity = `DELETE FROM roomamenitydetails WHERE roomid = $1`
     await client.query(delamenity, [id])
+
+    const queryroom = `DELETE FROM hotelrooms WHERE roomviewid = $1`;
+    await client.query(queryroom, [id]);
 
     const query = `DELETE FROM hotelrooms WHERE id = $1`
     await client.query(query, [id])
@@ -141,6 +151,7 @@ export default function RoomList() {
   const data = Data?.hotels ?? []
   const roomview = Data?.resultview ?? []
   const roomTypes = Data?.roomTypes ?? []
+  const roomAmenities = Data.roomAmenities ?? []
   console.log('first', data)
 
   const actionData = useActionData() // Capture action data (including toast data)
@@ -209,14 +220,18 @@ export default function RoomList() {
 
                     {/* Room Type - Display the name instead of the ID */}
                     <TableCell className="text-center px-4 py-2">
-                      {roomTypes.find((type :any) => type.id.toString() === item.roomtypeid.toString())
-                        ?.roomtype || 'Unknown Type'}
+                      {roomTypes.find(
+                        (type: any) =>
+                          type.id.toString() === item.roomtypeid.toString(),
+                      )?.roomtype || 'Unknown Type'}
                     </TableCell>
 
                     {/* Room View - Display the name instead of the ID */}
                     <TableCell className="text-center px-4 py-2">
-                      {roomview.find((view : any) => view.id.toString() === item.roomviewid.toString())
-                        ?.roomview || 'Unknown View'}
+                      {roomview.find(
+                        (view: any) =>
+                          view.id.toString() === item.roomviewid.toString(),
+                      )?.roomview || 'Unknown View'}
                     </TableCell>
 
                     <TableCell className="text-center px-4 py-2">
@@ -225,26 +240,26 @@ export default function RoomList() {
 
                     {/* Display AC, TV, WiFi, and Balcony */}
                     <TableCell className="text-center px-4 py-2">
-                      {item.ac === 'on' && (
-                        <span style={{ color: 'green', marginRight: '10px' }}>
-                          AC
-                        </span>
-                      )}
-                      {item.tv === 'on' && (
-                        <span style={{ color: 'blue', marginRight: '10px' }}>
-                          TV
-                        </span>
-                      )}
-                      {item.wifi === 'on' && (
-                        <span style={{ color: 'purple', marginRight: '10px' }}>
-                          WiFi
-                        </span>
-                      )}
-                      {item.balcony === 'on' && (
-                        <span style={{ color: 'orange', marginRight: '10px' }}>
-                          Balcony
-                        </span>
-                      )}
+                      <div className="flex flex-row gap-4">
+                        {item.amenities && item.amenities.length > 0
+                          ? item.amenities.map(
+                              (amenityId: string, index: number) => {
+                                const matchedAmenity = roomAmenities.find(
+                                  (roomAmenity: { id: string; name: string }) =>
+                                    roomAmenity.id === amenityId,
+                                )
+
+                                return (
+                                  <Label key={index}>
+                                    {matchedAmenity
+                                      ? matchedAmenity.name
+                                      : 'Unknown Amenity'}
+                                  </Label>
+                                )
+                              },
+                            )
+                          : 'No Amenities Available'}
+                      </div>
                     </TableCell>
 
                     {/* Display the base64 images */}

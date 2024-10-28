@@ -69,6 +69,13 @@ export async function action({ request }: ActionFunctionArgs) {
   
   if (id) {
     // DELETE request
+     const queryroomprice = `DELETE FROM hotelroomprices WHERE roomviewid = $1`;
+     await client.query(queryroomprice, [id]);
+
+     const queryroom = `DELETE FROM hotelrooms WHERE roomviewid = $1`;
+     await client.query(queryroom, [id]);
+
+    // DELETE request
     const query = `DELETE FROM hotelroomview WHERE id = $1`;
     await client.query(query, [id]);
      // If no ID, returning a generic success message

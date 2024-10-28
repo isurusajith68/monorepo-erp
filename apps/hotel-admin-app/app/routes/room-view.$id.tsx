@@ -137,7 +137,7 @@ function ViewEdit() {
                   <div>
                   <Link
                         className="text-white bg-orange-500 hover:bg-orange-400  w-20 mt-10 h-20"
-                        to={'/room-type/list'}
+                        to={'/room-view/list'}
                       >
                         <Button className='text-white bg-orange-500 hover:bg-orange-400 mt-10'>Close</Button>
                       </Link>

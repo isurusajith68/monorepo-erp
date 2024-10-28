@@ -60,6 +60,9 @@ export async function action({ request }: ActionFunctionArgs) {
   
   if (id) {
     // DELETE request
+    const queryroom = `DELETE FROM hotelroomprices WHERE roomtypeid = $1`;
+    await client.query(queryroom, [id]);
+    // DELETE request
     const query = `DELETE FROM hotelroomtypes WHERE id = $1`;
     await client.query(query, [id]);
     // Returning JSON with success toast data
