@@ -93,29 +93,27 @@ export async function action({ request }: ActionFunctionArgs) {
     const result = await client.query(hotelQuery, hotelValues)
     const roomId = result.rows[0].id // Get inserted room ID
 
-  for (let index = 0; index < selectedAmenities.length; index++) {
+    for (let index = 0; index < selectedAmenities.length; index++) {
+      const element = selectedAmenities[index]
 
-    const element = selectedAmenities[index];
-
-
-    const hotelamtQuery = `
+      const hotelamtQuery = `
     INSERT INTO roomamenitydetails (roomid, amenityid) 
     VALUES ($1, $2)
     RETURNING id`
-    const hotelAmtValues = [roomId, element]
-    const hotelResult = await client.query(hotelamtQuery, hotelAmtValues)
+      const hotelAmtValues = [roomId, element]
+      const hotelResult = await client.query(hotelamtQuery, hotelAmtValues)
 
-    /////////////////
+      /////////////////
+    }
 
-  }
-    
     // Handle image uploads
     const images = formData.getAll('images') // Get all images
     for (const image of images) {
       if (image && typeof image !== 'string') {
         // Convert the image to a buffer
         const imageBuffer = Buffer.from(await image.arrayBuffer())
-
+         console.log("imageBuffer ",imageBuffer )
+         
         // SQL query to insert the image and room ID
         const imageQuery = `
           INSERT INTO roomimages (images, roomid) 

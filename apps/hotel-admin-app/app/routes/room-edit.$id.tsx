@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import getUpdateQuery, { getDirtyValuesTF } from '~/lib/utils'
+import { Label } from '~/components/ui/label'
 
 export let loader: LoaderFunction = async ({ params }) => {
   const { id } = params
@@ -76,12 +77,28 @@ export let loader: LoaderFunction = async ({ params }) => {
   // Query room views and room types separately
   const roomViewQuery = await client.query('SELECT * FROM hotelroomview')
   const roomTypeQuery = await client.query('SELECT * FROM hotelroomtypes')
+  const resultamenities = await client.query('SELECT * FROM roomamenities')
+
+  // Query to fetch room amenities
+  const amenitiesQuery = `
+    SELECT roomid, amenityid FROM roomamenitydetails WHERE roomid = $1;
+  `
+  const amenitiesResult = await client.query(amenitiesQuery, [id])
+  //console.log("amenitiesResult",amenitiesResult.rows)
+
+  // Map amenities to the corresponding hotel room
+  hotels.forEach((hotel: any) => {
+    hotel.amenities = amenitiesResult.rows
+      .filter((amenity: any) => amenity.roomid === hotel.id)
+      .map((amenity: any) => amenity.amenityid)
+  })
 
   // Return the room data along with room types and room views
   return {
     room: hotels[0], // Return the single processed hotel room
     roomViews: roomViewQuery.rows, // Return all room views
     roomTypes: roomTypeQuery.rows, // Return all room types
+    roomAmenities: resultamenities.rows,
   }
 }
 
@@ -100,67 +117,81 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     // Parse the form data
     const formData = await request.formData();
-    const formDataCur = Object.fromEntries(formData);
-    console.log('Current form data:', formDataCur);
+    console.log('Current form data:', formData);
 
-    // Check if an ID exists to identify an update action
-    if (formDataCur.id) {
-      const jsonPayload = formData.get('payload') as string; // Get the payload
+    // Extract form fields
+    const roomno = formData.get('roomno');
+    const roomtype = formData.get('roomtype');
+    const noofbed = formData.get('noofbed');
+    const roomview = formData.get('roomview');
+    const id = formData.get('id');
+    const selectedAmenities = formData.getAll('amenities');
 
-      if (jsonPayload) {
-        // Parse the payload
-        const parsedPayload = JSON.parse(jsonPayload);
+    if (!id) {
+      return json({ success: false, message: 'No room ID provided.' });
+    }
+    // Update the room details
+    const hotelUpdateQuery = `
+      UPDATE hotelrooms 
+      SET roomno = $1, roomtypeid = $2, noofbed = $3, roomviewid = $4
+      WHERE id = $5
+      RETURNING id
+    `;
+    const hotelUpdateValues = [roomno, roomtype, noofbed, roomview, id];
+    const result = await client.query(hotelUpdateQuery, hotelUpdateValues);
+    const roomId = result.rows[0]?.id;
 
-        // Extract room data and remove the 'images' field
-        const roomData = { ...parsedPayload.room };
-        delete roomData.images; // Remove the 'images' key
+    if (!roomId) {
+      throw new Error('Room ID not found after update.');
+    }
 
-        // Log room data without images for debugging
-        console.log('Room Data without images:', roomData);
+    // Delete old amenities for the room
+    const deleteAmenitiesQuery = `DELETE FROM roomamenitydetails WHERE roomid = $1`;
+    await client.query(deleteAmenitiesQuery, [id]);
 
-        // Create a diff of formDataCur and initial roomData to find changes
-        const diff = getDirtyValuesTF(roomData, formDataCur, [], 'id');
+    // Insert new amenities
+    for (const amenityId of selectedAmenities) {
+      const insertAmenityQuery = `
+        INSERT INTO roomamenitydetails (roomid, amenityid) 
+        VALUES ($1, $2)
+      `;
+      await client.query(insertAmenityQuery, [roomId, amenityId]);
+    }
 
-        if (Object.keys(diff).length > 0) {
-          // Generate the update query if there are changes
-          const [uq, vals] = getUpdateQuery(diff, 'hotelrooms', 'id');
+    // // Delete old images for the room
+    const deleteImagesQuery = `DELETE FROM roomimages WHERE roomid = $1`;
+    await client.query(deleteImagesQuery, [id]);
 
-          console.log('Update Query:', uq);
-          console.log('Update Values:', vals);
-
-          // Perform the database update
-          await client.query(uq, vals);
-
-          // Return success message after the update
-          return jsonWithSuccess(
-            { result: 'Data updated successfully!' },
-            'Room data updated successfully!',
-          );
-        } else {
-          // If no changes, return a message indicating no update was needed
-          return jsonWithSuccess(
-            { result: 'No changes detected.' },
-            'No updates were made.',
-          );
-        }
+    // // Handle image uploads
+    const images = formData.getAll('images'); // Get all images
+    console.log('selectedAmenities', images);
+    for (const image of images) {
+      if (image && typeof image !== 'string') {
+        // Convert the image to a buffer
+        const imageBuffer = Buffer.from(await image.arrayBuffer());
+        console.log('selectedAmenities', imageBuffer);
+        // Insert the image and room ID into roomimages
+        const imageQuery = `
+          INSERT INTO roomimages (images, roomid) 
+          VALUES ($1, $2)
+        `;
+        await client.query(imageQuery, [imageBuffer, roomId]);
       }
     }
+    // Return success response
+    return jsonWithSuccess(
+      { message: 'Room Data successfully updated!' },
+      'Room Data successfully updated!'
+    );
   } catch (error) {
-    // Log the error for debugging
     console.error('Error updating hotel info:', error);
 
     // Return error response with details
     return jsonWithSuccess(
       { result: 'Failed to save room information. Please try again.' },
-      'Failed to update room information.',
+      'Failed to update room information.'
     );
   }
-
-  // Default return (in case ID is missing or other issues)
-  return jsonWithSuccess(
-    { result: 'No room ID provided.' },
-    'No room ID found. Please try again.',
-  );
 }
 
 
@@ -176,42 +207,32 @@ function RoomEditForm() {
   const room = data?.room ?? {}
   const roomsView = data?.roomViews ?? []
   const roomTypes = data?.roomTypes ?? []
+  const amenities = data?.roomAmenities ?? []
+  const actionData = useActionData()
 
   console.log('first', room)
-
+ 
+  // UseEffect to handle showing the toast when actionData changes
   useEffect(() => {
-    if (fetcher.data?.toast) {
-      notify(fetcher.data.toast.message, { type: fetcher.data.toast.type })
+    if (actionData?.toast) {
+      // Show success or error toast based on the type
+      notify(actionData.toast.message, { type: actionData.toast.type })
     }
-  }, [fetcher.data])
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
-
-    // Access form data using the FormData API
-    const formElement = document.getElementById('myForm')
-    const formData = new FormData(formElement as HTMLFormElement)
-
-    // Submit data to the server
-    const jsonPayload = JSON.stringify(data)
-
-    // Append the JSON string to the FormData
-    formData.append('payload', jsonPayload)
-
-    // Submit form data
-    await fetcher.submit(formData, { method: 'post' })
-  }
+  }, [actionData])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files) {
-      const selectedFiles = Array.from(files)
+      const selectedFiles = Array.from(files) // Convert FileList to array
       const newPreviews: string[] = []
 
+      // Generate image previews and handle selected file records
       selectedFiles.forEach((file) => {
         const reader = new FileReader()
         reader.onloadend = () => {
           newPreviews.push(reader.result as string)
+
+          // Set the image previews once all files have been processed
           if (newPreviews.length === selectedFiles.length) {
             setImagePreviews((prevPreviews) => [
               ...prevPreviews,
@@ -222,6 +243,21 @@ function RoomEditForm() {
         reader.readAsDataURL(file)
       })
     }
+  }
+  
+
+  const [selectedAmenities, setSelectedAmenities] = useState(room.amenities)
+
+  const handleCheckboxChange = (amenityId: number) => {
+    setSelectedAmenities((prevSelected: any) => {
+      if (prevSelected.includes(amenityId)) {
+        // Remove amenity if it’s already selected
+        return prevSelected.filter((id: any) => id !== amenityId)
+      } else {
+        // Add amenity if it’s not already selected
+        return [...prevSelected, amenityId]
+      }
+    })
   }
 
   return (
@@ -268,7 +304,7 @@ function RoomEditForm() {
             <label htmlFor="roomtype" className="text-gray-600">
               Room Type
             </label>
-            <Select name="roomtype" defaultValue={room.roomtype}>
+            <Select name="roomtype" defaultValue={room.roomtypeid.toString()}>
               <SelectTrigger className="mt-1 border-blue-500">
                 <SelectValue placeholder="Select Room Type" />
               </SelectTrigger>
@@ -303,7 +339,7 @@ function RoomEditForm() {
             <label htmlFor="roomview" className="text-gray-600">
               Room View
             </label>
-            <Select name="roomview" defaultValue={room.roomview}>
+            <Select name="roomview" defaultValue={room.roomviewid.toString()}>
               <SelectTrigger className="mt-1 border-blue-500">
                 <SelectValue placeholder="Select Room View" />
               </SelectTrigger>
@@ -320,56 +356,34 @@ function RoomEditForm() {
             </Select>
           </div>
 
-          {/* Amenities */}
           <div className="flex flex-col">
             <label htmlFor="amenities" className="text-gray-600">
               Amenities
             </label>
           </div>
           <div className="grid grid-cols-4 gap-4 col-span-2">
-            <div>
-              <label htmlFor="ac" className="text-gray-600">
-                AC
-              </label>
-              <Checkbox
-                name="ac"
-                className="ml-5 w-10 h-10 border-blue-500"
-                defaultChecked={room.ac === 'on'}
-              />
-            </div>
+            {amenities.map((amenity: any) => {
+              const isChecked = selectedAmenities.includes(amenity.id)
 
-            <div>
-              <label htmlFor="tv" className="text-gray-600">
-                TV
-              </label>
-              <Checkbox
-                name="tv"
-                className="ml-5 w-10 h-10 border-blue-500"
-                defaultChecked={room.tv === 'on'}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="wifi" className="text-gray-600">
-                Wi-Fi
-              </label>
-              <Checkbox
-                name="wifi"
-                className="ml-5 w-10 h-10 border-blue-500"
-                defaultChecked={room.wifi === 'on'}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="balcony" className="text-gray-600">
-                Balcony
-              </label>
-              <Checkbox
-                name="balcony"
-                className="ml-5 w-10 h-10 border-blue-500"
-                defaultChecked={room.balcony === 'on'}
-              />
-            </div>
+              return (
+                <div key={amenity.id}>
+                  <Label
+                    htmlFor={amenity.name.toLowerCase()}
+                    className="text-gray-600"
+                  >
+                    {amenity.name}
+                  </Label>
+                  <Input
+                    type="checkbox"
+                    name="amenities"
+                    className="ml-5 w-10 h-10 border-blue-500"
+                    value={`${amenity.id}`}
+                    checked={isChecked}
+                    onChange={() => handleCheckboxChange(amenity.id)} // Update checked state
+                  />
+                </div>
+              )
+            })}
           </div>
 
           {/* Image Upload */}
@@ -399,6 +413,16 @@ function RoomEditForm() {
                   ))
                 : 'No Image Available'}
             </div>
+            <div className="mt-4 flex gap-1">
+              {imagePreviews.map((preview, index) => (
+                <img
+                  key={index}
+                  src={preview}
+                  alt={`Room Preview ${index}`}
+                  className="w-20 h-20 object-cover"
+                />
+              ))}
+            </div>
             <div className="flex flex-col w-32 mt-4">
               <Button className="bg-blue-200 hover:bg-blue-300 text-blue-700 px-4 py-2 rounded-lg">
                 + Add More
@@ -408,8 +432,8 @@ function RoomEditForm() {
           <div className="flex gap-5 ml-[95%]">
             <div>
               <Button
-                onClick={handleSubmit}
-                className="bg-blue-200 hover:bg-blue-300 text-blue-700 px-4 py-2 rounded-lg w-32 "
+               type='submit'
+               className="bg-blue-200 hover:bg-blue-300 text-blue-700 px-4 py-2 rounded-lg w-32 "
               >
                 Update
               </Button>
@@ -445,7 +469,7 @@ function RoomEditForm() {
         className="custom-toast-container" // Add custom classes
         bodyClassName="custom-toast-body"
         closeButton={false} // No close button for a clean look
-        onClick={() => navigate('/room-type/list')}
+        onClick={() => navigate('/room-room/list')}
       />
     </div>
   )
