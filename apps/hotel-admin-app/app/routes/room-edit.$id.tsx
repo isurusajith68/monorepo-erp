@@ -399,7 +399,7 @@ function RoomEditForm() {
               multiple
               placeholder="Upload room images"
             />
-            Image Previews *
+            Old Image Previews *
             <div className="mt-4 flex gap-1">
               {room.images && room.images.length > 0
                 ? room.images.map((image: string, imgIndex: number) => (
@@ -413,6 +413,7 @@ function RoomEditForm() {
                   ))
                 : 'No Image Available'}
             </div>
+             New Image Previews *
             <div className="mt-4 flex gap-1">
               {imagePreviews.map((preview, index) => (
                 <img
