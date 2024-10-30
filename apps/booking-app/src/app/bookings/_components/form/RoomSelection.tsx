@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
+
 import {
   useGetBooking,
   useGetPhoneNumber,
@@ -17,90 +19,11 @@ import { getDirtyValuesTF } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { CiCircleRemove } from 'react-icons/ci'
 import RoomCountSelector from './room-counter'
+import { RoomSummaryItem } from './room-summary-item'
 
 // import { useGetAllRoom } from './queries/queries'
 // import { Button } from '../ui/button'
 
-interface Room {
-  name: string
-  imageUrl: string
-  description: string
-  deals: { name: string; originalPrice: number; discountedPrice: number }[]
-  maxOccupants: number
-  size: string
-}
-
-const rooms: Room[] = [
-  {
-    name: 'Luxury Twin',
-    imageUrl: '/path/to/luxury-twin.jpg',
-    description:
-      'Luxury Rooms are located in the Sigiriya wing. They are larger than Superior Rooms...',
-    deals: [
-      {
-        name: 'Breakfast Included',
-        originalPrice: 73500,
-        discountedPrice: 55125,
-      },
-      { name: 'Half Board', originalPrice: 78500, discountedPrice: 58875 },
-      { name: 'Full Board', originalPrice: 83500, discountedPrice: 62625 },
-    ],
-    maxOccupants: 3,
-    size: '388 ft² / 36 m²',
-  },
-  {
-    name: 'Normal',
-    imageUrl: '/path/to/luxury-twin.jpg',
-    description:
-      'Luxury Rooms are located in the Sigiriya wing. They are larger than Superior Rooms...',
-    deals: [
-      {
-        name: 'Breakfast Included',
-        originalPrice: 73500,
-        discountedPrice: 55125,
-      },
-      { name: 'Half Board', originalPrice: 78500, discountedPrice: 58875 },
-      { name: 'Full Board', originalPrice: 83500, discountedPrice: 62625 },
-    ],
-    maxOccupants: 3,
-    size: '388 ft² / 36 m²',
-  },
-  {
-    name: 'Suite',
-    imageUrl: '/path/to/luxury-twin.jpg',
-    description:
-      'Luxury Rooms are located in the Sigiriya wing. They are larger than Superior Rooms...',
-    deals: [
-      {
-        name: 'Breakfast Included',
-        originalPrice: 73500,
-        discountedPrice: 55125,
-      },
-      { name: 'Half Board', originalPrice: 78500, discountedPrice: 58875 },
-      { name: 'Full Board', originalPrice: 83500, discountedPrice: 62625 },
-    ],
-    maxOccupants: 3,
-    size: '388 ft² / 36 m²',
-  },
-  {
-    name: 'Standard ',
-    imageUrl: '/path/to/luxury-twin.jpg',
-    description:
-      'Luxury Rooms are located in the Sigiriya wing. They are larger than Superior Rooms...',
-    deals: [
-      {
-        name: 'Breakfast Included',
-        originalPrice: 73500,
-        discountedPrice: 55125,
-      },
-      { name: 'Half Board', originalPrice: 78500, discountedPrice: 58875 },
-      { name: 'Full Board', originalPrice: 83500, discountedPrice: 62625 },
-      { name: 'Full Board', originalPrice: 83500, discountedPrice: 62625 },
-    ],
-    maxOccupants: 3,
-    size: '388 ft² / 36 m²',
-  },
-]
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value)
 
@@ -149,6 +72,69 @@ type SelectedRoomType = {
   price?: number | null
   basis?: string | null
   count?: number | null
+  occupantdetails?: any[] | null
+}
+const SelectedRoomsList = ({
+  selectedRooms,
+  handleremove,
+  handleCount,
+  addoccupentdata,
+}) => {
+  const [totalAmount, setTotalAmount] = useState<number>(0)
+  const calTotal = (selectedRooms1) => {
+    const t = selectedRooms1.reduce((a, c) => a + c.count * c.price, 0)
+    console.log('tttt', t)
+
+    setTotalAmount(t)
+  }
+  // const [roomAmounts, setRoomAmounts] = useState({}); // Track each room’s amount individually
+  // const handleCount = (c:number,typeid:number,viewid:number,basis:string)=>{
+  //  const t = selectedRooms.find(r=> r.typeid==typeid && r.viewid==viewid && r.basis ==basis)
+  //  if(t){
+  //   t.count = c
+  //  }
+
+  //  console.log("selectedRooms",selectedRooms)
+  //  calTotal(selectedRooms)
+
+  // }
+
+  useEffect(() => {
+    console.log('selectedRoomsx', selectedRooms)
+    calTotal(selectedRooms)
+  }, [selectedRooms])
+  // Function to update each room's total amount based on count and price
+  const updateTotal = (amount) => {
+    // setTotalAmount(p=> p+amount)
+    //setRoomAmounts((prev) => ({ ...prev, [`${typeid}-${viewid}`]: amount }));
+  }
+
+  // useEffect(() => {
+  //   // Calculate the total amount whenever roomAmounts changes
+  //   const newTotal = Object.values(roomAmounts).reduce((sum, amount) => sum + amount, 0);
+  //   setTotalAmount(newTotal);
+  // }, [roomAmounts]);
+
+  return (
+    <div className="p-4 border-l border-gray-300">
+      <h3 className="text-xl font-bold mb-4">Selected Rooms</h3>
+      {selectedRooms.length > 0 ? (
+        selectedRooms.map((room, index) => (
+          <RoomSummaryItem
+            room={room}
+            handleremove={handleremove}
+            updateTotal={updateTotal}
+            handleCount={handleCount}
+            addoccupentdata={addoccupentdata}
+            key={index}
+          />
+        ))
+      ) : (
+        <p className="text-gray-500">No rooms selected.</p>
+      )}
+      <p className="font-bold">Total Amount : {totalAmount}</p>
+    </div>
+  )
 }
 
 const RoomSelection = () => {
@@ -157,7 +143,7 @@ const RoomSelection = () => {
   const navigate = useNavigate()
   const [currency, setCurrency] = useState('LKR')
   const [exchangeRate, setExchangeRate] = useState(1)
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
+  // const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [selectedDeal, setSelectedDeal] = useState<string | null>(null)
   const [phone, setphone] = useState()
@@ -177,7 +163,7 @@ const RoomSelection = () => {
   )
   const { data: roomprices } = useGetPrice(checkindate)
 
-  const [totalAmount, settotalAmount] = useState<number>(0)
+  // const [totalAmount, settotalAmount] = useState<number>(0)
 
   const [selectedRooms, setselectedRooms] = useState<SelectedRoomType[]>([])
   const [selectedRoomBasis, setselectedRoomBasis] = useState<
@@ -186,16 +172,8 @@ const RoomSelection = () => {
 
   console.log('roomprice', roomprices)
 
-  // useEffect(() => {
-  //   console.log("debouncedPhone",debouncedPhone)
-  // }, [phone,debouncedPhone]);
-
   useEffect(() => {
     if (getphonedata) {
-      // form.setFieldValue('booking_id', q.booking_id)
-      // form.setFieldValue('checkoutdate', q.checkoutdate)
-      //form.setFieldValue('flexibledates', q.flexibledates)
-
       form.setFieldValue('firstname', getphonedata.firstname)
       form.setFieldValue('lastname', getphonedata.lastname)
       form.setFieldValue('email', getphonedata.email)
@@ -303,142 +281,20 @@ const RoomSelection = () => {
 
   console.log('checkindateeeeeeeeeeeeeeeeeeeeeeee', checkindate)
 
-  const { data: roomviewtypes, isFetched: a } = useGetRoomtype(
+  const { data: roomviewtypes, isFetched: isFetchedRoomTypes } = useGetRoomtype(
     checkindate,
     checkoutdate,
   )
 
   console.log('roomviewtypes', roomviewtypes)
 
-  // const checkindate = form.getValue('checkindate');
-  // const checkoutdate = form.getValue('checkoutdate');
-
-  // const handleSearch = () => {
-  //   const searchData = {
-  //     checkindate,
-  //     checkoutdate
-  //   };
-
-  //   // Send searchData to your backend API
-  //   console.log('Sending data to backend:', searchData);
-  // };
-
-  // const form = useForm({
-  //   defaultValues: {
-  //     booking_id: null,
-  //     checkindate: new Date().toISOString().split('T')[0],
-  //     checkoutdate: new Date().toISOString().split('T')[0],
-  //     flexibledates: false,
-  //     adults: 1,
-  //     children: 0,
-  //     currency: 'USD',
-  //     firstname: '',
-  //     lastname: '',
-  //     email: '',
-  //     phonenumber: '',
-  //     address: '',
-  //     city: '',
-  //     country: '',
-  //     postalcode: '',
-  //   },
-  //   onSubmit: async ({ value: data }) => {
-  //     if (id) {
-  //       const res = getDirtyValuesTF(q, data)
-  //       console.log('wwwwwwwwwwwwww', q, data, res)
-  //       // const responseData = await insertMutation.mutateAsync({ res })
-  //     } else {
-  //       // Do something with form data
-  //       // console.log('hloooooooooooooooooooooooo', data)
-  //       const responseData = await insertMutation.mutateAsync({ data })
-
-  //       if (responseData.success) {
-  //         const newId = responseData.bookingId
-
-  //         // setValue('id', newId, { shouldDirty: false })
-
-  //         toast({
-  //           className: 'text-green-600',
-  //           title: 'Booking',
-  //           description: <span>Added successfully.</span>,
-  //           duration: 2000,
-  //         })
-
-  //         navigate(`/booking/${newId}`)
-  //         // getDirtyValuesTF
-  //       }
-  //     }
-  //   },
-  // })
-
   const { data: q, isLoading, isError, error } = useGetBooking(id)
-  // console.log('data', q)
-
-  //----------------------------------------------------------------------------------------
-  const SelectedRoomsList = ({ selectedRooms }) => (
-    <div className="p-4 border-l border-gray-300">
-      <h3 className="text-xl font-bold mb-4">Selected Rooms</h3>
-      {selectedRooms.length > 0 ? (
-        selectedRooms.map((room, index) => (
-          <div className="  key={index} flex justify-between gap-2 mt-2">
-            <div className="flex ">
-              <div>
-                <p className="font-bold">
-                  {room.type} - {room.view}
-                </p>
-                <p className="text-gray-600">Basis: {room.basis}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Price: {room.price}</p>
-                <RoomCountSelector
-                  typeid={room.typeid}
-                  viewid={room.viewid}
-                  basis={room.basis}
-                  roomCount={room.count}
-                  callback={handleRoomcount}
-                />
-              </div>
-            </div>
-
-            <button
-              className="bg-red-500 text-white py-1 px-2 rounded"
-              onClick={() => handleremove(room.typeid, room.viewid, room.basis)}
-            >
-              <CiCircleRemove className="text-4xl" />
-            </button>
-          </div>
-        ))
-      ) : (
-        <p className="text-gray-500">No rooms selected.</p>
-      )}
-      {totalAmount}
-    </div>
-  )
-
-  const handleRoomcount = useCallback(
-    (typeid: number, viewid: number, basis: string, roomCount: number) => {
-      // setselectedRooms(p=> {
-
-      //   const o= p.find(r=> r.typeid== typeid && r.viewid==viewid && r.basis == basis)
-
-      //   return [...p.filter(r=> !(r.typeid== typeid && r.viewid==viewid && r.basis == basis)), {...o,count:roomCount }]
-
-      // })
-      console.log('typeid', roomCount)
-    },
-    [],
-  )
 
   //--------------------------------------------------------------------
 
   useEffect(() => {
     if (q) {
       try {
-        // const { data:q, isLoading, isError, error } = useGetBooking(id)
-        // Replace with your API endpoint
-        // console.log("aaaaaaaaaaaaaaaaaaaaaaaaa",id)
-
-        // console.log('testtttttttttttttttttttttttt', q)
-
         // Populate the form with fetched data
         // form.setFieldValue('checkindate', q.checkindate)
         form.setFieldValue('booking_id', q.booking_id)
@@ -482,10 +338,10 @@ const RoomSelection = () => {
   const formatPrice = (price: number) => {
     return (price * exchangeRate).toFixed(2)
   }
-  const openModal = (room: Room) => {
-    setSelectedRoom(room)
-    setShowModal(true)
-  }
+  // const openModal = (room: Room) => {
+  //   setSelectedRoom(room)
+  //   setShowModal(true)
+  // }
   // const { data } = useGetAllRoom()
   // console.log('first', data)
 
@@ -510,6 +366,8 @@ const RoomSelection = () => {
   // };
 
   const handleremove = (typeid: number, viewid: number, basis: string) => {
+    console.log('pop2')
+
     setselectedRoomBasis((p) => {
       return p.filter(
         (rb) =>
@@ -532,6 +390,8 @@ const RoomSelection = () => {
     view: string,
     basis: string,
   ) => {
+    console.log('pop', typeid, viewid)
+
     setselectedRooms((p) => {
       const res = selectedRoomBasis.find(
         (r) => r.typeid == typeid && r.viewid == viewid,
@@ -547,6 +407,9 @@ const RoomSelection = () => {
             view,
             basis: res.basis,
             count: 1,
+            occupantdetails: [
+              { roomid: 1, adultcount: 3, childcount: 3, infantcount: 4 },
+            ],
           },
         ]
       } else {
@@ -554,6 +417,39 @@ const RoomSelection = () => {
 
         // if(1){
       }
+      // }else{
+      //   return p.filter(r=> r.typeid !== typeid && r.viewid !== viewid)
+      // }
+    })
+  }
+
+  const addoccupentdata = (typeid, viewid, basis) => {
+    setselectedRooms((p) => {
+      const i = p.findIndex(
+        (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
+      )
+      if (i != -1) {
+        return [
+          ...p.slice(0, i - 1),
+          {
+            ...p[i],
+            occupantdetails: [
+              ...p[i].occupantdetails,
+              {
+                roomid: p[i].occupantdetails.length + 1,
+                adultcount: 3,
+                childcount: 3,
+                infantcount: 4,
+              },
+            ],
+          },
+          ...p.slice(i + 1),
+        ]
+      } else {
+        console.warn(' not fount type,view basis')
+        return p
+      }
+
       // }else{
       //   return p.filter(r=> r.typeid !== typeid && r.viewid !== viewid)
       // }
@@ -570,7 +466,7 @@ const RoomSelection = () => {
   ) => {
     console.log('xxtypeid', typeid)
     console.log('xxviewid', viewid)
-
+    console.log('xxselectedRooms', selectedRooms)
     setselectedRoomBasis((p) => {
       console.log('selectedRoomBasis falsee', checked)
       if (checked) {
@@ -583,19 +479,47 @@ const RoomSelection = () => {
     })
   }
 
-  useEffect(() => {
-    selectedRooms.map((r) => {
-      settotalAmount((p) => p + r.count * r.price)
-    })
-  }, [selectedRooms])
+  // useEffect(() => {
+  //   console.log("xxselectedRooms",selectedRooms )
+
+  //   selectedRooms.map((r) => {
+  //     settotalAmount((p) => p + r.count * r.price)
+  //   })
+  // }, [selectedRooms])
 
   useEffect(() => {
-    console.log('selectedRooms', selectedRooms)
+    console.log('qqqselectedRooms', selectedRooms)
   }, [selectedRooms])
   useEffect(() => {
     console.log('selectedRoomBasis', selectedRoomBasis)
   }, [selectedRoomBasis])
 
+  const handleCount = (
+    typeid: number,
+    viewid: number,
+    basis: string,
+    c: number,
+  ) => {
+    //const t = selectedRooms.find(r=> r.typeid==typeid && r.viewid==viewid && r.basis ==basis)
+    // if(t){
+    //  t.count = c
+    // }
+
+    setselectedRooms((p) => {
+      const o = p.find(
+        (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
+      )
+      return [
+        ...p.filter(
+          (r) =>
+            !(r.typeid == typeid && r.viewid == viewid && r.basis == basis),
+        ),
+        { ...o, count: c },
+      ]
+    })
+
+    // calTotal(selectedRooms)
+  }
   return (
     <>
       {/* <header className=" top-0 z-50 flex h-14 items-center justify-center gap-4 border-b  backdrop-blur-md px-4 lg:h-[90px] lg:px-6 bg-[#89749A]">
@@ -848,7 +772,7 @@ const RoomSelection = () => {
         </div>
         <div className="flex justify-between">
           <div>
-            {a && roomprices && (
+            {isFetchedRoomTypes && roomprices && (
               <div>
                 {roomviewtypes.map((roomcat, index) => {
                   const prices = roomprices.find(
@@ -1147,132 +1071,19 @@ const RoomSelection = () => {
           <div>
             <SelectedRoomsList
               selectedRooms={selectedRooms}
-              // handleRemove={bookinghandle}
+              handleremove={handleremove}
+              handleCount={handleCount}
+              addoccupentdata={addoccupentdata}
             />
           </div>
         </div>
-        {/* <div className="grid grid-cols-3 gap-4">
-          <div className="col-span-2">
-            
-            {rooms.map((room, index) => (
-              <div key={index}>
-                <nav className="h-2 bg-red-600 items-center"></nav>
-                <div className="border-b py-4 grid grid-cols-2 gap-1">
-                  <div className="ml-4">
-                    <h3 className="text-xl font-bold">{room.name}</h3>
-                    <p className="text-sm">{room.description}</p>
-                    <p className="text-sm">
-                      Max Occupants: {room.maxOccupants}
-                    </p>
-                    <p className="text-sm">Size: {room.size}</p>
-                    <button
-                      className="text-blue-600 underline mt-2"
-                      onClick={() => openModal(room)}
-                    >
-                      View Room Details
-                    </button>
-                  </div>
-
-                  <div>
-                    {room.deals.map((deal) => (
-                      <label
-                        key={deal.name}
-                        className="mb-2 flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded-lg"
-                        onClick={() => setSelectedDeal(deal.name)}
-                      >
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            name="deal"
-                            className="mr-2"
-                            checked={selectedDeal === deal.name}
-                            onChange={() => setSelectedDeal(deal.name)}
-                          />
-                          <p className="text-red-600 font-bold">
-                            Deal:{' '}
-                            <span className="text-black">{deal.name}</span>
-                          </p>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="line-through mr-2 text-gray-400">
-                            {formatPrice(deal.originalPrice)} {currency}
-                          </span>
-                          <span className="font-bold">
-                            {formatPrice(deal.discountedPrice)} {currency}
-                          </span>
-                        </div>
-                      </label>
-                    ))}
-                    <div className="border border-green-500 flex items-center justify-between p-2 rounded-lg">
-                      <div>{selectedDeal}</div>
-                      <button className="bg-orange-300 text-black py-2 px-4 mt-4">
-                        Book
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          Price Summary
-          <div className="col-span-1">
-            <div>
-              <h2 className="text-lg font-semibold mb-2">Price Summary</h2>
-              <p className="break-words">
-                yoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
-              </p>
-            </div>
-          </div>
-        </div> */}
 
         {/* Modal */}
-        {showModal && selectedRoom && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg w-1/2">
-              <h2 className="text-xl font-bold">{selectedRoom.name}</h2>
-              <p>{selectedRoom.description}</p>
-              <button
-                className="bg-red-500 text-white py-2 px-4 mt-4"
-                onClick={() => setShowModal(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
       </div>
       {/*  ------------------------------------------------------------------------------ */}
 
       <div className="container mx-auto p-6">
         <div className="grid grid-cols-3 gap-8">
-          {/* Your Reservation Section */}
-          {/* <div className="col-span-1 bg-gray-100 p-4 rounded">
-            <h2 className="text-lg font-semibold mb-2">Your Reservation</h2>
-            <div className="text-red-600 mb-2">
-              <p className="font-bold">
-                Deal: <span className="text-black">Breakfast Included</span>
-              </p>
-              <p>Superior King - 1 room</p>
-              <p className="font-bold text-lg">LKR 61,250.00</p>
-            </div>
-            <div className="mb-4">
-              <p>1 night & 2 adults</p>
-              <p className="line-through">LKR 70,000.00</p>
-              <p>LKR 61,250.00</p>
-            </div>
-            <div className="mb-4">
-              <p>
-                Total: <span className="font-bold">LKR 61,250.00</span>
-              </p>
-              <p>Included in the Rate:</p>
-              <p>VAT & Service Charge: LKR 15,242.34</p>
-            </div>
-            <div className="text-blue-600">
-              <p className="underline cursor-pointer">+ Another Request</p>
-            </div>
-          </div> */}
-
           {/* Guest Information Section */}
           <div className="col-span-2 bg-white p-4 rounded">
             <h2 className="text-lg font-semibold mb-2">Guest Information</h2>

@@ -449,16 +449,18 @@ app.get('/bookings/:id', async (req, res) => {
 app.get('/rooms', (req, res) => {
   const { checkindate, checkoutdate } = req.query
   const getAllBookingQuery = `
- select r.roomtypeid,r.roomviewid, t.roomtype ,v.roomview from public.hotelrooms r
-  JOIN public.hotelroomtypes t 
-  on t.id = r.roomtypeid 
-  JOIN public.hotelroomview v
-  on v.id = r.roomviewid 
-  WHERE r.id not in 
-  (SELECT roomid FROM public.bookingdetails 
-  WHERE '${checkindate}' BETWEEN checkin AND checkout
-  or '${checkoutdate}'  between checkin AND checkout)
-  group by r.roomtypeid , r.roomviewid ,t.roomtype ,v.roomview
+  select r.roomtypeid,r.roomviewid, t.roomtype ,v.roomview,t.maxadultcount from public.hotelrooms r
+JOIN public.hotelroomtypes t 
+on t.id = r.roomtypeid 
+JOIN public.hotelroomview v
+on v.id = r.roomviewid 
+WHERE r.id not in 
+(SELECT bd.roomid FROM public.bookingdetails bd
+join public.booking b 
+on b.id =bd.bookingid
+WHERE '${checkindate}' BETWEEN b.checkindate AND b.checkoutdate
+or '${checkoutdate}'  between b.checkindate AND b.checkoutdate)
+group by r.roomtypeid , r.roomviewid ,t.roomtype ,v.roomview,t.maxadultcount
 
 `
 

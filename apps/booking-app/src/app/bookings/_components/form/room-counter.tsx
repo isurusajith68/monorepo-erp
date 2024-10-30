@@ -1,45 +1,152 @@
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select'
+
+type Occupentrow = {
+  roomid: number
+  adultcount: number
+  childcount: number
+  infantcount: number
+}
+
 type P = {
   typeid: number
   viewid: number
   basis: string
   count: number
-  callback: () => void
+  callback: (typeid, viewid, basis, count) => void
+  occupantdetails: Occupentrow[]
+  addoccupentdata: (typeid, viewid, basis, count) => void
 }
 
-const RoomCountSelector = ({ typeid, viewid, basis, count, callback }: P) => {
-  const [roomCount, setRoomCount] = useState(count ?? 1)
+const RoomCountSelector = ({
+  typeid,
+  viewid,
+  basis,
+  count,
+  callback,
+  occupantdetails,
+  addoccupentdata,
+}: P) => {
+  //   const [roomCount, setRoomCount] = useState(count ?? 1)
+  //   console.log("xroomcount 1", roomCount)
 
-  useEffect(() => {
-    callback(typeid, viewid, basis, roomCount)
-  }, [roomCount])
-  const increment = () =>
-    setRoomCount((prev) => {
-      // callback(typeid, viewid, basis, roomCount)
+  //   useEffect(() => {
+  //     console.log("xroomcount 2", roomCount)
 
-      return prev + 1
-    })
-  const decrement = () =>
-    setRoomCount((prev) => {
-      // callback(typeid, viewid, basis, roomCount)
+  //      callback( roomCount)
+  //   }, [roomCount])
+  const increment = () => {
+    //setRoomCount((prev) => {
+    //    callback(typeid, viewid, basis, ++count)
+    addoccupentdata(typeid, viewid, basis, ++count)
 
-      return prev > 1 ? prev - 1 : 1
-    })
+    //   return prev + 1
+  }
+  const decrement = () => {
+    // callback(typeid, viewid, basis, --count )
+    addoccupentdata(typeid, viewid, basis, --count)
+  }
+  // setRoomCount((prev) => {
+  //   // callback(typeid, viewid, basis, roomCount)
+
+  //   return prev > 1 ? prev - 1 : 1
+  // })
 
   return (
-    <div className="flex items-center space-x-4">
-      <Button onClick={decrement} disabled={roomCount === 1}>
-        -
-      </Button>
-      <Input
-        type="number"
-        value={roomCount}
-        readOnly
-        className="w-16 text-center"
-      />
-      <Button onClick={increment}>+</Button>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center space-x-4">
+        <Button
+          onClick={() => {
+            decrement()
+          }}
+          disabled={count === 1}
+        >
+          -
+        </Button>
+        <Input
+          type="number"
+          value={count}
+          readOnly
+          className="w-16 text-center"
+        />
+        <Button
+          onClick={() => {
+            increment()
+          }}
+        >
+          +
+        </Button>
+      </div>
+      {occupantdetails?.map((oc) => (
+        <div
+          key={oc.roomid}
+          className="flex items-center justify-between gap-4 p-4 bg-gray-200 rounded-md"
+        >
+          <div className="flex flex-col items-center">
+            <span className="font-medium">{oc.roomid}</span>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <span className="font-medium">Adults</span>
+            <Select value={oc.adultcount.toString()}>
+              <SelectTrigger className="w-16">
+                <SelectValue placeholder="0" />
+              </SelectTrigger>
+              <SelectContent>
+                {[1, 2, 3, 4, 5].map((num) => (
+                  <SelectItem key={num} value={num.toString()}>
+                    {num}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <span className="font-medium">Children (2-12 y)</span>
+            <Select value={oc.childcount.toString()}>
+              <SelectTrigger className="w-16">
+                <SelectValue placeholder="0" />
+              </SelectTrigger>
+              <SelectContent>
+                {[0, 1, 2, 3, 4, 5].map((num) => (
+                  <SelectItem key={num} value={num.toString()}>
+                    {num}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <span className="font-medium">Infants (0-2 y)</span>
+            <Select value={oc.infantcount.toString()}>
+              <SelectTrigger className="w-16">
+                <SelectValue placeholder="0" />
+              </SelectTrigger>
+              <SelectContent>
+                {[0, 1, 2, 3, 4, 5].map((num) => (
+                  <SelectItem key={num} value={num.toString()}>
+                    {num}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button variant="ghost" className="text-red-600">
+            Remove
+          </Button>
+        </div>
+      ))}
     </div>
   )
 }
