@@ -4,6 +4,8 @@ import RequestForm from '@/views/RequestForm.vue'
 import RequestTable  from '@/views/RequestTable.vue'
 import ItemTable from '@/views/ItemTable.vue'
 import UnitTable from '@/views/UnitTable.vue'
+import ItemCategories from '@/views/ItemCategories.vue'
+import PurchaseRequest from '@/views/PurchaseRequest.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -21,6 +23,14 @@ const router = createRouter({
     //   // which is lazy-loaded when the route is visited.
     //   component: () => import('../views/AboutView.vue')
     // },
+
+
+    {
+      path: '/request',
+      name: 'request',
+      component: PurchaseRequest
+    },
+
 
    {
       path: '/form',
@@ -46,6 +56,11 @@ const router = createRouter({
     path: '/units',
     name: 'units',
     component: UnitTable
+  },
+  {
+    path: '/categories',
+    name: 'categories',
+    component: ItemCategories
   }
   
   ]

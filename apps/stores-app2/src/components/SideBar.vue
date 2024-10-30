@@ -21,12 +21,14 @@
   <script setup>
   import { Home, Archive, Shuffle, Inbox, Box, ShoppingBag, Tag, Paperclip, BarChart2, FilePlus } from 'lucide-vue-next'
   
-  
+
   const menuItems = [
-    { icon: Home, label: 'RequestForm', path: '/form' },
-    { icon: Archive, label: 'RequestTable', path: '/table' },
+    // { icon: Home, label: 'RequestForm', path: '/form' },
+    // { icon: Archive, label: 'RequestTable', path: '/table' },
+    { icon: Archive, label: 'Request', path: '/request' },
     { icon: Archive, label: 'Items', path: '/items' },
     { icon: Archive, label: 'Units', path: '/units' },
+    { icon: Archive, label: 'Categories', path: '/categories' },
     // { icon: Shuffle, label: 'Transaction', path: '/transaction' },
     // { icon: Inbox, label: 'Requests', path: '/requests' },
     // { icon: Box, label: 'Inventory', path: '/inventory' },

@@ -87,10 +87,10 @@ const onSubmit = form.handleSubmit(async (values) => {
 });
 
 //resubmit the changed data in table 
-const submitRowData = (index: number) => {
-  const rowData = submittedData.value[index]
-  console.log('Row Edited:', rowData)
-}
+// const submitRowData = (index: number) => {
+//   const rowData = submittedData.value[index]
+//   console.log('Row Edited:', rowData)
+// }
 
 </script>
 

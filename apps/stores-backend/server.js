@@ -30,16 +30,16 @@ app.post('/', async (req, res) => {
 
 
 //fetch the data 
-app.get('/requests', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM goodreq');
-        console.log('Fetched Data:', result.rows); 
-        res.json(result.rows); 
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        res.status(500).send('Internal Server Error');
-    }
-});
+// app.get('/requests', async (req, res) => {
+//     try {
+//         const result = await pool.query('SELECT * FROM goodreq');
+//         console.log('Fetched Data:', result.rows); 
+//         res.json(result.rows); 
+//     } catch (error) {
+//         console.error('Error fetching data:', error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// });
 
 //fetch items
 app.get('/items', async (req, res) => {
@@ -63,11 +63,11 @@ app.post('/additem', async (req, res) => {
       
         console.log('Received data:', req.body);
 
-        const { id, name, categoryid, defaultunit,description } = req.body;
+        const {  name, categoryid, defaultunit,description,itemtype} = req.body;
 
    
-        const insertSTMT = `INSERT INTO items (id, name, categoryid, defaultunit,description) VALUES ($1, $2, $3, $4,$5)`;
-        await pool.query(insertSTMT, [id, name, categoryid, defaultunit,description]);
+        const insertSTMT = `INSERT INTO items ( name, categoryid, defaultunit,description,itemtype) VALUES ($1, $2, $3, $4,$5)`;
+        await pool.query(insertSTMT, [ name, categoryid, defaultunit,description,itemtype]);
 
         
         res.send('Data inserted successfully');
@@ -167,7 +167,7 @@ app.put('/editunit/:unit', async (req, res) => {
     }
 });
 
-
+//fetch all categories
 app.get('/allcategories', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM itemcategories');
@@ -179,6 +179,177 @@ app.get('/allcategories', async (req, res) => {
     }
 });
 
+// get unit and description
+app.get('/unitoptions', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT unit,description FROM units');
+        console.log('Fetched Data:', result.rows); 
+        res.json(result.rows); 
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+//add new category
+app.post('/addcategory', async (req, res) => {
+    console.log("addcategory");
+    try {
+        console.log('Received data:', req.body);
+
+        const { category, description, itemtype } = req.body; 
+
+        const insertSTMT = `INSERT INTO itemcategories (category, description, itemtype) VALUES ($1, $2, $3)`;
+        
+        await pool.query(insertSTMT, [category, description, itemtype]); 
+
+        res.send('Data inserted successfully');
+    } catch (error) {
+        console.error('Error processing request:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+//delete category
+app.delete('/deletecategory/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const deleteSTMT = `DELETE FROM itemcategories WHERE id = $1`;
+        const result = await pool.query(deleteSTMT, [id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Unit not found' });
+        }
+
+        res.json({ message: 'Category deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting unit:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+//edit category
+app.put('/editcategory/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { category,description,itemtype } = req.body;
+
+        const updateSTMT = `
+            UPDATE itemcategories 
+            SET category = $1,description=$2,itemtype=$3
+            WHERE id = $4
+        `;
+
+        const result = await pool.query(updateSTMT, [category,description,itemtype, id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        res.json({ message: 'Category updated successfully' });
+    } catch (error) {
+        console.error('Error updating unit:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+//delete a cetegory
+app.delete('/deleteitem/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const deleteSTMT = `DELETE FROM items WHERE id = $1`;
+        const result = await pool.query(deleteSTMT, [id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Item not found' });
+        }
+
+        res.json({ message: 'Item deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting unit:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+//edit item 
+app.put('/edititem/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name,categoryid, defaultunit,description,itemtype} = req.body;
+
+        const updateSTMT = `
+            UPDATE items 
+            SET name = $1,categoryid=$2,defaultunit=$3,description=$4,itemtype=$5
+            WHERE id = $6
+        `;
+
+        const result = await pool.query(updateSTMT, [name,categoryid, defaultunit,description,itemtype, id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Unit not found' });
+        }
+
+        res.json({ message: 'Unit updated successfully' });
+    } catch (error) {
+        console.error('Error updating unit:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+//save request hrader
+app.post('/requests', async (req, res) => {
+    console.log("addrequest");
+    try {
+        console.log('Received data:', req.body);
+
+        const { requester, date, department,remark } = req.body; 
+
+        const insertSTMT = `INSERT INTO requests (requester, date, department,remark) VALUES ($1, $2, $3,$4)`;
+        
+        await pool.query(insertSTMT, [requester, date, department,remark]); 
+
+        res.send('Data inserted successfully');
+    } catch (error) {
+        console.error('Error processing request:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+//fetch request
+app.get('/fetchrequests', async (req, res) => {
+    try {
+        const result = await pool.query(`SELECT rq.id,rq.requester,rq.date,rq.department,rq.remark,
+                            rd.item,rd.quentity
+                            FROM requests rq
+                            INNER JOIN requestdetails rd 
+                            ON rq.id = rd.requestid;
+                            
+         
+            `);
+
+
+        
+            
+
+
+          
+     
+
+        console.log('Fetched Data:', result.rows); 
+        res.json(result.rows); 
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 
 app.listen(PORT, () => {
