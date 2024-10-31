@@ -132,6 +132,7 @@ function ViewEdit() {
                     placeholder="Room View"
                     className="col-span-2 h-10"
                     defaultValue={data.name}
+                    required
                   />
                  <div className='flex gap-10 lg:ml-[60%]'>
                   <div>

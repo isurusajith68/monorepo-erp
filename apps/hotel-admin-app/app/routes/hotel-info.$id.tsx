@@ -196,6 +196,7 @@ export default function HotelInfoForm() {
               className="mt-1 border-blue-500"
               placeholder="Enter email address"
               defaultValue={data.email}
+              required
             />
           </div>
 
@@ -209,6 +210,7 @@ export default function HotelInfoForm() {
               className="mt-1 border-blue-500"
               placeholder="Enter mobile number"
               defaultValue={data.mobile}
+              required
             />
           </div>
 
@@ -221,6 +223,7 @@ export default function HotelInfoForm() {
               className="mt-1 border-blue-500"
               placeholder="Enter telephone number"
               defaultValue={data.telephone}
+              required
             />
           </div>
 
@@ -234,6 +237,7 @@ export default function HotelInfoForm() {
               className="mt-1 border-blue-500"
               placeholder="Enter primary address"
               defaultValue={data.address1}
+              required
             />
           </div>
 
@@ -246,6 +250,7 @@ export default function HotelInfoForm() {
               className="mt-1 border-blue-500"
               placeholder="Enter secondary address"
               defaultValue={data.address2}
+              required
             />
           </div>
 
@@ -260,6 +265,7 @@ export default function HotelInfoForm() {
                 className="mt-1 border-blue-500"
                 placeholder="Enter city"
                 defaultValue={data.city}
+                required
               />
             </div>
 
@@ -272,6 +278,7 @@ export default function HotelInfoForm() {
                 className="mt-1 border-blue-500"
                 placeholder="Enter country"
                 defaultValue={data.country}
+                required
               />
             </div>
 
@@ -284,6 +291,7 @@ export default function HotelInfoForm() {
                 className="mt-1 border-blue-500"
                 placeholder="Enter province"
                 defaultValue={data.province}
+                required
               />
             </div>
           </div>
@@ -297,6 +305,7 @@ export default function HotelInfoForm() {
               className="mt-1 border-blue-500"
               placeholder="Enter primary Url"
               defaultValue={data.url}
+              required
             />
           </div>
         </form>

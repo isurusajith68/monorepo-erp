@@ -304,7 +304,7 @@ function RoomEditForm() {
             <label htmlFor="roomtype" className="text-gray-600">
               Room Type
             </label>
-            <Select name="roomtype" defaultValue={room.roomtypeid.toString()}>
+            <Select name="roomtype" defaultValue={room.roomtypeid.toString()} required>
               <SelectTrigger className="mt-1 border-blue-500">
                 <SelectValue placeholder="Select Room Type" />
               </SelectTrigger>
@@ -339,7 +339,7 @@ function RoomEditForm() {
             <label htmlFor="roomview" className="text-gray-600">
               Room View
             </label>
-            <Select name="roomview" defaultValue={room.roomviewid.toString()}>
+            <Select name="roomview" defaultValue={room.roomviewid.toString()} required>
               <SelectTrigger className="mt-1 border-blue-500">
                 <SelectValue placeholder="Select Room View" />
               </SelectTrigger>

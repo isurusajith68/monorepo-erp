@@ -224,7 +224,7 @@ export default function RoomAddForm() {
             <label htmlFor="roomtype" className="text-gray-600">
               Room Type
             </label>
-            <Select name="roomtype">
+            <Select name="roomtype" required>
               <SelectTrigger className="mt-1 border-blue-500">
                 <SelectValue placeholder="Select Room Type" />
               </SelectTrigger>
@@ -250,6 +250,7 @@ export default function RoomAddForm() {
               name="noofbed"
               className="mt-1 border-blue-500"
               placeholder="Enter number of beds"
+              required
             />
           </div>
 
@@ -258,7 +259,7 @@ export default function RoomAddForm() {
             <label htmlFor="roomview" className="text-gray-600">
               Room View
             </label>
-            <Select name="roomview">
+            <Select name="roomview" required>
               <SelectTrigger className="mt-1 border-blue-500">
                 <SelectValue placeholder="Select Room View" />
               </SelectTrigger>
@@ -376,3 +377,4 @@ export default function RoomAddForm() {
     </div>
   )
 }
+
