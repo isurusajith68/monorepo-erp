@@ -50,23 +50,24 @@ export const RoomSummaryItem = ({
   updateTotal,
   handleCount,
   addoccupentdata,
+  handleremoveocd,
 }) => {
-  const [count, setCount] = useState<number>(room.count ?? 1)
+  //   const [count, setCount] = useState<number>(room.count ?? 1)
 
   const handleRoomCount = (typeid, viewid, basis, c) => {
     console.log('xcount', c)
 
-    setCount(c)
+    // setCount(c)
     handleCount(room.typeid, room.viewid, room.basis, c)
   }
 
   useEffect(() => {
     // Call updateRoomAmount whenever count or price changes
     // updateRoomAmount(room.typeid, room.viewid, count * room.price);
-    updateTotal(count * room.price)
-  }, [count])
+    updateTotal(room.occupantdetails.length * room.price)
+  }, [room.occupantdetails.length])
 
-  console.log('counttttt', count)
+  console.log('counttttt', room.occupantdetails.length)
 
   return (
     <div className="flex justify-between gap-2 mt-2">
@@ -80,12 +81,15 @@ export const RoomSummaryItem = ({
           typeid={room.typeid}
           viewid={room.viewid}
           basis={room.basis}
-          count={room.count}
+          count={room.occupantdetails.length}
           callback={handleRoomCount}
           occupantdetails={room.occupantdetails}
           addoccupentdata={addoccupentdata}
+          handleremoveocd={handleremoveocd}
         />
-        <p className="text-gray-600">Amount: {count * room.price}</p>
+        <p className="text-gray-600">
+          Amount: {room.occupantdetails.length * room.price}
+        </p>
       </div>
 
       <button

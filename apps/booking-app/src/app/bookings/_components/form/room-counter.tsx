@@ -24,6 +24,7 @@ type P = {
   callback: (typeid, viewid, basis, count) => void
   occupantdetails: Occupentrow[]
   addoccupentdata: (typeid, viewid, basis, count) => void
+  handleremoveocd: (typeid, viewid, basis, roomid) => void
 }
 
 const RoomCountSelector = ({
@@ -34,6 +35,7 @@ const RoomCountSelector = ({
   callback,
   occupantdetails,
   addoccupentdata,
+  handleremoveocd,
 }: P) => {
   //   const [roomCount, setRoomCount] = useState(count ?? 1)
   //   console.log("xroomcount 1", roomCount)
@@ -46,13 +48,13 @@ const RoomCountSelector = ({
   const increment = () => {
     //setRoomCount((prev) => {
     //    callback(typeid, viewid, basis, ++count)
-    addoccupentdata(typeid, viewid, basis, ++count)
+    addoccupentdata(typeid, viewid, basis, occupantdetails.length + 1)
 
     //   return prev + 1
   }
   const decrement = () => {
     // callback(typeid, viewid, basis, --count )
-    addoccupentdata(typeid, viewid, basis, --count)
+    addoccupentdata(typeid, viewid, basis, occupantdetails.length - 1)
   }
   // setRoomCount((prev) => {
   //   // callback(typeid, viewid, basis, roomCount)
@@ -67,7 +69,7 @@ const RoomCountSelector = ({
           onClick={() => {
             decrement()
           }}
-          disabled={count === 1}
+          disabled={occupantdetails.length === 1}
         >
           -
         </Button>
@@ -142,7 +144,13 @@ const RoomCountSelector = ({
             </Select>
           </div>
 
-          <Button variant="ghost" className="text-red-600">
+          <Button
+            variant="ghost"
+            className="text-red-600"
+            onClick={() =>
+              handleremoveocd(typeid, viewid, basis, occupantdetails.roomid)
+            }
+          >
             Remove
           </Button>
         </div>

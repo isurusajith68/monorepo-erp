@@ -21,9 +21,6 @@ import { CiCircleRemove } from 'react-icons/ci'
 import RoomCountSelector from './room-counter'
 import { RoomSummaryItem } from './room-summary-item'
 
-// import { useGetAllRoom } from './queries/queries'
-// import { Button } from '../ui/button'
-
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value)
 
@@ -40,23 +37,6 @@ function useDebounce(value, delay) {
   return debouncedValue
 }
 
-// const array = [
-//   { id: 1, name: 'a1', sub: { id: 6, name: 'a1 sub' } },
-//   { id: 2, name: 'a2', sub: null },
-//   { id: 3, name: 'a3', sub: { id: 8, name: 'a3 sub' } },
-//   { id: 4, name: 'a4', sub: null },
-//   { id: 5, name: 'a5', sub: { id: 10, name: 'a5 sub' } },
-// ];
-
-// const anotherArray = [
-//   { id: 1, name: 'a1', sub: { id: 6, name: 'a1 sub' } },
-//   { id: 2, name: 'a2', sub: null },
-//   { id: 5, name: 'a5', sub: { id: 10, name: 'a5 sub' } },
-// ];
-
-// const r = array.filter((elem) => !anotherArray.find(({ id }) => elem.id === id) && elem.sub);
-
-// console.log("testtttttttttttttttttttttttttttttt",r);
 type RoomCountDta = {
   typeid: number
   viewid: number
@@ -79,6 +59,7 @@ const SelectedRoomsList = ({
   handleremove,
   handleCount,
   addoccupentdata,
+  handleremoveocd,
 }) => {
   const [totalAmount, setTotalAmount] = useState<number>(0)
   const calTotal = (selectedRooms1) => {
@@ -126,6 +107,7 @@ const SelectedRoomsList = ({
             updateTotal={updateTotal}
             handleCount={handleCount}
             addoccupentdata={addoccupentdata}
+            handleremoveocd={handleremoveocd}
             key={index}
           />
         ))
@@ -321,8 +303,6 @@ const RoomSelection = () => {
         })
       }
     }
-
-    // console.log('rrrrrrrrrrrrrrrrrrrrrrrrrr', id)
   }, [q])
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -338,32 +318,23 @@ const RoomSelection = () => {
   const formatPrice = (price: number) => {
     return (price * exchangeRate).toFixed(2)
   }
-  // const openModal = (room: Room) => {
-  //   setSelectedRoom(room)
-  //   setShowModal(true)
-  // }
-  // const { data } = useGetAllRoom()
-  // console.log('first', data)
-
-  // const handleSearch = async () => {
-
-  //   if (checkindate && checkoutdate) {
-  //     // Make API call with checkindate and checkoutdate
-  //     try {
-  //       const response = await fetch(`/api/searchRooms`, {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //         body: JSON.stringify({ checkindate, checkoutdate }),
-  //       });
-  //       const data = await response.json();
-  //       console.log('Available rooms:', data);
-  //     } catch (error) {
-  //       console.error('Error fetching rooms:', error);
-  //     }
-  //   }
-  // };
+  const handleremoveocd = (
+    typeid: number,
+    viewid: number,
+    basis: string,
+    roomid: any,
+  ) => {
+    setselectedRooms((p) => {
+      return p.occupantdetails.filter((od) => {
+        !(
+          od.typeid == typeid &&
+          od.viewid == viewid &&
+          od.basis == basis &&
+          od.occupantdetails.roomid == roomid
+        )
+      })
+    })
+  }
 
   const handleremove = (typeid: number, viewid: number, basis: string) => {
     console.log('pop2')
@@ -430,7 +401,7 @@ const RoomSelection = () => {
       )
       if (i != -1) {
         return [
-          ...p.slice(0, i - 1),
+          ...p.slice(0, i),
           {
             ...p[i],
             occupantdetails: [
@@ -500,11 +471,6 @@ const RoomSelection = () => {
     basis: string,
     c: number,
   ) => {
-    //const t = selectedRooms.find(r=> r.typeid==typeid && r.viewid==viewid && r.basis ==basis)
-    // if(t){
-    //  t.count = c
-    // }
-
     setselectedRooms((p) => {
       const o = p.find(
         (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
@@ -517,9 +483,8 @@ const RoomSelection = () => {
         { ...o, count: c },
       ]
     })
-
-    // calTotal(selectedRooms)
   }
+
   return (
     <>
       {/* <header className=" top-0 z-50 flex h-14 items-center justify-center gap-4 border-b  backdrop-blur-md px-4 lg:h-[90px] lg:px-6 bg-[#89749A]">
@@ -1074,6 +1039,7 @@ const RoomSelection = () => {
               handleremove={handleremove}
               handleCount={handleCount}
               addoccupentdata={addoccupentdata}
+              handleremoveocd={handleremoveocd}
             />
           </div>
         </div>
