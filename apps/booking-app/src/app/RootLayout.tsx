@@ -7,7 +7,7 @@
     <NavLink to="list">List Invoice</NavLink>
      */
 }
-import React from 'react'
+
 import { Outlet } from 'react-router-dom'
 import Navbar from '../components/Navbar/navbar'
 import Sidebar from '../components/Navbar/sidebar'

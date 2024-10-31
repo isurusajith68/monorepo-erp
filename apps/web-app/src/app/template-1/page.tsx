@@ -31,8 +31,8 @@ function Template1() {
     <div className="w-full">
       <Home data={data} image={image}></Home>
       <AboutUsPage data={data} image={image}></AboutUsPage>
-      <ServicePage data={data}></ServicePage>
-      <RoomPage data={data}></RoomPage>
+      <ServicePage data={data} image={image}></ServicePage>
+      <RoomPage data={data} image={image}></RoomPage>
       <ContactPage data={data}></ContactPage>
       <FooterPage data={data}></FooterPage>
     </div>

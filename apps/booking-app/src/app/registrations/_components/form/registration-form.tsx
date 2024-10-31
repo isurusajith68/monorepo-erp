@@ -30,6 +30,7 @@ import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   useGetNextRegistraion,
+  useGetPhoneNumber,
   useGetPrevRegistration,
   useGetRegistrations,
 } from '../../services/queries'
@@ -234,6 +235,16 @@ const RegistrationForm = () => {
     }
   }
 
+  const { data: getphonedata, isFetched } = useGetPhoneNumber(phoneNumber)
+  console.log('first', getphonedata)
+
+  useEffect(() => {
+    if (isFetched && getphonedata) {
+      setValue('telephone', getphonedata.telephone || '')
+      setValue('email', getphonedata.email || '')
+    }
+  }, [isFetched, getphonedata])
+
   return (
     <div>
       <div className="flex items-center  justify-between ml-10 mt-5">
@@ -280,13 +291,15 @@ const RegistrationForm = () => {
       </div>
       <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
 
-      {/* <input
-        type="text"
-        placeholder="Enter Phone Number"
-        value={phoneNumber}
-        onChange={(e) => setPhoneNumber(e.target.value)}
-        className="mr-4 mt-5 p-2 border-2 border-green-600 rounded"
-      /> */}
+      {!id && (
+        <input
+          type="text"
+          placeholder="Enter Phone Number"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          className="mr-4 mt-5 p-2 border-2 border-green-600 rounded"
+        />
+      )}
 
       <div className="mt-5 w-full h-2/3 bg-green-100 rounded border border-green-300 p-10 ">
         <Form {...form}>
@@ -343,7 +356,7 @@ const RegistrationForm = () => {
                           className="rounded border-2 border-green-600 bg-white"
                           placeholder=""
                           {...field}
-                          //   value={formData.email}
+                          // value={getphonedata.email}
                         />
                       </FormControl>
 
@@ -363,7 +376,7 @@ const RegistrationForm = () => {
                           className="rounded border-2 border-green-600 bg-white"
                           placeholder=""
                           {...field}
-                          //   value={formData.telephone}
+                          // value={getphonedata.bookingdate}
                         />
                       </FormControl>
 

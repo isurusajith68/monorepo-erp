@@ -52,11 +52,7 @@ export default function ServiceForm({
       // Update the service row with the new files
       updatedServices[index] = {
         ...updatedServices[index],
-        serviceimage: selectedFiles.map((file) => ({
-          id: null,
-          file,
-          title: '',
-        })), // Store file info
+        serviceimage: selectedFiles, // Store file info
         imageUrl: selectedFiles.map((file) => URL.createObjectURL(file)), // Create preview URLs
       }
     }

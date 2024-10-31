@@ -77,6 +77,20 @@ const Sidebar = () => {
               <TbReportAnalytics className="h-4 w-4" />
               Reports
             </Link>
+            <Link
+              to="roomdetails/add"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+            >
+              <TbReportAnalytics className="h-4 w-4" />
+              Room Details
+            </Link>
+            <Link
+              to="booking/available-rooms"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+            >
+              <TbReportAnalytics className="h-4 w-4" />
+              Available Rooms
+            </Link>
           </nav>
         </div>
       </div>

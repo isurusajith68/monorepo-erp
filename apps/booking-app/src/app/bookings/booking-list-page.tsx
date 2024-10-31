@@ -34,7 +34,8 @@ export default function BookingListPage() {
   const deleteMutation = useDeleteBookingMutation()
   const queryClient = useQueryClient()
 
-  const { data, isSuccess } = useGetAllBooking()
+  const { data, isSuccess, isLoading } = useGetAllBooking()
+  // console.log("first",data)
 
   useEffect(() => {
     // Fetch booking data from the backend
@@ -54,6 +55,10 @@ export default function BookingListPage() {
   const handleEdit = (id: number) => {
     navigate(`/booking/${id}`)
   }
+
+  // if(isLoading){
+  //   return <h1>Loading...</h1>
+  // }
 
   const deleteAction = async (id: number) => {
     if (id) {
