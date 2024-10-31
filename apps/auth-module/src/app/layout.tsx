@@ -47,10 +47,10 @@ export default function RootLayout() {
               </div>
             </PopoverContent>
           </Popover>
-          <Button variant="ghost" className="text-white">
-            <i className="fas fa-bars"></i>
-            {/* <FaBars className="text-white text-2xl" /> */}
-          </Button>
+          {/* <Button variant="ghost" className="text-white"> */}
+          {/* <i className="fas fa-bars"></i> */}
+          {/* <FaBars className="text-white text-2xl" /> */}
+          {/* </Button> */}
         </div>
       </nav>
       {/* <div className="mx-[10%] border-2 border-rose-600 "> */}
