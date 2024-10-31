@@ -16,8 +16,8 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { toast } from '@/hooks/use-toast'
-import useMuate from '../services/mutation'
 import { useGetUser } from '../services/queries'
+import useModuleStore from '@/app/stores/modules-store'
 
 const FormSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -30,8 +30,18 @@ const LoginForm = () => {
   const navigate = useNavigate()
   const [userData, setUserData] = useState()
 
-  // const { mutate, data: dataLogin } = useMuate()
-  // const { mutate, data: dataLogin } = useMuate()
+  const [module, setModule] = useState([])
+
+  const { modules } = useModuleStore()
+
+  useEffect(() => {
+    if (modules != undefined) {
+      // console.log('modules11', modules.list)
+
+      setModule(modules.list)
+      // console.log('module22', modules.list)
+    }
+  }, [modules])
 
   const toggleVisibility = () => setIsVisible(!isVisible)
 
@@ -43,7 +53,7 @@ const LoginForm = () => {
     },
   })
 
-  const { data: dataLogin } = useGetUser(userData)
+  const { data: dataLogin, isFetched } = useGetUser(userData)
 
   const handleGoogleLogin = async () => {
     setLoading(true)
@@ -63,7 +73,7 @@ const LoginForm = () => {
       })
       window.localStorage.setItem('loggedin', 'true')
 
-      navigate('/dashboard')
+      navigate(`/dashboard/${dataLogin.rid}`)
     } else {
       if (dataLogin) {
         toast({
@@ -76,30 +86,16 @@ const LoginForm = () => {
   }, [dataLogin])
 
   const onSubmit = async (data: any) => {
-    //  console.log("dataaa",data)
-
     const login = async () => {
       //   const response = await Axios.post('http://localhost:10000/login', data, {
       //     withCredentials: true, // This ensures cookies are sent with the request
       //   })
 
-      // console.log('dataLogin', dataLogin)
-
-      //   await mutate.mu(data)
       setUserData(data)
-      console.log('Login response1', dataLogin)
-
-      console.log('goooo')
+      // console.log('Login response1', dataLogin)
     }
 
     await login()
-    console.log('he;;;;')
-
-    // axios.post("https://reqres.in/api/login", userData).then((response) => {
-    //   console.log(response.status, response.data.token);
-    // });
-
-    // navigate("/");
   }
 
   return (

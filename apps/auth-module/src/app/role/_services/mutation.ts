@@ -7,8 +7,12 @@ const useMuate = () => {
   return useMutation({
     mutationFn: async (newRole: any) => {
       const response = await Axios.post(`${apiUrl}addrole`, newRole)
-      console.log(response)
+      console.log('mute re', response)
       return response.data
+    },
+    onSuccess: () => {
+      // Invalidate and refetch
+      console.log('lllll')
     },
   })
 }

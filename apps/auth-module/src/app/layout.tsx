@@ -14,7 +14,7 @@ export default function RootLayout() {
   return (
     <div>
       {/* <div className="w-full flex float-start "> */}
-      <nav className="bg-blue-900 p-4 flex justify-between items-center">
+      <nav className="bg-blue-900 sticky top-0 z-50 p-4 flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <Link
             to="/"
@@ -47,10 +47,10 @@ export default function RootLayout() {
               </div>
             </PopoverContent>
           </Popover>
-          <Button variant="ghost" className="text-white">
-            <i className="fas fa-bars"></i>
-            {/* <FaBars className="text-white text-2xl" /> */}
-          </Button>
+          {/* <Button variant="ghost" className="text-white"> */}
+          {/* <i className="fas fa-bars"></i> */}
+          {/* <FaBars className="text-white text-2xl" /> */}
+          {/* </Button> */}
         </div>
       </nav>
       {/* <div className="mx-[10%] border-2 border-rose-600 "> */}

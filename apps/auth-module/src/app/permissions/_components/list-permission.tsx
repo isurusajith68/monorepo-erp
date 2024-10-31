@@ -68,7 +68,12 @@ export default function ListPermission() {
     }
 
     console.log('obj', obj)
-    mutate(obj)
+    mutate(obj, {
+      onSuccess: (data) => {
+        console.log('Received data after mutation:', data)
+        // You can access the data here directly after mutation
+      },
+    })
   }
   return (
     <div className="mx-[10%] ">
