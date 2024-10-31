@@ -22,7 +22,11 @@ const port = 10000
 //app.use(cors());
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'http://localhost:5175'],
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:5175',
+      'http://localhost:5174',
+    ],
     credentials: true,
   }),
 )
@@ -101,18 +105,20 @@ app.post('/login', (req, res1) => {
   const { email, password } = req.body
   console.log('Received data:', { password, email })
 
-  const select = `SELECT *
-                  FROM users
-                  WHERE email='${email}';`
+  const select = `SELECT e.rid,e.erpuser,u.password,u.username
+                FROM employees AS e
+                INNER JOIN users AS u
+                ON e.id = u.empid AND e.ememail='${email}'`
 
   pool
     .query(select)
     .then(async (res) => {
+      console.log('resaaa', res)
+
       if (res.rows.length > 0) {
         const userData = {
-          email: res.rows[0].email,
           password: res.rows[0].password,
-          id: res.rows[0].id,
+          rid: res.rows[0].rid,
           username: res.rows[0].username,
         }
         console.log('userData', userData)
@@ -124,7 +130,7 @@ app.post('/login', (req, res1) => {
         console.log('isPasswordValid', isPasswordValid)
 
         if (!isPasswordValid) {
-          return { success: false, message: 'Invalid credentials' }
+          return res1.send({ success: false, message: 'Invalid credentials' })
         }
 
         const token = createSessionToken(userData.id)
@@ -160,6 +166,7 @@ app.post('/login', (req, res1) => {
         return res1.send({
           success: true,
           username: userData.username,
+          rid: userData.rid,
           message: 'User logged in successfully',
         })
       } else {
@@ -207,115 +214,229 @@ const createSessionToken = (userId) => {
   return jwt.sign(payload, process.env.JWT_SECRET, options)
 }
 
+console.clear()
+
+/***********************************************************************/
+/****************************AUTH MODULE********************************/
+/***********************************************************************/
+
 /////////////////////////////////////////////////////////////////////
 ////////////////////////////ROLES////////////////////////////////////
 
-app.post('/addrole', (req, res) => {
-  console.log('name', req.body?.roles)
-
+app.post('/addrole', async (req, res) => {
   const inserts = req.body?.roles?.inserts
   const updates = req.body?.roles?.updates
   const deletes = req.body?.roles?.deletes
   const ignoredRoles = []
   const insertedRoles = []
   const updatedRoles = []
-
-  let insert = async (r) => {
-    try {
-      console.log('hello')
+  const deletedRoles = []
+  try {
+    //inserts
+    for (let a = 0; inserts.length > a; a++) {
+      let r = inserts[a]
       const sqlCheck = `SELECT 1 as role FROM userroles WHERE role = $1 `
       const res1 = await pool.query(sqlCheck, [r.role])
 
       if (res1.rows.length > 0) {
         ignoredRoles.push(r.role)
-        console.log('ignoredRoles', ignoredRoles)
-        console.log(r.role, 'Role already exists')
-        return
+      } else {
+        const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
+        const insrtedData = await pool.query(sqlInsert, [
+          r.role,
+          r.description ?? 0,
+        ])
+        insertedRoles.push(r.role)
       }
-
-      const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
-      const insrtedData = await pool.query(sqlInsert, [
-        r.role,
-        r.description ?? 0,
-      ])
-      insertedRoles.push(r.role)
-    } catch (err) {
-      console.log('error is ', err)
-      res.send({ success: false, message: err.message })
     }
-  }
 
-  let update = async (r) => {
-    try {
-      console.log('hello')
+    //updates
 
+    for (let a = 0; updates.length > a; a++) {
+      let r = updates[a]
       const [sqlUpdate, vals] = getUpdateQuery(r, 'userroles', 'rid')
-      console.log('sqlUpdate', sqlUpdate)
-      console.log('vals', vals)
 
       const res1 = await pool.query(sqlUpdate, vals)
 
-      console.log('res1', res1)
-
       if (res1.rowCount > 0) {
         updatedRoles.push(r)
-        console.log('updatedRoles', updatedRoles)
-        return
-      }
-    } catch (err) {
-      console.log('error is ', err)
-      res.send({ success: false, message: err.message })
-    }
-  }
-
-  async function processInsert() {
-    if (inserts != undefined) {
-      for (let a = 0; inserts.length > a; a++) {
-        let r = inserts[a]
-        await insert(r)
-      }
-
-      // return res.send({
-      //   success: true,
-      //   ignoredRoles: ignoredRoles,
-      //   insertedRoles: insertedRoles,
-      //   message: 'Role added successfully',
-      // })
-    }
-  }
-  processInsert()
-
-  async function processUpdate() {
-    if (updates != undefined) {
-      for (let a = 0; updates.length > a; a++) {
-        let r = updates[a]
-        await update(r)
       }
     }
-  }
-  processUpdate()
 
-  async function processUpdate() {
-    if (updates != undefined) {
-      for (let a = 0; updates.length > a; a++) {
-        let r = updates[a]
-        await update(r)
+    //deletes
+
+    for (let a = 0; deletes.length > a; a++) {
+      let r = deletes[a]
+      const sqlDelete = `DELETE FROM userroles WHERE rid=$1; `
+      const res1 = await pool.query(sqlDelete, [r])
+
+      if (res1.rowCount > 0) {
+        deletedRoles.push(r)
       }
     }
+
+    res.send({
+      success: true,
+      message: '',
+      process: {
+        ignoredRoles: ignoredRoles,
+        insertedRoles: insertedRoles,
+        updatedRoles: updatedRoles,
+        deletedRoles: deletedRoles,
+      },
+    })
+  } catch (err) {
+    res.send({
+      success: false,
+      message: err.message,
+    })
   }
-  processUpdate()
 })
 
 app.get('/getroles', (req, res) => {
-  const dbquery = `SELECT * FROM userroles;`
+  const dbquery = `SELECT * FROM userroles ORDER BY rid;`
   pool.query(dbquery).then((dbres) => {
     if (dbres.rows.length > 0) {
-      const roles = { rows: dbres.rows }
-      res.send({ success: true, roles: roles })
+      res.send({ success: true, roles: dbres.rows })
     }
   })
 })
 
+/////////////////////////////////////////////////////////////////////
+////////////////////////////MODULES////////////////////////////////////
+
+app.get('/getmodules', (req, res) => {
+  const dbquery = `SELECT * FROM modules ORDER BY modid;`
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, modules: dbres.rows })
+    }
+  })
+})
+
+/////////////////////////////////////////////////////////////////////
+////////////////////////////DOCUMENTS////////////////////////////////////
+
+app.get('/getdocuments', (req, res) => {
+  const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid ORDER BY documents.docid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, documents: dbres.rows })
+    }
+  })
+})
+
+app.get('/documentsall', (req, res) => {
+  const dbquery = `SELECT * FROM documents ORDER BY docid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, documents: dbres.rows })
+    }
+  })
+})
+
+app.get('/documentsbymodule/:selectedModule', (req, res) => {
+  const selectedModule = req.params.selectedModule
+  const dbquery = `SELECT * FROM documents WHERE modid=${selectedModule} ORDER BY docid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, documents: dbres.rows })
+    }
+  })
+})
+
+/////////////////////////////////////////////////////////////////////
+////////////////////////////ACTIONS////////////////////////////////////
+
+app.get('/getactions', (req, res) => {
+  const dbquery = `SELECT * FROM actions ORDER BY actid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, actions: dbres.rows })
+    }
+  })
+})
+
+/////////////////////////////////////////////////////////////////////
+////////////////////////////PERMISSIONS////////////////////////////////////
+
+app.get('/getpermissons/:roleid/:modid', (req, res) => {
+  const modid = req.params.modid
+  const roleid = req.params.roleid
+
+  const dbquery = `SELECT a.docid, COALESCE(p.permission IS NOT NULL, false) AS permission ,
+                   a.actid, a.actname ,p.permissionid FROM actions a 
+                   left join  permissions p on a.actid=p.actid AND p.rid=${roleid}
+                   WHERE a.modid=${modid}
+                   ORDER BY permissionid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, list: dbres.rows })
+    }
+  })
+})
+
+app.post('/addpermission', async (req, res) => {
+  const { truePermissions, rid, module } = req.body
+
+  console.log('rid', req.body)
+  try {
+    const sqlDelete = `DELETE FROM permissions WHERE rid=${rid} and modid=${module}`
+    const res1 = await pool.query(sqlDelete)
+
+    truePermissions.map(async (p) => {
+      const sqlInsert = `INSERT INTO permissions ( rid, modid,docid,actid,permission) VALUES (${rid},${module},${
+        p.docid
+      },${p.actid},${true})`
+      const res2 = await pool.query(sqlInsert)
+    })
+
+    if (res1.rows.length > 0) {
+    }
+  } catch (error) {
+    console.log('error', error)
+  }
+})
+
+app.get('/userpermissions/:roleid', (req, res) => {
+  const roleid = req.params.roleid
+
+  console.log('roleid', roleid)
+
+  const query = `SELECT p.modid,m.modname,m.url FROM permissions AS p INNER JOIN modules AS m 
+                 ON p.modid=m.modid AND p.rid='${roleid}'`
+
+  pool.query(query).then((dbres) => {
+    console.log('dbres', dbres)
+
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, list: dbres.rows })
+    }
+  })
+})
+
+app.get('/permittedModules/:roleid', (req, res) => {
+  const roleid = req.params.roleid
+
+  console.log('roleid', roleid)
+
+  const query = `SELECT p.modid,m.modname,m.url,m.icon FROM permissions AS p INNER JOIN modules AS m 
+                 ON p.modid=m.modid AND p.rid='${roleid}'
+                 group by p.modid,m.modname,m.url,m.icon  `
+
+  pool.query(query).then((dbres) => {
+    console.log('dbres', dbres)
+
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, list: dbres.rows })
+    }
+  })
+})
 app.listen(port, () => {
   console.log(`app listening on port ${port}`)
 })
