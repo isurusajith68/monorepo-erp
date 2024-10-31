@@ -5,13 +5,7 @@ import {
   LoaderFunction,
   LoaderFunctionArgs,
 } from '@remix-run/node'
-import {
-  json,
-  useActionData,
-  useFetcher,
-  useLoaderData,
-  useSubmit,
-} from '@remix-run/react'
+import { json, useActionData, useFetcher, useLoaderData, useParams, useSubmit } from '@remix-run/react'
 import { client } from '~/db.server'
 import getUpdateQuery, { getDirtyValuesTF } from '~/lib/utils'
 import { useEffect } from 'react'
@@ -74,21 +68,23 @@ export async function action({ request }: ActionFunctionArgs) {
         { result: 'Hotel Info successfully Updated' },
         'Hotel Info successfully Updated !!',
       )
-    } else {
-      const hotelQuery = `INSERT INTO hotelinfo (name, email, mobile, address1, address2, city, country, province, telephone) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+    }else{
 
-      const hotelValues = [
-        formDataCur.name,
-        formDataCur.email,
-        formDataCur.mobile,
-        formDataCur.address1,
-        formDataCur.address2,
-        formDataCur.city,
-        formDataCur.country,
-        formDataCur.province,
-        formDataCur.telephone,
-      ]
+    const hotelQuery = `INSERT INTO hotelinfo (name, email, mobile, address1, address2, city, country, province, telephone, url) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+
+    const hotelValues = [
+      formDataCur.name,
+      formDataCur.email,
+      formDataCur.mobile,
+      formDataCur.address1,
+      formDataCur.address2,
+      formDataCur.city,
+      formDataCur.country,
+      formDataCur.province,
+      formDataCur.telephone,
+      formDataCur.url,
+    ]
 
       // Execute the query
       await client.query(hotelQuery, hotelValues)
@@ -111,6 +107,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function HotelInfoForm() {
+  const params = useParams();
+  const hotelId = params.id; // This gives you "23"
   const data = useLoaderData<typeof loader>()
   console.log('idh', data)
 
@@ -203,6 +201,7 @@ export default function HotelInfoForm() {
               className="mt-1 border-blue-500"
               placeholder="Enter email address"
               defaultValue={data.email}
+              required
             />
           </div>
 
@@ -216,6 +215,7 @@ export default function HotelInfoForm() {
               className="mt-1 border-blue-500"
               placeholder="Enter mobile number"
               defaultValue={data.mobile}
+              required
             />
           </div>
 
@@ -228,6 +228,7 @@ export default function HotelInfoForm() {
               className="mt-1 border-blue-500"
               placeholder="Enter telephone number"
               defaultValue={data.telephone}
+              required
             />
           </div>
 
@@ -241,6 +242,7 @@ export default function HotelInfoForm() {
               className="mt-1 border-blue-500"
               placeholder="Enter primary address"
               defaultValue={data.address1}
+              required
             />
           </div>
 
@@ -253,6 +255,7 @@ export default function HotelInfoForm() {
               className="mt-1 border-blue-500"
               placeholder="Enter secondary address"
               defaultValue={data.address2}
+              required
             />
           </div>
 
@@ -267,6 +270,7 @@ export default function HotelInfoForm() {
                 className="mt-1 border-blue-500"
                 placeholder="Enter city"
                 defaultValue={data.city}
+                required
               />
             </div>
 
@@ -279,6 +283,7 @@ export default function HotelInfoForm() {
                 className="mt-1 border-blue-500"
                 placeholder="Enter country"
                 defaultValue={data.country}
+                required
               />
             </div>
 
@@ -291,8 +296,22 @@ export default function HotelInfoForm() {
                 className="mt-1 border-blue-500"
                 placeholder="Enter province"
                 defaultValue={data.province}
+                required
               />
             </div>
+          </div>
+          <div className="flex flex-col col-span-2">
+            <label htmlFor="hotelUrl" className="text-gray-600">
+              Hotel Url
+            </label>
+            <Input
+              name="url"
+              type='url'
+              className="mt-1 border-blue-500"
+              placeholder="Enter primary Url"
+              defaultValue={data.url}
+              required
+            />
           </div>
         </form>
         <ToastContainer

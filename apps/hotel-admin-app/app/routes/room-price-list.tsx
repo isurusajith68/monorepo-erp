@@ -27,13 +27,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '~/components/ui/alert-dialog'
-import { Form, Link, useLoaderData, useNavigate } from '@remix-run/react'
-import { LoaderFunctionArgs } from '@remix-run/node'
+import { Form, json, Link, useActionData, useLoaderData, useNavigate, useSubmit } from '@remix-run/react'
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { client } from '~/db.server'
 import { useState } from 'react'
+import { useEffect } from 'react'
+import { Slide, ToastContainer, toast as notify } from 'react-toastify'
+import "react-toastify/dist/ReactToastify.css";
+import "../app-component/style.css"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const result = await client.query('SELECT * FROM roomprices')
+  const result = await client.query('SELECT * FROM hotelroompriceshedules')
   if (result.rows.length === 0) {
     return {}
   } else {
@@ -42,12 +46,74 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 }
 
+// Helper to return json with toast
+function jsonWithSuccess(data: any, message: string) {
+  return json({
+    ...data,
+    toast: {
+      type: 'success',
+      message,
+    },
+  })
+}
+
+
+export async function action({ request }: ActionFunctionArgs) {
+  try {
+    const formData = await request.formData();
+    const id = formData.get('id');
+    console.log("id", id);
+    
+    if (!id) {
+      throw new Error("No id provided for deletion.");
+    }
+
+    // First, delete related entries from hotelroomprices
+    const query1 = 'DELETE FROM hotelroomprices WHERE sheduleid = $1';
+    await client.query(query1, [id]);
+
+    // Then, delete the entry from hotelroompriceshedules
+    const query = 'DELETE FROM hotelroompriceshedules WHERE id = $1';
+    await client.query(query, [id]);
+
+    // Returning JSON with success toast data
+      return jsonWithSuccess(
+      { result: 'Data deleted successfully' },
+      'Room Price Shedules deleted successfully! 🗑️',
+    )
+  } catch (error) {
+    console.error('Error deleting data:', error);
+    return jsonWithSuccess(
+      { result: 'Data deleted successfully' },
+      'Error In Room Price Shedules deleted successfully! 🗑️',
+    )
+  }
+}
+
+
 export default function RoomPriceList() {
   const navigate = useNavigate()
   const data = useLoaderData<typeof loader>()
+<<<<<<< HEAD
   const [searchId, setSearchId] = useState('')
   const [searchDate, setsearchDate] = useState('')
 
+=======
+  const [searchId, setSearchId] = useState("");
+  const [searchDate, setsearchDate] = useState("");
+  const [searchEndDate, setsearchEndDate] = useState("");
+  const actionData = useActionData() // Capture action data (including toast data)
+  const submit = useSubmit()
+
+  // UseEffect to handle showing the toast when actionData changes
+  useEffect(() => {
+    if (actionData?.toast) {
+      // Show success or error toast based on the type
+      notify(actionData.toast.message, { type: actionData.toast.type })
+    }
+  }, [actionData])
+  
+>>>>>>> 7508ce80912b8acbe574954225728a3e5e790f9c
   const handleEdit = (id: number) => {
     navigate(`/room-price-edit/${id}`)
   }
@@ -56,11 +122,29 @@ export default function RoomPriceList() {
     navigate(`/room-price-view/${id}`)
   }
 
+<<<<<<< HEAD
   // Filter the data based on `id` and `oname`
   const filteredData = data.filter((item: any) => {
     const matchesSearchCriteria = item.scheduleid.toString().includes(searchId)
     return matchesSearchCriteria
   })
+=======
+
+// Ensure `data` is an array before filtering
+const filteredData = Array.isArray(data)
+  ? data.filter((item: any) => {
+      // Make sure the search criteria are strings for `.includes()`
+      const matchesSearchCriteria =
+        item.id?.toString().includes(searchId || '') &&
+        item.startdate?.toString().includes(searchDate || '') &&
+        item.enddate?.toString().includes(searchEndDate || '');
+
+      return matchesSearchCriteria;
+    })
+  : [];
+
+
+>>>>>>> 7508ce80912b8acbe574954225728a3e5e790f9c
 
   return (
     <>
@@ -68,12 +152,10 @@ export default function RoomPriceList() {
         <div className="ml-5 mt-2 text-xl font-semibold">
           <div className="flex items-center">
             <h1 className="text-3xl font-bold mt-12">Room Price Schedule</h1>
-            <Link to={'/room-price-add'} className="lg:ml-[60%] mt-5">
-              <Button className="h-9 text-white bg-blue-400 hover:bg-blue-500 ">
+            <Button className="h-9 text-white bg-blue-400 hover:bg-blue-500 lg:ml-[60%] mt-5" onClick={() => handleEdit(-1)}>
                 {' '}
                 + Add New
               </Button>
-            </Link>
           </div>
           <hr className="bg-blue-400 h-0.5 mt-2" />
         </div>
@@ -112,8 +194,8 @@ export default function RoomPriceList() {
                 type="date"
                 className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl"
                 placeholder=""
-                // value={searchName}
-                // onChange={handleSearchChangeName}
+                value={searchEndDate}
+                onChange={(e) => setsearchEndDate(e.target.value)} 
               />
             </div>
           </div>
@@ -136,7 +218,8 @@ export default function RoomPriceList() {
               </TableRow>
             </TableHeader>
             <TableBody className="bg-blue-50">
-              {filteredData.map((data: any, index: any) => {
+            {filteredData.length > 0 ? (
+              filteredData.map((data: any, index: any) => {
                 // Convert and format the startdate and enddate to yyyy.mm.dd
                 const startDateObj = new Date(data.startdate)
                 const formattedStartDate = `${startDateObj.getFullYear()}.${(
@@ -161,7 +244,7 @@ export default function RoomPriceList() {
                 return (
                   <TableRow key={index} className="hover:bg-blue-100">
                     <TableCell className="text-center px-4 py-2">
-                      {data.scheduleid}
+                      {data.id}
                     </TableCell>
                     <TableCell className="text-center px-4 py-2">
                       {formattedStartDate}
@@ -173,7 +256,7 @@ export default function RoomPriceList() {
                       <div className="flex items-center lg:ml-[20%]">
                         <div>
                           <Button
-                            onClick={() => handleView(data.scheduleid)}
+                            onClick={() => handleView(data.id)}
                             className="bg-blue-600 "
                           >
                             View
@@ -205,21 +288,21 @@ export default function RoomPriceList() {
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <Form method="post">
-                                  <input
-                                    type="hidden"
-                                    name="id"
-                                    value={data.id}
-                                  />
-                                  <AlertDialogAction asChild>
-                                    <Button
-                                      type="submit"
-                                      className="bg-red-500"
-                                    >
-                                      Continue
-                                    </Button>
-                                  </AlertDialogAction>
+                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <Form method="post">
+                                    <input
+                                      type="hidden"
+                                      name="id"
+                                      value={data.id}
+                                    />
+                                    <AlertDialogAction asChild>
+                                      <Button
+                                        type="submit"
+                                        className="bg-red-500"
+                                      >
+                                        Continue
+                                      </Button>
+                                    </AlertDialogAction>
                                 </Form>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -228,11 +311,37 @@ export default function RoomPriceList() {
                       </div>
                     </TableCell>
                   </TableRow>
-                )
-              })}
+                 )
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center px-4 py-2">
+                    No data available
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
+           {/* ToastContainer to display the notifications */}
+     
+           <ToastContainer
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false} // Show progress bar
+          newestOnTop={true} // Display newest toast on top
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          pauseOnHover={true}
+          theme="colored" // You can change to "light" or "dark"
+          transition={Slide} // Slide animation for toast appearance
+          icon={true} // Show icons for success, error, etc.
+          className="custom-toast-container" // Add custom classes
+          bodyClassName="custom-toast-body"
+          closeButton={false} // No close button for a clean look
+        />
       </div>
     </>
   )

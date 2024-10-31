@@ -35,7 +35,11 @@ import {
 import { useState } from 'react'
 import { ActionFunctionArgs, json, LoaderFunctionArgs } from '@remix-run/node'
 import { client } from '~/db.server'
-import { Form, useLoaderData, useNavigate } from '@remix-run/react'
+import { Form, useActionData, useLoaderData, useNavigate, useSubmit } from '@remix-run/react'
+import { useEffect } from 'react'
+import { Slide, ToastContainer, toast as notify } from 'react-toastify'
+import "react-toastify/dist/ReactToastify.css";
+import "../app-component/style.css"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const result = await client.query('SELECT * FROM hotelroomview')
@@ -46,12 +50,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 }
 
+<<<<<<< HEAD
+=======
+// Helper to return json with toast
+function jsonWithSuccess(data: any, message: string) {
+  return json({
+    ...data,
+    toast: {
+      type: 'success',
+      message,
+    },
+  })
+}
+
+
+>>>>>>> 7508ce80912b8acbe574954225728a3e5e790f9c
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
   const id = formData.get('id')
 
   if (id) {
     // DELETE request
+<<<<<<< HEAD
     const query = `DELETE FROM hotelroomview WHERE id = $1`
     await client.query(query, [id])
     return json({
@@ -67,6 +87,32 @@ export async function action({ request }: ActionFunctionArgs) {
       success: true,
       message: 'Hotel room-type saved successfully!',
     })
+=======
+     const queryroomprice = `DELETE FROM hotelroomprices WHERE roomviewid = $1`;
+     await client.query(queryroomprice, [id]);
+
+     const queryroom = `DELETE FROM hotelrooms WHERE roomviewid = $1`;
+     await client.query(queryroom, [id]);
+
+    // DELETE request
+    const query = `DELETE FROM hotelroomview WHERE id = $1`;
+    await client.query(query, [id]);
+     // If no ID, returning a generic success message
+    return jsonWithSuccess(
+      { result: 'Hotel room-type deleted successfully!' },
+      'Hotel room-type deleted successfully!!',
+    )
+  } else {
+    // INSERT request
+    const roomtype = formData.get('roomview');
+    const hotelQuery = `INSERT INTO hotelroomview (roomview) VALUES ($1)`;
+    await client.query(hotelQuery, [roomtype]);
+     // If no ID, returning a generic success message
+     return jsonWithSuccess(
+      { result: 'Hotel room-type saved successfully!' },
+      'Hotel room-type saved successfully!',
+    )
+>>>>>>> 7508ce80912b8acbe574954225728a3e5e790f9c
   }
 }
 
@@ -74,13 +120,30 @@ export async function action({ request }: ActionFunctionArgs) {
 // COMPONENTS
 
 export default function RoomView() {
+<<<<<<< HEAD
   const navigate = useNavigate()
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
   const data = useLoaderData<typeof loader>()
+=======
+  const navigate = useNavigate();
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const data = useLoaderData<typeof loader>();
+  
+  const actionData = useActionData() // Capture action data (including toast data)
+  const submit = useSubmit()
+>>>>>>> 7508ce80912b8acbe574954225728a3e5e790f9c
 
   const handleEdit = (id: number) => {
     navigate(`/room-view/${id}`)
   }
+
+    // UseEffect to handle showing the toast when actionData changes
+    useEffect(() => {
+      if (actionData?.toast) {
+        // Show success or error toast based on the type
+        notify(actionData.toast.message, { type: actionData.toast.type })
+      }
+    }, [actionData])
 
   return (
     <>
@@ -141,6 +204,7 @@ export default function RoomView() {
               </TableRow>
             </TableHeader>
             <TableBody className="bg-blue-50">
+<<<<<<< HEAD
               {data.map((data: any, index: any) => (
                 <TableRow key={index} className="hover:bg-blue-100">
                   <TableCell className="text-center px-4 py-2">
@@ -179,6 +243,47 @@ export default function RoomView() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
+=======
+            {data.length > 0 ? (
+              data.map((data:any, index:any) => ( 
+              <TableRow key={index} className="hover:bg-blue-100">
+                <TableCell className="text-center px-4 py-2">
+                  {data.id}
+                </TableCell>
+                <TableCell className="text-center px-4 py-2">
+                  {data.roomview}
+                </TableCell>
+                <TableCell className="text-center px-4 py-2">
+                  <div className="flex gap-5 lg:ml-[20%]">
+                    <div>
+                      <Button
+                         onClick={() => handleEdit(data.id)}
+                        className="bg-blue-600"
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                    <div>
+                      <AlertDialog>
+                        <AlertDialogTrigger>
+                          <Button className="ml-5 bg-blue-600 bg-destructive">
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Are you absolutely sure?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will
+                              permanently delete your account and remove your
+                              data from our servers.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+>>>>>>> 7508ce80912b8acbe574954225728a3e5e790f9c
                               <Form method="post">
                                 <input
                                   type="hidden"
@@ -196,13 +301,49 @@ export default function RoomView() {
                         </AlertDialog>
                       </div>
                     </div>
+<<<<<<< HEAD
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
+=======
+                  </div>
+                </TableCell>
+              </TableRow>
+           ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center px-4 py-2">
+                No data available
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+>>>>>>> 7508ce80912b8acbe574954225728a3e5e790f9c
           </Table>
         </div>
+         {/* ToastContainer to display the notifications */}
+     
+         <ToastContainer
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false} // Show progress bar
+          newestOnTop={true} // Display newest toast on top
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable={true}
+          pauseOnHover={true}
+          theme="colored" // You can change to "light" or "dark"
+          transition={Slide} // Slide animation for toast appearance
+          icon={true} // Show icons for success, error, etc.
+          className="custom-toast-container" // Add custom classes
+          bodyClassName="custom-toast-body"
+          closeButton={false} // No close button for a clean look
+        />
       </div>
     </>
   )
 }
+
+
