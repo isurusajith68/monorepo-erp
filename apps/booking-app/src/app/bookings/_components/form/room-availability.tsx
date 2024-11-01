@@ -21,15 +21,15 @@ import { useGetAllRoomDetails } from '@/app/roomdetails/_services/queries'
 import { CloudDownload } from 'lucide-react'
 import BookingForm from './booking-form'
 import { useState } from 'react'
-import { useGetAllRoomBooking } from '../../_services/queries'
+// import { useGetAllRoomBooking } from '../../_services/queries'
 
 const AvailableRooms = () => {
   const navigate = useNavigate()
   const { data, isLoading } = useGetAllRoomDetails()
-  const { data: test } = useGetAllRoomBooking()
+  // const { data: test } = useGetAllRoomBooking()
   const [selectedRooms, setSelectedRooms] = useState<string[]>([])
   console.log('pasindu', data)
-  console.log('pasinduuuuuuuuuuuuuuu', test)
+  // console.log('pasinduuuuuuuuuuuuuuu', test)
   if (isLoading) {
     return <div>Loading...</div>
   }
@@ -138,11 +138,11 @@ const AvailableRooms = () => {
         <div className="border-2 border-red-700 mb-40">
           <p>Select Rooms</p>
           <div className="grid grid-cols-3 gap-2 border-2 border-green-300 items-center justify-center">
-            {test.map((te) => (
+            {/* {test.map((te) => (
               <div className="border-2 border-green-300 h-20">
                 {te.roomtype}
               </div>
-            ))}
+            ))} */}
             {/* <div className='border-2 border-green-300 h-20'>helo</div>
             <div className='border-2 border-green-300 h-20'>hello</div> */}
           </div>

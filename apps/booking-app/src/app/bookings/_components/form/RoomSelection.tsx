@@ -1,113 +1,111 @@
-import React, { useState } from 'react'
-import { useGetAllRoom } from '../../_services/queries'
-import { useForm } from '@tanstack/react-form'
+import React, { useEffect, useState } from 'react'
+
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
+import { getDirtyValuesTF } from '@/lib/utils'
+import { useForm } from '@tanstack/react-form'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   useInsertBookingMutation,
-  useInsertGuestInformationMutation,
+  useUpdateBookingMutation,
 } from '../../_services/mutation'
-import { useNavigate } from 'react-router-dom'
-// import { useGetAllRoom } from './queries/queries'
-// import { Button } from '../ui/button'
+import {
+  useGetBooking,
+  useGetPhoneNumber,
+  useGetPrice,
+  useGetRoomtype,
+} from '../../_services/queries'
+import { RoomSummaryItem } from './room-summary-item'
+import SelectedRoomsList from './summary-compo'
 
-interface Room {
-  name: string
-  imageUrl: string
-  description: string
-  deals: { name: string; originalPrice: number; discountedPrice: number }[]
-  maxOccupants: number
-  size: string
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler) // Cleanup on unmount or value change
+    }
+  }, [value, delay])
+
+  return debouncedValue
 }
 
-const rooms: Room[] = [
-  {
-    name: 'Luxury Twin',
-    imageUrl: '/path/to/luxury-twin.jpg',
-    description:
-      'Luxury Rooms are located in the Sigiriya wing. They are larger than Superior Rooms...',
-    deals: [
-      {
-        name: 'Breakfast Included',
-        originalPrice: 73500,
-        discountedPrice: 55125,
-      },
-      { name: 'Half Board', originalPrice: 78500, discountedPrice: 58875 },
-      { name: 'Full Board', originalPrice: 83500, discountedPrice: 62625 },
-    ],
-    maxOccupants: 3,
-    size: '388 ft² / 36 m²',
-  },
-  {
-    name: 'Normal',
-    imageUrl: '/path/to/luxury-twin.jpg',
-    description:
-      'Luxury Rooms are located in the Sigiriya wing. They are larger than Superior Rooms...',
-    deals: [
-      {
-        name: 'Breakfast Included',
-        originalPrice: 73500,
-        discountedPrice: 55125,
-      },
-      { name: 'Half Board', originalPrice: 78500, discountedPrice: 58875 },
-      { name: 'Full Board', originalPrice: 83500, discountedPrice: 62625 },
-    ],
-    maxOccupants: 3,
-    size: '388 ft² / 36 m²',
-  },
-  {
-    name: 'Suite',
-    imageUrl: '/path/to/luxury-twin.jpg',
-    description:
-      'Luxury Rooms are located in the Sigiriya wing. They are larger than Superior Rooms...',
-    deals: [
-      {
-        name: 'Breakfast Included',
-        originalPrice: 73500,
-        discountedPrice: 55125,
-      },
-      { name: 'Half Board', originalPrice: 78500, discountedPrice: 58875 },
-      { name: 'Full Board', originalPrice: 83500, discountedPrice: 62625 },
-    ],
-    maxOccupants: 3,
-    size: '388 ft² / 36 m²',
-  },
-  {
-    name: 'Standard ',
-    imageUrl: '/path/to/luxury-twin.jpg',
-    description:
-      'Luxury Rooms are located in the Sigiriya wing. They are larger than Superior Rooms...',
-    deals: [
-      {
-        name: 'Breakfast Included',
-        originalPrice: 73500,
-        discountedPrice: 55125,
-      },
-      { name: 'Half Board', originalPrice: 78500, discountedPrice: 58875 },
-      { name: 'Full Board', originalPrice: 83500, discountedPrice: 62625 },
-      { name: 'Full Board', originalPrice: 83500, discountedPrice: 62625 },
-    ],
-    maxOccupants: 3,
-    size: '388 ft² / 36 m²',
-  },
-]
+type RoomCountDta = {
+  typeid: number
+  viewid: number
+  basis: string
+  count: number
+}
+
+type SelectedRoomType = {
+  type?: string
+  typeid?: number | null
+  view?: string | null
+  viewid?: number | null
+  price?: number | null
+  basis?: string | null
+  count?: number | null
+  occupantdetails?: any[] | null
+}
 
 const RoomSelection = () => {
+  const { id } = useParams()
+  const { toast } = useToast()
+  const navigate = useNavigate()
   const [currency, setCurrency] = useState('LKR')
   const [exchangeRate, setExchangeRate] = useState(1)
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
+  // const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [selectedDeal, setSelectedDeal] = useState<string | null>(null)
-
+  const [phone, setphone] = useState()
   //--------------------------------------
   const [useSameAddress, setUseSameAddress] = useState(false)
   const [notifySpecialOffers, setNotifySpecialOffers] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
-  const navigate = useNavigate()
 
   const insertMutation = useInsertBookingMutation()
+  const updateMutation = useUpdateBookingMutation()
+  const debouncedPhone = useDebounce(phone, 500)
+  const { data: getphonedata, isFetched } = useGetPhoneNumber(debouncedPhone)
 
+  const [checkindate, setcheckindate] = useState<string | undefined>(undefined)
+  const [checkoutdate, setcheckoutdate] = useState<string | undefined>(
+    undefined,
+  )
+  const { data: roomprices } = useGetPrice(checkindate)
+
+  //  const [totalAmount, settotalAmount] = useState<number>(0)
+
+  const [selectedRooms, setselectedRooms] = useState<SelectedRoomType[]>([])
+  const [selectedRoomBasis, setselectedRoomBasis] = useState<
+    SelectedRoomType[]
+  >([])
+
+  console.log('roomprice', roomprices)
+
+  useEffect(() => {
+    if (getphonedata) {
+      form.setFieldValue('firstname', getphonedata.firstname)
+      form.setFieldValue('lastname', getphonedata.lastname)
+      form.setFieldValue('email', getphonedata.email)
+      form.setFieldValue('phonenumber', getphonedata.phonenumber)
+      form.setFieldValue('address', getphonedata.address)
+      form.setFieldValue('city', getphonedata.city)
+      form.setFieldValue('country', getphonedata.country)
+      form.setFieldValue('postalcode', getphonedata.postalcode)
+    } else {
+      form.reset()
+    }
+  }, [getphonedata])
+
+  // form.setFieldValue('roles', roles.roles)
   const form = useForm({
     defaultValues: {
+      booking_id: null,
       checkindate: new Date().toISOString().split('T')[0],
       checkoutdate: new Date().toISOString().split('T')[0],
       flexibledates: false,
@@ -124,71 +122,121 @@ const RoomSelection = () => {
       postalcode: '',
     },
     onSubmit: async ({ value: data }) => {
-      // Do something with form data
-      console.log('hloooooooooooooooooooooooo', data)
-      const responseData = await insertMutation.mutateAsync({ data })
-      const id = getValues('id') // Check if data already exists
-
+      console.log('dataaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', data)
       if (id) {
-        // If `id` exists, fetch updated data and display it in frontend
-        try {
-          let dirtyValues: any = {}
+        // If id exists, we're updating the booking
+        const dirtyValues = getDirtyValuesTF(q, data, [], 'booking_id')
+        console.log('dirtyvaluessssssss', dirtyValues)
 
-          // Capture only modified fields
-          for (const key in dirtyFields) {
-            dirtyValues[key] = data[key]
-          }
+        if (dirtyValues) {
+          console.log('Dirty values to update:', dirtyValues)
 
-          const resMutation = updateMutation.mutate({ id, dirtyValues })
+          // Make the PUT request with only dirty fields
+          const responseData = await updateMutation.mutateAsync({
+            id,
+            dirtyValues,
+          })
 
-          // Check if update was successful
-          if (!updateMutation.isError) {
+          if (responseData) {
             toast({
               className: 'text-green-600',
               title: 'Booking',
               description: <span>Updated successfully.</span>,
-              duration: 5000,
+              duration: 2000,
             })
+
+            navigate(`/booking/${id}`)
           }
-        } catch (error) {
-          console.error('Error updating booking:', error)
+        } else {
+          console.log('No fields were changed')
+          toast({
+            className: 'text-blue-600',
+            title: 'Booking',
+            description: <span>No changes to update.</span>,
+            duration: 2000,
+          })
         }
       } else {
-        // If no `id`, insert a new booking
-        try {
-          const responseData = await insertMutation.mutateAsync({ data })
+        // Insert new booking
+        const responseData = await insertMutation.mutateAsync({ data })
 
-          if (responseData.success) {
-            const newId = responseData.lastInsertRowid
+        if (responseData.success) {
+          const newId = responseData.bookingId
 
-            setValue('id', newId, { shouldDirty: false })
+          toast({
+            className: 'text-green-600',
+            title: 'Booking',
+            description: <span>Added successfully.</span>,
+            duration: 2000,
+          })
 
-            toast({
-              className: 'text-green-600',
-              title: 'Booking',
-              description: <span>Added successfully.</span>,
-              duration: 2000,
-            })
-
-            navigate(`/booking/${newId}`)
-
-            // Fetch the newly inserted booking and display it in the UI
-            const newBooking = data.newBooking
-            form.reset(newBooking) // Reset the form with new booking data
-          } else {
-            toast({
-              className: 'text-red-600',
-              title: 'Booking',
-              description: <span>{responseData.msg}</span>,
-              duration: 2000,
-            })
-          }
-        } catch (error) {
-          console.error('Error inserting booking:', error)
+          navigate(`/booking/${newId}`)
         }
       }
     },
   })
+
+  const handleSearch = () => {
+    const checkindate = form.getFieldValue('checkindate')
+    const checkoutdate = form.getFieldValue('checkoutdate')
+    console.log('Searching for rooms with:', checkindate, checkoutdate)
+
+    if (checkindate && checkoutdate) {
+      // Set the state variables
+      setcheckindate(checkindate)
+      setcheckoutdate(checkoutdate)
+
+      // Make API call with checkindate and checkoutdate
+      console.log('Searching for rooms with:', checkindate, checkoutdate)
+      // Call your search function here
+    } else {
+      console.error('Both check-in and check-out dates are required.')
+    }
+  }
+
+  console.log('checkindateeeeeeeeeeeeeeeeeeeeeeee', checkindate)
+
+  const { data: roomviewtypes, isFetched: isFetchedRoomTypes } = useGetRoomtype(
+    checkindate,
+    checkoutdate,
+  )
+
+  console.log('roomviewtypes', roomviewtypes)
+
+  const { data: q, isLoading, isError, error } = useGetBooking(id)
+
+  //--------------------------------------------------------------------
+
+  useEffect(() => {
+    if (q) {
+      try {
+        // Populate the form with fetched data
+        // form.setFieldValue('checkindate', q.checkindate)
+        form.setFieldValue('booking_id', q.booking_id)
+        // form.setFieldValue('checkoutdate', q.checkoutdate)
+        form.setFieldValue('flexibledates', q.flexibledates)
+        form.setFieldValue('adults', q.adults)
+        form.setFieldValue('children', q.children)
+        form.setFieldValue('currency', q.currency)
+        form.setFieldValue('firstname', q.firstname)
+        form.setFieldValue('lastname', q.lastname)
+        form.setFieldValue('email', q.email)
+        form.setFieldValue('phonenumber', q.phonenumber)
+        form.setFieldValue('address', q.address)
+        form.setFieldValue('city', q.city)
+        form.setFieldValue('country', q.country)
+        form.setFieldValue('postalcode', q.postalcode)
+      } catch (error) {
+        console.error('Error fetching booking data:', error)
+        toast({
+          className: 'text-red-600',
+          title: 'Error',
+          description: <span>Something went wrong while fetching data.</span>,
+          duration: 2000,
+        })
+      }
+    }
+  }, [q])
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCurrency = e.target.value
@@ -203,13 +251,254 @@ const RoomSelection = () => {
   const formatPrice = (price: number) => {
     return (price * exchangeRate).toFixed(2)
   }
+  const handleremoveocd = (
+    typeid: number,
+    viewid: number,
+    basis: string,
+    roomid: any,
+  ) => {
+    const room = selectedRooms.find(
+      (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
+    )
 
-  const openModal = (room: Room) => {
-    setSelectedRoom(room)
-    setShowModal(true)
+    if (room) {
+      if (room.occupantdetails.length == 1) {
+        handleremove(room.typeid, room.viewid, room.basis)
+        return
+      }
+    }
+
+    setselectedRooms((p) => {
+      const i = p.findIndex(
+        (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
+      )
+      if (i != -1) {
+        return [
+          ...p.slice(0, i),
+          {
+            ...p[i],
+            occupantdetails: p[i].occupantdetails.filter(
+              (r) => r.roomid != roomid,
+            ),
+          },
+          ...p.slice(i + 1),
+        ]
+      } else {
+        console.warn(' not fount type,view basis')
+        return p
+      }
+
+      // }else{
+      //   return p.filter(r=> r.typeid !== typeid && r.viewid !== viewid)
+      // }
+    })
   }
-  const { data } = useGetAllRoom()
-  // console.log('first', data)
+
+  const handleremove = (typeid: number, viewid: number, basis: string) => {
+    console.log('pop2')
+
+    setselectedRoomBasis((p) => {
+      return p.filter(
+        (rb) =>
+          !(rb.typeid == typeid && rb.viewid == viewid && rb.basis == basis),
+      )
+    })
+    setselectedRooms((p) => {
+      return p.filter(
+        (rb) =>
+          !(rb.typeid == typeid && rb.viewid == viewid && rb.basis == basis),
+      )
+    })
+  }
+
+  const bookinghandle = (
+    typeid: number,
+    viewid: number,
+    type: string,
+    view: string,
+  ) => {
+    const res = selectedRoomBasis.find(
+      (r) => r.typeid == typeid && r.viewid == viewid,
+    )
+
+    if (!res) {
+      console.warn('not found room basis - system error')
+      return
+    }
+
+    const selRoom = selectedRooms.find(
+      (r) => r.typeid == typeid && r.viewid == viewid && r.basis == res.basis,
+    )
+
+    if (selRoom) {
+      addoccupentdata(typeid, viewid, res.basis)
+      return
+    } else {
+      setselectedRooms((p) => {
+        // const res = selectedRoomBasis.find(
+        //   (r) => r.typeid == typeid && r.viewid == viewid,
+        // )
+
+        const resSelRooms = selectedRooms.find(
+          (r) =>
+            r.typeid == typeid && r.viewid == viewid && r.basis == res.basis,
+        )
+
+        let newIndex = -1
+
+        if (resSelRooms) {
+          console.log('res', resSelRooms)
+
+          const newrooms = resSelRooms.occupantdetails?.filter(
+            (r) => r.roomid < 0,
+          )
+
+          if (newrooms.length != 0) {
+            const lastMinusIndexObj = newrooms.reduce((a, c) => {
+              return a.roomid < c.roomid ? a : c
+            })
+            console.log('lastMinusIndexObj', lastMinusIndexObj)
+            newIndex = lastMinusIndexObj.roomid - 1
+          }
+        }
+
+        return [
+          ...p,
+          {
+            typeid,
+            viewid,
+            price: res.price,
+            type,
+            view,
+            basis: res.basis,
+            count: 1,
+            occupantdetails: [
+              {
+                roomid: newIndex,
+                adultcount: 3,
+                childcount: 3,
+                infantcount: 4,
+              },
+            ],
+          },
+        ]
+      })
+    }
+  }
+
+  const addoccupentdata = (typeid, viewid, basis) => {
+    setselectedRooms((p) => {
+      const i = p.findIndex(
+        (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
+      )
+      if (i != -1) {
+        //find new index minus vals
+        let newIndex = -1
+        const resSelRooms = selectedRooms.find(
+          (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
+        )
+        if (resSelRooms) {
+          console.log('res', resSelRooms)
+
+          const newrooms = resSelRooms.occupantdetails?.filter(
+            (r) => r.roomid < 0,
+          )
+
+          if (newrooms.length != 0) {
+            const lastMinusIndexObj = newrooms.reduce((a, c) => {
+              return a.roomid < c.roomid ? a : c
+            })
+            console.log('lastMinusIndexObj', lastMinusIndexObj)
+            newIndex = lastMinusIndexObj.roomid - 1
+          }
+        }
+
+        return [
+          ...p.slice(0, i),
+          {
+            ...p[i],
+            occupantdetails: [
+              ...p[i].occupantdetails,
+              {
+                roomid: newIndex,
+                adultcount: 3,
+                childcount: 3,
+                infantcount: 4,
+              },
+            ],
+          },
+          ...p.slice(i + 1),
+        ]
+      } else {
+        console.warn(' not fount type,view basis')
+        return p
+      }
+
+      // }else{
+      //   return p.filter(r=> r.typeid !== typeid && r.viewid !== viewid)
+      // }
+    })
+  }
+  const bookingBasishandle = (
+    checked: boolean,
+    typeid: number,
+    viewid: number,
+    price: number,
+    type: string,
+    view: string,
+    basis: string,
+  ) => {
+    console.log('xxtypeid', typeid)
+    console.log('xxviewid', viewid)
+    console.log('xxselectedRooms', selectedRooms)
+    setselectedRoomBasis((p) => {
+      console.log('selectedRoomBasis falsee', checked)
+      if (checked) {
+        const t = p.filter((r) => !(r.typeid == typeid && r.viewid == viewid))
+        return [...t, { typeid, viewid, price, type, view, basis }]
+      }
+      // else{
+      //   return p.filter(r=> r.typeid !== typeid && r.viewid !== viewid)
+      // }
+    })
+  }
+
+  // useEffect(() => {
+  //   console.log("xxselectedRooms",selectedRooms )
+
+  //   selectedRooms.map((r) => {
+  //     settotalAmount((p) => p + r.count * r.price)
+  //   })
+  // }, [selectedRooms])
+
+  useEffect(() => {
+    const t = selectedRooms.reduce((a, c) => a + c.count * c.price, 0)
+
+    console.log('qqqselectedRooms', selectedRooms)
+  }, [selectedRooms])
+  useEffect(() => {
+    console.log('selectedRoomBasis', selectedRoomBasis)
+  }, [selectedRoomBasis])
+
+  const handleCount = (
+    typeid: number,
+    viewid: number,
+    basis: string,
+    c: number,
+  ) => {
+    setselectedRooms((p) => {
+      const o = p.find(
+        (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
+      )
+      return [
+        ...p.filter(
+          (r) =>
+            !(r.typeid == typeid && r.viewid == viewid && r.basis == basis),
+        ),
+        { ...o, count: c },
+      ]
+    })
+  }
 
   return (
     <>
@@ -237,7 +526,7 @@ const RoomSelection = () => {
               e.preventDefault(), e.stopPropagation()
             }}
           >
-            <div className="grid grid-cols-6 gap-4 items-center ">
+            <div className="grid grid-cols-4 gap-4 items-center ">
               {/* Property Selection */}
               {/* <div className="col-span-2">
                     <label className="block text-sm font-semibold">
@@ -250,6 +539,21 @@ const RoomSelection = () => {
                   </div> */}
               {/* Check-in Date */}
 
+              {/* <form.Field
+                name="booking_id"
+                children={(field) => (
+                  <div className="col-span-1">
+                    <label className="block text-sm font-semibold">
+                      Check in
+                    </label>
+                    <input
+                      type="hidden"
+                      value={field.state.value}
+                     
+                    />
+                  </div>
+                )}
+              /> */}
               <form.Field
                 name="checkindate"
                 children={(field) => (
@@ -259,9 +563,22 @@ const RoomSelection = () => {
                     </label>
                     <input
                       type="date"
-                      value={field.state.value}
+                      value={
+                        field.state.value
+                          ? new Date(field.state.value)
+                              .toISOString()
+                              .split('T')[0]
+                          : ''
+                      }
                       onChange={(e) => field.handleChange(e.target.value)}
                       className="w-full border border-gray-300 p-2 rounded"
+                      // value={
+                      //   field.value
+                      //     ? new Date(field.value)
+                      //         .toISOString()
+                      //         .split('T')[0]
+                      //     : ''
+                      // }
                     />
                   </div>
                 )}
@@ -276,7 +593,13 @@ const RoomSelection = () => {
                     </label>
                     <input
                       type="date"
-                      value={field.state.value}
+                      value={
+                        field.state.value
+                          ? new Date(field.state.value)
+                              .toISOString()
+                              .split('T')[0]
+                          : ''
+                      }
                       onChange={(e) => field.handleChange(e.target.value)}
                       className="w-full border border-gray-300 p-2 rounded"
                     />
@@ -319,7 +642,7 @@ const RoomSelection = () => {
               {/* Flexible Dates */}
 
               {/* Adults */}
-              <form.Field
+              {/* <form.Field
                 name="adults"
                 children={(field) => (
                   <div className="col-span-1">
@@ -362,7 +685,7 @@ const RoomSelection = () => {
                     </select>
                   </div>
                 )}
-              />
+              /> */}
 
               {/* Children */}
               <form.Field
@@ -388,13 +711,16 @@ const RoomSelection = () => {
               {/* Currency */}
 
               {/* Promo Code & Search Button */}
-              <div className="col-span-2 flex flex-col justify-center">
+              {/* <div className="col-span-2 flex flex-col justify-center">
                 <label className="block text-sm font-semibold underline cursor-pointer">
                   Use Promo Code
                 </label>
-              </div>
+              </div> */}
               <div className="col-span-1">
-                <button className="bg-yellow-500 text-white py-2 px-4 rounded w-full">
+                <button
+                  className="bg-yellow-500 text-white py-2 px-4 rounded w-full"
+                  onClick={handleSearch}
+                >
                   Search
                 </button>
               </div>
@@ -408,7 +734,7 @@ const RoomSelection = () => {
         {/* Header Section */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Hillroost Kandy (LKR)</h1>
-          <div>
+          {/* <div>
             <label htmlFor="currency" className="mr-2 font-bold">
               Currency:
             </label>
@@ -422,131 +748,321 @@ const RoomSelection = () => {
               <option value="USD">USD</option>
               <option value="EUR">EUR</option>
             </select>
-          </div>
+          </div> */}
         </div>
+        <div className="flex justify-between">
+          <div>
+            {isFetchedRoomTypes && roomprices && (
+              <div>
+                {roomviewtypes.map((roomcat, index) => {
+                  const prices = roomprices.find(
+                    (r) =>
+                      r.roomtypeid === roomcat.roomtypeid &&
+                      r.roomviewid === roomcat.roomviewid,
+                  )
 
-        <div className="grid grid-cols-3 gap-4">
-          <div className="col-span-2">
-            {/* Room List */}
-            {rooms.map((room) => (
-              <div key={room.name}>
-                <nav className="h-2 bg-red-600 items-center"></nav>
-                <div className="border-b py-4 grid grid-cols-2 gap-1">
-                  <div className="ml-4">
-                    <h3 className="text-xl font-bold">{room.name}</h3>
-                    <p className="text-sm">{room.description}</p>
-                    <p className="text-sm">
-                      Max Occupants: {room.maxOccupants}
-                    </p>
-                    <p className="text-sm">Size: {room.size}</p>
-                    <button
+                  return (
+                    <div key={index} className="ml-4">
+                      <nav className="h-2 bg-green-400 items-center"></nav>
+                      <div className="border-b py-4 grid grid-cols-2 gap-1">
+                        <div className="ml-4">
+                          <div className="flex items-center ">
+                            <h3 className="text-2xl font-bold">
+                              {roomcat.roomtype} -{' '}
+                            </h3>
+                            <p className="text-xl font-bold">
+                              {roomcat.roomview}
+                            </p>
+                          </div>
+                          {/* <button
                       className="text-blue-600 underline mt-2"
-                      onClick={() => openModal(room)}
+                      onClick={() => openModal(roomcat)}
                     >
                       View Room Details
-                    </button>
-                  </div>
+                    </button> */}
 
-                  <div>
-                    {room.deals.map((deal) => (
-                      <label
-                        key={deal.name}
-                        className="mb-2 flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded-lg"
-                        onClick={() => setSelectedDeal(deal.name)}
-                      >
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            name="deal"
-                            className="mr-2"
-                            checked={selectedDeal === deal.name}
-                            onChange={() => setSelectedDeal(deal.name)}
-                          />
-                          <p className="text-red-600 font-bold">
-                            Deal:{' '}
-                            <span className="text-black">{deal.name}</span>
-                          </p>
+                          {/* {prices && (
+                        <p className="text-sm">Ro Price: {prices.roprice}</p>
+                      )}
+                      {prices && (
+                        <p className="text-sm">BB Price: {prices.bbprice}</p>
+                      )}
+                      {prices && (
+                        <p className="text-sm">FB Price: {prices.fbprice}</p>
+                      )}
+                      {prices && (
+                        <p className="text-sm">HB Price: {prices.hbprice}</p>
+                      )} */}
+                          <button
+                            className="text-blue-600 underline mt-2"
+                            onClick={() => openModal(roomcat)}
+                          >
+                            View Room Details
+                          </button>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="line-through mr-2 text-gray-400">
-                            {formatPrice(deal.originalPrice)} {currency}
-                          </span>
-                          <span className="font-bold">
-                            {formatPrice(deal.discountedPrice)} {currency}
-                          </span>
+                        <div className="flex flex-col gap-1">
+                          <label className="">
+                            <div className="flex items-center justify-between cursor-pointer  mb-1  hover:bg-gray-100 rounded-lg">
+                              <div className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  className="mr-2"
+                                  checked={
+                                    selectedRoomBasis.find((rb) => {
+                                      // console.log("ioi",rb )
+
+                                      return (
+                                        rb.typeid == roomcat.roomtypeid &&
+                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.basis == 'hb'
+                                      )
+                                    })
+                                      ? true
+                                      : false
+                                  }
+                                  onChange={(e) => {
+                                    console.log(
+                                      'e.target.value',
+                                      e.target.checked,
+                                    )
+
+                                    bookingBasishandle(
+                                      e.target.checked,
+                                      roomcat.roomtypeid,
+                                      roomcat.roomviewid,
+                                      prices?.hbprice,
+                                      roomcat.roomtype,
+                                      roomcat.roomview,
+                                      'hb',
+                                    )
+                                  }}
+                                />
+                                {/* onChangeCapture={(e) => {
+                                bookingBasishandle(e.target.checked,
+                                  roomcat.roomtypeid,
+                                  roomcat.roomviewid,
+                                  prices?.hbprice,
+                                  roomcat.roomtype,
+                                  roomcat.roomview,
+                                  'hb',
+                                )
+                                }}
+                            /> */}
+                                <p className="text-red-600 font-bold">
+                                  Deal:{' '}
+                                  <span className="text-black">HB Price</span>
+                                </p>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="line-through mr-2 text-gray-400">
+                                  {/* {formatPrice(roomcat.hbprice)} {currency} */}
+                                </span>
+                                <span className="font-bold">
+                                  {/* {formatPrice(deal.discountedPrice)} {currency} */}
+                                  {prices && prices.hbprice}
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+                          <label>
+                            <div className="flex items-center justify-between cursor-pointer     hover:bg-gray-100   rounded-lg">
+                              <div className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  className="mr-2"
+                                  checked={
+                                    selectedRoomBasis.find(
+                                      (rb) =>
+                                        rb.typeid == roomcat.roomtypeid &&
+                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.basis == 'fb',
+                                    )
+                                      ? true
+                                      : false
+                                  }
+                                  onChange={(e) => {
+                                    console.log(
+                                      'e.target.value 1',
+                                      e.target.checked,
+                                    )
+
+                                    bookingBasishandle(
+                                      e.target.checked,
+                                      roomcat.roomtypeid,
+                                      roomcat.roomviewid,
+                                      prices?.fbprice,
+                                      roomcat.roomtype,
+                                      roomcat.roomview,
+                                      'fb',
+                                    )
+                                  }}
+                                />
+                                <p className="text-red-600 font-bold">
+                                  Deal:{' '}
+                                  <span className="text-black">FB Price</span>
+                                </p>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="line-through mr-2 text-gray-400">
+                                  {/* {formatPrice(roomcat.hbprice)} {currency} */}
+                                </span>
+                                <span className="font-bold">
+                                  {/* {formatPrice(deal.discountedPrice)} {currency} */}
+                                  {prices && prices.fbprice}
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+                          <label>
+                            <div className="flex items-center justify-between cursor-pointer    hover:bg-gray-100  rounded-lg">
+                              <div className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  className="mr-2"
+                                  checked={
+                                    selectedRoomBasis.find(
+                                      (rb) =>
+                                        rb.typeid == roomcat.roomtypeid &&
+                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.basis == 'ro',
+                                    )
+                                      ? true
+                                      : false
+                                  }
+                                  onChange={(e) => {
+                                    console.log(
+                                      'e.target.value 2',
+                                      e.target.checked,
+                                    )
+
+                                    bookingBasishandle(
+                                      e.target.checked,
+                                      roomcat.roomtypeid,
+                                      roomcat.roomviewid,
+                                      prices?.roprice,
+                                      roomcat.roomtype,
+                                      roomcat.roomview,
+                                      'ro',
+                                    )
+                                  }}
+                                />
+                                <p className="text-red-600 font-bold">
+                                  Deal:{' '}
+                                  <span className="text-black">RO Price</span>
+                                </p>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="line-through mr-2 text-gray-400">
+                                  {/* {formatPrice(roomcat.hbprice)} {currency} */}
+                                </span>
+                                <span className="font-bold">
+                                  {/* {formatPrice(deal.discountedPrice)} {currency} */}
+                                  {prices && prices.roprice}
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+                          <label>
+                            <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                              <div className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  className="mr-2"
+                                  checked={
+                                    selectedRoomBasis.find(
+                                      (rb) =>
+                                        rb.typeid == roomcat.roomtypeid &&
+                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.basis == 'bb',
+                                    )
+                                      ? true
+                                      : false
+                                  }
+                                  onChange={(e) => {
+                                    console.log(
+                                      'e.target.value 3',
+                                      e.target.checked,
+                                    )
+
+                                    bookingBasishandle(
+                                      e.target.checked,
+                                      roomcat.roomtypeid,
+                                      roomcat.roomviewid,
+                                      prices?.bbprice,
+                                      roomcat.roomtype,
+                                      roomcat.roomview,
+                                      'bb',
+                                    )
+                                  }}
+                                />
+                                <p className="text-red-600 font-bold">
+                                  Deal:{' '}
+                                  <span className="text-black">BB Price</span>
+                                </p>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="line-through mr-2 text-gray-400">
+                                  {/* {formatPrice(roomcat.hbprice)} {currency} */}
+                                </span>
+                                <span className="font-bold">
+                                  {/* {formatPrice(deal.discountedPrice)} {currency} */}
+                                  {prices && prices.bbprice}
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+
+                          {selectedRoomBasis.find(
+                            (r) =>
+                              r.typeid == roomcat.roomtypeid &&
+                              r.viewid == roomcat.roomviewid,
+                          ) && (
+                            <div className="border border-green-500 flex items-center justify-between p-2 rounded-lg">
+                              <div>{selectedDeal}</div>
+                              <button
+                                className="bg-orange-300 text-black py-2 px-4 mt-4"
+                                onClick={() =>
+                                  bookinghandle(
+                                    roomcat.roomtypeid,
+                                    roomcat.roomviewid,
+                                    roomcat.roomtype,
+                                    roomcat.roomview,
+                                  )
+                                }
+                              >
+                                Book
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      </label>
-                    ))}
-                    <div className="border border-green-500 flex items-center justify-between p-2 rounded-lg">
-                      <div>{selectedDeal}</div>
-                      <button className="bg-orange-300 text-black py-2 px-4 mt-4">
-                        Book
-                      </button>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  )
+                })}
               </div>
-            ))}
+            )}
           </div>
-
-          {/* Price Summary */}
-          <div className="col-span-1">
-            <div>
-              <h2 className="text-lg font-semibold mb-2">Price Summary</h2>
-              <p className="break-words">
-                yoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
-              </p>
-            </div>
+          <div>
+            <SelectedRoomsList
+              selectedRooms={selectedRooms}
+              handleremove={handleremove}
+              handleCount={handleCount}
+              addoccupentdata={addoccupentdata}
+              handleremoveocd={handleremoveocd}
+            />
           </div>
         </div>
 
         {/* Modal */}
-        {showModal && selectedRoom && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg w-1/2">
-              <h2 className="text-xl font-bold">{selectedRoom.name}</h2>
-              <p>{selectedRoom.description}</p>
-              <button
-                className="bg-red-500 text-white py-2 px-4 mt-4"
-                onClick={() => setShowModal(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
       </div>
       {/*  ------------------------------------------------------------------------------ */}
 
       <div className="container mx-auto p-6">
         <div className="grid grid-cols-3 gap-8">
-          {/* Your Reservation Section */}
-          {/* <div className="col-span-1 bg-gray-100 p-4 rounded">
-            <h2 className="text-lg font-semibold mb-2">Your Reservation</h2>
-            <div className="text-red-600 mb-2">
-              <p className="font-bold">
-                Deal: <span className="text-black">Breakfast Included</span>
-              </p>
-              <p>Superior King - 1 room</p>
-              <p className="font-bold text-lg">LKR 61,250.00</p>
-            </div>
-            <div className="mb-4">
-              <p>1 night & 2 adults</p>
-              <p className="line-through">LKR 70,000.00</p>
-              <p>LKR 61,250.00</p>
-            </div>
-            <div className="mb-4">
-              <p>
-                Total: <span className="font-bold">LKR 61,250.00</span>
-              </p>
-              <p>Included in the Rate:</p>
-              <p>VAT & Service Charge: LKR 15,242.34</p>
-            </div>
-            <div className="text-blue-600">
-              <p className="underline cursor-pointer">+ Another Request</p>
-            </div>
-          </div> */}
-
           {/* Guest Information Section */}
           <div className="col-span-2 bg-white p-4 rounded">
             <h2 className="text-lg font-semibold mb-2">Guest Information</h2>
@@ -554,6 +1070,28 @@ const RoomSelection = () => {
               Been here before? Click here
             </p>
             <div className="space-y-4">
+              <form.Field
+                name="phonenumber"
+                children={(field) => (
+                  <input
+                    type="text"
+                    placeholder="Phone Number"
+                    className="w-full border border-gray-300 p-2 rounded"
+                    required
+                    value={field.state.value}
+                    // onChange={(e) => {
+                    //   console.log("q111111",e.target.value)
+                    //   field.handleChange(e.target.value)}}
+                    onChangeCapture={(e) => {
+                      console.log('q122222', e.target.value)
+                      field.handleChange(e.target.value)
+
+                      setphone(e.target.value)
+                    }}
+                  />
+                )}
+              />
+
               <form.Field
                 name="firstname"
                 validators={{
@@ -594,20 +1132,6 @@ const RoomSelection = () => {
                   <input
                     type="email"
                     placeholder="Email Address"
-                    className="w-full border border-gray-300 p-2 rounded"
-                    required
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                  />
-                )}
-              />
-
-              <form.Field
-                name="phonenumber"
-                children={(field) => (
-                  <input
-                    type="text"
-                    placeholder="Phone Number"
                     className="w-full border border-gray-300 p-2 rounded"
                     required
                     value={field.state.value}
@@ -667,11 +1191,22 @@ const RoomSelection = () => {
                   />
                 )}
               />
+
+              <Button
+                className="bg-yellow-500 text-white py-2 px-4 rounded w-full mt-4  "
+                type="submit"
+                onClick={form.handleSubmit}
+              >
+                BOOK NOW
+              </Button>
+              {/* <button className="bg-yellow-500 text-white py-2 px-4 rounded w-full mt-4">
+              BOOK NOW
+            </button> */}
             </div>
           </div>
 
           {/* Payment Method Section */}
-          <div className="col-span-1 bg-white p-4 rounded">
+          {/* <div className="col-span-1 bg-white p-4 rounded">
             <h2 className="text-lg font-semibold mb-2">Payment Method</h2>
             <div className="flex space-x-2 mb-4">
               <img src="visa-secure.svg" alt="Visa" className="w-12" />
@@ -745,10 +1280,10 @@ const RoomSelection = () => {
             >
               BOOK NOW
             </Button>
-            {/* <button className="bg-yellow-500 text-white py-2 px-4 rounded w-full mt-4">
+            <button className="bg-yellow-500 text-white py-2 px-4 rounded w-full mt-4">
               BOOK NOW
-            </button> */}
-          </div>
+            </button>
+          </div> */}
         </div>
       </div>
     </>

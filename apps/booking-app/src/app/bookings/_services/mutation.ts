@@ -18,7 +18,7 @@ export const useUpdateBookingMutation = () => {
           `${bapi}bookings/${params.id}`,
           params.dirtyValues,
         )
-        // console.log("ressssssssssssssssssssssss",res)
+        console.log('ressssssssssssssssssssssss', res)
         return res
       } catch (error) {
         console.error('Error in API call:', error)

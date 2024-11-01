@@ -68,8 +68,8 @@ app.post('/b', (req, res) => {
 // })
 app.post('/bookings', (req, res) => {
   const {
-    checkindate,
-    checkoutdate,
+    // checkindate,
+    // checkoutdate,
     firstname,
     lastname,
     email,
@@ -104,11 +104,11 @@ app.post('/bookings', (req, res) => {
 
       // Now insert booking data with guestinformation foreign key
       const bookingInsertSTMT = `
-        INSERT INTO booking (checkin, checkout, guestinformation)
-        VALUES ($1, $2, $3)
+        INSERT INTO booking ( guestinformation)
+        VALUES ($1)
         RETURNING id;`
 
-      return pool.query(bookingInsertSTMT, [checkindate, checkoutdate, guestId])
+      return pool.query(bookingInsertSTMT, [guestId])
     })
     .then((bookingResponse) => {
       const bookingId = bookingResponse.rows[0].id
@@ -129,46 +129,135 @@ app.post('/bookings', (req, res) => {
 })
 
 //update booking
-app.put('/bookings/:id', (req, res) => {
-  const { id } = req.params
-  const dirtyfields = req.body
-  console.log('dirtyfields', dirtyfields, id)
-  // Prepare column definitions and values from dirtyfields
-  const colDefs = Object.keys(dirtyfields).map(
-    (field, index) => `${field} = $${index + 1}`,
-  )
-  const values = Object.values(dirtyfields)
+// app.put('/bookings/:id', (req, res) => {
+//   const { id } = req.params
+//   const dirtyfields = req.body
+//   console.log('dirtyfields', dirtyfields, id)
+//   // Prepare column definitions and values from dirtyfields
+//   const colDefs = Object.keys(dirtyfields).map(
+//     (field, index) => `${field} = $${index + 1}`,
+//   )
+//   const values = Object.values(dirtyfields)
 
-  if (colDefs.length === 0) {
-    // No changes to be made, exit early
-    return res.json({ success: false, msg: 'No fields to update' })
+//   if (colDefs.length === 0) {
+//     // No changes to be made, exit early
+//     return res.json({ success: false, msg: 'No fields to update' })
+//   }
+
+//   // Construct the SQL query
+//   const updateSQL = `UPDATE booking SET ${colDefs.join(', ')} WHERE id = $${
+//     colDefs.length + 1
+//   } RETURNING *`
+
+//   // Execute the update query
+//   pool
+//     .query(updateSQL, [...values, id])
+//     .then((response) => {
+//       if (response.rowCount > 0) {
+//         res.json({
+//           success: true,
+//           msg: 'Booking updated successfully',
+//           updatedBooking: response.rows[0],
+//         })
+//       } else {
+//         res.json({
+//           success: false,
+//           msg: 'Booking not found or no changes made',
+//         })
+//       }
+//     })
+//     .catch((err) => {
+//       console.error('Error executing update query:', err)
+//       res.json({
+//         success: false,
+//         msg: 'Error updating booking',
+//         error: err.message,
+//       })
+//     })
+// })
+app.put('/bookings/:id', (req, res) => {
+  const { id } = req.params // booking ID
+  const dirtyFields = req.body // modified fields from the frontend
+
+  // Prepare arrays for guestinformation and booking updates
+  const guestInfoFields = [
+    'checkindate',
+    'firstname',
+    'lastname',
+    'email',
+    'phonenumber',
+    'address',
+    'city',
+    'country',
+    'postalcode',
+  ]
+  const bookingFields = []
+
+  // Track changes for guestinformation and booking
+  const guestUpdates = {}
+  const bookingUpdates = {}
+
+  // Separate dirty fields between guestinformation and booking
+  Object.keys(dirtyFields).forEach((key) => {
+    if (guestInfoFields.includes(key)) {
+      guestUpdates[key] = dirtyFields[key]
+    } else if (bookingFields.includes(key)) {
+      bookingUpdates[key] = dirtyFields[key]
+    }
+  })
+
+  // Initialize a promise chain to handle updates
+  let promiseChain = Promise.resolve()
+
+  // Update guest information if necessary
+  if (Object.keys(guestUpdates).length > 0) {
+    promiseChain = promiseChain.then(() => {
+      // Update guestinformation table
+      const guestUpdateSQL = `
+        UPDATE guestinformation 
+        SET ${Object.keys(guestUpdates)
+          .map((key, i) => `${key} = $${i + 1}`)
+          .join(', ')}
+        WHERE id = (SELECT guestinformation FROM booking WHERE id = $${
+          Object.keys(guestUpdates).length + 1
+        })
+        RETURNING *;
+      `
+      const guestUpdateValues = [...Object.values(guestUpdates), id]
+
+      return pool.query(guestUpdateSQL, guestUpdateValues)
+    })
   }
 
-  // Construct the SQL query
-  const updateSQL = `UPDATE booking SET ${colDefs.join(', ')} WHERE id = $${
-    colDefs.length + 1
-  } RETURNING *`
+  // Update booking information if necessary
+  if (Object.keys(bookingUpdates).length > 0) {
+    promiseChain = promiseChain.then(() => {
+      // Update booking table
+      const bookingUpdateSQL = `
+        UPDATE booking 
+        SET ${Object.keys(bookingUpdates)
+          .map((key, i) => `${key} = $${i + 1}`)
+          .join(', ')}
+        WHERE id = $${Object.keys(bookingUpdates).length + 1}
+        RETURNING *;
+      `
+      const bookingUpdateValues = [...Object.values(bookingUpdates), id]
 
-  // Execute the update query
-  pool
-    .query(updateSQL, [...values, id])
-    .then((response) => {
-      if (response.rowCount > 0) {
-        res.json({
-          success: true,
-          msg: 'Booking updated successfully',
-          updatedBooking: response.rows[0],
-        })
-      } else {
-        res.json({
-          success: false,
-          msg: 'Booking not found or no changes made',
-        })
-      }
+      return pool.query(bookingUpdateSQL, bookingUpdateValues)
+    })
+  }
+
+  // Handle response once updates are done
+  promiseChain
+    .then((result) => {
+      res.json({
+        success: true,
+        msg: 'Booking updated successfully',
+      })
     })
     .catch((err) => {
-      console.error('Error executing update query:', err)
-      res.json({
+      console.error('Error updating booking:', err)
+      res.status(500).json({
         success: false,
         msg: 'Error updating booking',
         error: err.message,
@@ -176,32 +265,267 @@ app.put('/bookings/:id', (req, res) => {
     })
 })
 
-// get booking details by id
-app.get('/bookings/:id', (req, res) => {
-  const { id } = req.params 
+// app.put('/bookings/:id', async (req, res) => {
+//   const { id } = req.params; // booking id
+//   const dirtyfields = req.body; // Fields to update
 
-  const getBookingQuery = `SELECT * FROM booking WHERE id = $1`
+//   console.log('dirtyfields', dirtyfields, id);
+
+//   if (Object.keys(dirtyfields).length === 0) {
+//     // No changes to be made, exit early
+//     return res.status(400).json({ success: false, msg: 'No fields to update' });
+//   }
+
+//   // Prepare the SQL to update the booking table
+//   const bookingFields = ['checkindate', 'checkoutdate'];
+//   const guestFields = ['firstname', 'lastname', 'email', 'phonenumber', 'address', 'city', 'country', 'postalcode'];
+
+//   const bookingUpdates = {};
+//   const guestUpdates = {};
+
+//   // Separate the fields between booking and guest information
+//   Object.keys(dirtyfields).forEach((field) => {
+//     if (bookingFields.includes(field)) {
+//       bookingUpdates[field] = dirtyfields[field];
+//     }
+//     if (guestFields.includes(field)) {
+//       guestUpdates[field] = dirtyfields[field];
+//     }
+//   });
+
+//   const client = await pool.connect(); // Get client for transaction
+
+//   try {
+//     await client.query('BEGIN'); // Start transaction
+
+//     // Step 1: Update the booking table
+//     if (Object.keys(bookingUpdates).length > 0) {
+//       const bookingColDefs = Object.keys(bookingUpdates).map((field, index) => `${field} = $${index + 1}`);
+//       const bookingValues = Object.values(bookingUpdates);
+
+//       const updateBookingSQL = `UPDATE booking SET ${bookingColDefs.join(', ')} WHERE id = $${bookingColDefs.length + 1} RETURNING *`;
+//       const bookingResponse = await client.query(updateBookingSQL, [...bookingValues, id]);
+
+//       if (bookingResponse.rowCount === 0) {
+//         throw new Error('Booking not found');
+//       }
+//     }
+
+//     // Step 2: Update the guest information table if needed
+//     if (Object.keys(guestUpdates).length > 0) {
+//       const guestColDefs = Object.keys(guestUpdates).map((field, index) => `${field} = $${index + 1}`);
+//       const guestValues = Object.values(guestUpdates);
+
+//       // Get the guest id associated with the booking
+//       const guestIdResult = await client.query(`SELECT guestinformation FROM booking WHERE id = $1`, [id]);
+//       const guestId = guestIdResult.rows[0].guestinformation;
+
+//       const updateGuestSQL = `UPDATE guestinformation SET ${guestColDefs.join(', ')} WHERE id = $${guestColDefs.length + 1} RETURNING *`;
+//       const guestResponse = await client.query(updateGuestSQL, [...guestValues, guestId]);
+
+//       if (guestResponse.rowCount === 0) {
+//         throw new Error('Guest information not found');
+//       }
+//     }
+
+//     // Commit the transaction
+//     await client.query('COMMIT');
+
+//     res.json({
+//       success: true,
+//       msg: 'Booking and guest information updated successfully',
+//     });
+//   } catch (err) {
+//     // Rollback in case of error
+//     await client.query('ROLLBACK');
+//     console.error('Error updating booking/guest information:', err);
+//     res.status(500).json({
+//       success: false,
+//       msg: 'Error updating booking or guest information',
+//       error: err.message,
+//     });
+//   } finally {
+//     client.release(); // Release the client back to the pool
+//   }
+// });
+
+// get booking details by id
+// app.get('/bookings/:id', (req, res) => {
+//   const { id } = req.params
+
+//   const getBookingQuery = `SELECT * FROM booking WHERE id = $1`
+
+//   pool
+//     .query(getBookingQuery, [id])
+//     .then((response) => {
+//       if (response.rows.length > 0) {
+//         const bookingData = response.rows[0]
+//         res.json({ success: true, msg: '', data: bookingData })
+//       } else {
+//         res.json({ success: false, msg: 'Booking not found', data: {} })
+//       }
+//     })
+//     .catch((err) => {
+//       console.error('Error fetching booking:', err)
+//       res.json({ success: false, msg: 'Error fetching booking', data: {} })
+//     })
+// })
+app.get('/bookings/:id', async (req, res) => {
+  const { id } = req.params // Get booking ID from the URL
+
+  const client = await pool.connect()
+
+  try {
+    // Query to get booking and associated guest information
+    const query = `
+      SELECT 
+        b.id AS booking_id,
+        
+        g.firstname,
+        g.lastname,
+        g.email,
+        g.phonenumber,
+        g.address,
+        g.city,
+        g.country,
+        g.postalcode
+      FROM 
+        booking b
+      JOIN 
+        guestinformation g ON b.guestid = g.id
+      WHERE 
+        b.id = $1;
+    `
+
+    const result = await client.query(query, [id])
+
+    if (result.rows.length === 0) {
+      // No booking found with the given ID
+      return res.status(404).json({
+        success: false,
+        msg: 'Booking not found',
+      })
+    }
+
+    const bookingData = result.rows[0]
+
+    // Return the booking and guest information
+    res.status(200).json({
+      success: true,
+      data: bookingData,
+    })
+  } catch (err) {
+    console.error('Error fetching booking:', err)
+    res.status(500).json({
+      success: false,
+      msg: 'Error fetching booking details',
+      error: err.message,
+    })
+  } finally {
+    client.release()
+  }
+})
+
+// app.get('/phonenumber', (req, res) => {
+//   const getAllBookingQuery = `SELECT phonenumber FROM booking`
+
+//   pool
+//     .query(getAllBookingQuery)
+//     .then((response) => {
+//       if (response.rows.length > 0) {
+//         const bookingData = response.rows // Get all rows
+//         res.json({ success: true, msg: '', data: bookingData })
+//       } else {
+//         res.json({ success: false, msg: 'No booking found', data: [] })
+//       }
+//     })
+//     .catch((err) => {
+//       console.error('Error fetching booking:', err)
+//       res.json({ success: false, msg: 'Error fetching booking', data: [] })
+//     })
+// })
+
+//get all room types
+app.get('/rooms', (req, res) => {
+  const { checkindate, checkoutdate } = req.query
+  const getAllBookingQuery = `
+  select r.roomtypeid,r.roomviewid, t.roomtype ,v.roomview,t.maxadultcount from public.hotelrooms r
+JOIN public.hotelroomtypes t 
+on t.id = r.roomtypeid 
+JOIN public.hotelroomview v
+on v.id = r.roomviewid 
+WHERE r.id not in 
+(SELECT bd.roomid FROM public.bookingdetails bd
+join public.booking b 
+on b.id =bd.bookingid
+WHERE '${checkindate}' BETWEEN b.checkindate AND b.checkoutdate
+or '${checkoutdate}'  between b.checkindate AND b.checkoutdate)
+group by r.roomtypeid , r.roomviewid ,t.roomtype ,v.roomview,t.maxadultcount
+
+`
 
   pool
-    .query(getBookingQuery, [id])
+    .query(getAllBookingQuery)
     .then((response) => {
       if (response.rows.length > 0) {
-        const bookingData = response.rows[0]
+        const bookingData = response.rows // Get all rows
         res.json({ success: true, msg: '', data: bookingData })
       } else {
-        res.json({ success: false, msg: 'Booking not found', data: {} })
+        res.json({ success: false, msg: 'No booking found', data: [] })
       }
     })
     .catch((err) => {
       console.error('Error fetching booking:', err)
-      res.json({ success: false, msg: 'Error fetching booking', data: {} })
+      res.json({ success: false, msg: 'Error fetching booking', data: [] })
     })
 })
 
-// get all bookings
+// get all prices
+app.get('/prices', (req, res) => {
+  const { checkindate } = req.query
+  const getAllBookingQuery = `
+  SELECT p.*, v.roomview, t.roomtype from public.hotelroompriceshedules s
+JOIN public.hotelroomprices p
+on s.id = p.sheduleid
+join public.hotelroomview v 
+on v.id = p.roomviewid
+join public.hotelroomtypes t 
+on t.id = p.roomtypeid
+WHERE '${checkindate}' BETWEEN startdate AND enddate`
+
+  pool
+    .query(getAllBookingQuery)
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const bookingData = response.rows // Get all rows
+        res.json({ success: true, msg: '', data: bookingData })
+      } else {
+        res.json({ success: false, msg: 'No booking found', data: [] })
+      }
+    })
+    .catch((err) => {
+      console.error('Error fetching booking:', err)
+      res.json({ success: false, msg: 'Error fetching booking', data: [] })
+    })
+})
 
 app.get('/allbookings', (req, res) => {
-  const getAllBookingQuery = `SELECT * FROM booking`
+  const getAllBookingQuery = `
+  SELECT 
+        b.id ,
+        
+        g.firstname,
+        g.lastname,
+        g.email,
+        g.phonenumber,
+        g.address,
+        g.city,
+        g.country,
+        g.postalcode
+      FROM 
+        booking b
+      JOIN 
+        guestinformation g ON b.guestid = g.id`
 
   pool
     .query(getAllBookingQuery)
@@ -558,11 +882,11 @@ app.get('/kasun', (req, res) => {
 //     }
 // });
 
-app.get('/booking-by-phone/:phone', async (req, res) => {
+app.get('/guest-by-phone/:phone', async (req, res) => {
   const { phone } = req.params
-
+  //rrrrrrr
   try {
-    const query = 'SELECT * FROM booking WHERE telephone = $1'
+    const query = 'SELECT * FROM guestinformation WHERE phonenumber = $1'
     const result = await pool.query(query, [phone])
 
     if (result.rows.length > 0) {
@@ -698,24 +1022,24 @@ app.get('/allroomdetails', (req, res) => {
       res.json({ success: false, msg: 'Error fetching booking', data: [] })
     })
 })
-app.get('/library', (req, res) => {
-  const getAllRoomDetailsQuery = `SELECT * FROM roomprices `
+// app.get('/library', (req, res) => {
+//   const getAllRoomDetailsQuery = `SELECT * FROM roomprices `
 
-  pool
-    .query(getAllRoomDetailsQuery)
-    .then((response) => {
-      if (response.rows.length > 0) {
-        const roomData = response.rows // Get all rows
-        res.json({ success: true, msg: '', data: roomData })
-      } else {
-        res.json({ success: false, msg: 'No booking found', data: [] })
-      }
-    })
-    .catch((err) => {
-      console.error('Error fetching booking:', err)
-      res.json({ success: false, msg: 'Error fetching booking', data: [] })
-    })
-})
+//   pool
+//     .query(getAllRoomDetailsQuery)
+//     .then((response) => {
+//       if (response.rows.length > 0) {
+//         const roomData = response.rows // Get all rows
+//         res.json({ success: true, msg: '', data: roomData })
+//       } else {
+//         res.json({ success: false, msg: 'No booking found', data: [] })
+//       }
+//     })
+//     .catch((err) => {
+//       console.error('Error fetching booking:', err)
+//       res.json({ success: false, msg: 'Error fetching booking', data: [] })
+//     })
+// })
 
 // app.get('/hotel-data', async (req, res) => {
 //   try {

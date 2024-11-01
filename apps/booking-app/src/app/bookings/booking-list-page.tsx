@@ -107,15 +107,15 @@ export default function BookingListPage() {
         <TableHeader className="text-center bg-green-300">
           <TableRow>
             <TableHead className="text-center">ID</TableHead>
-            <TableHead className="text-center">Room No</TableHead>
-            <TableHead className="text-center">Check In</TableHead>
-            <TableHead className="text-center">Check Out </TableHead>
+            {/* <TableHead className="text-center">Room No</TableHead> */}
+            <TableHead className="text-center">First Name</TableHead>
+            <TableHead className="text-center">Last Name </TableHead>
             <TableHead className="text-center">Telephone</TableHead>
             <TableHead className="text-center">Email</TableHead>
-            <TableHead className="text-center">Adult Count</TableHead>
-            <TableHead className="text-center">Children Count</TableHead>
-            <TableHead className="text-center">Booking Date</TableHead>
-            <TableHead className="text-center">Room Price </TableHead>
+            <TableHead className="text-center">Address</TableHead>
+            <TableHead className="text-center">City</TableHead>
+            <TableHead className="text-center">Country</TableHead>
+            <TableHead className="text-center">Postal Code</TableHead>
             <TableHead className="text-center"> </TableHead>
           </TableRow>
         </TableHeader>
@@ -123,25 +123,23 @@ export default function BookingListPage() {
           {booking.map((booking: any) => (
             <TableRow key={booking.id}>
               <TableCell className="text-center">{booking.id}</TableCell>
-              <TableCell className="text-center">
+              {/* <TableCell className="text-center">
                 {booking.roomnumber}
-              </TableCell>
+              </TableCell> */}
 
-              <TableCell className="text-center">{booking.checkin}</TableCell>
-              <TableCell className="text-center">{booking.checkout}</TableCell>
-              <TableCell className="text-center">{booking.telephone}</TableCell>
+              <TableCell className="text-center">{booking.firstname}</TableCell>
+              <TableCell className="text-center">{booking.lastname}</TableCell>
+              <TableCell className="text-center">
+                {booking.phonenumber}
+              </TableCell>
               <TableCell className="text-center">{booking.email}</TableCell>
+              <TableCell className="text-center">{booking.address}</TableCell>
+              <TableCell className="text-center">{booking.city}</TableCell>
+              <TableCell className="text-center">{booking.country}</TableCell>
               <TableCell className="text-center">
-                {booking.adultcount}
+                {booking.postalcode}
               </TableCell>
-              <TableCell className="text-center">
-                {booking.childrencount}
-              </TableCell>
-              <TableCell className="text-center">
-                {booking.bookingdate}
-              </TableCell>
-              <TableCell className="text-center">{booking.roomprice}</TableCell>
-              <TableCell className="flex text-center">
+              <TableCell className="text-center flex">
                 <Button
                   className="ml-5 bg-green-600"
                   onClick={() => handleEdit(booking.id)}
