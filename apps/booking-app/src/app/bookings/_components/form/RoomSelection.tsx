@@ -158,7 +158,9 @@ const RoomSelection = () => {
         }
       } else {
         // Insert new booking
-        const responseData = await insertMutation.mutateAsync({ data })
+        const responseData = await insertMutation.mutateAsync({
+          data: { ...data, selectedRooms },
+        })
 
         if (responseData.success) {
           const newId = responseData.bookingId
@@ -437,6 +439,43 @@ const RoomSelection = () => {
       // }else{
       //   return p.filter(r=> r.typeid !== typeid && r.viewid !== viewid)
       // }
+    })
+  }
+
+  const updateocupentcount = (
+    typeid: number,
+    viewid: number,
+    basis: string,
+    roomid: number,
+    propName: string,
+    count: number,
+  ) => {
+    console.log('xxcount', count, propName)
+
+    const i = selectedRooms.findIndex(
+      (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
+    )
+    //find relavent occupantdetails obj
+
+    const roomIndex = selectedRooms[i].occupantdetails.findIndex(
+      (o) => o.roomid == roomid,
+    )
+
+    const roomObj = selectedRooms[i].occupantdetails[roomIndex]
+
+    setselectedRooms((p) => {
+      return [
+        ...p.slice(0, i),
+        {
+          ...p[i],
+          occupantdetails: [
+            ...selectedRooms[i].occupantdetails.slice(0, roomIndex),
+            { ...roomObj, [propName]: count },
+            ...selectedRooms[i].occupantdetails.slice(roomIndex + 1),
+          ],
+        },
+        ...p.slice(i + 1),
+      ]
     })
   }
   const bookingBasishandle = (
@@ -1053,6 +1092,7 @@ const RoomSelection = () => {
               handleCount={handleCount}
               addoccupentdata={addoccupentdata}
               handleremoveocd={handleremoveocd}
+              updateocupentcount={updateocupentcount}
             />
           </div>
         </div>

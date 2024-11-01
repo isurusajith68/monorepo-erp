@@ -25,6 +25,7 @@ type P = {
   occupantdetails: Occupentrow[]
   addoccupentdata: (typeid, viewid, basis, count) => void
   handleremoveocd: (typeid, viewid, basis, roomid) => void
+  updateocupentcount: (typeid, viewid, basis, roomid, propName, count) => void
 }
 
 const RoomCountSelector = ({
@@ -36,6 +37,7 @@ const RoomCountSelector = ({
   occupantdetails,
   addoccupentdata,
   handleremoveocd,
+  updateocupentcount,
 }: P) => {
   //   const [roomCount, setRoomCount] = useState(count ?? 1)
   //   console.log("xroomcount 1", roomCount)
@@ -99,7 +101,19 @@ const RoomCountSelector = ({
 
           <div className="flex flex-col items-center">
             <span className="font-normal">Adults</span>
-            <Select value={oc.adultcount.toString()}>
+            <Select
+              value={oc.adultcount.toString()}
+              onValueChange={(e) => {
+                updateocupentcount(
+                  typeid,
+                  viewid,
+                  basis,
+                  oc.roomid,
+                  'adultcount',
+                  Number(e),
+                )
+              }}
+            >
               <SelectTrigger className="w-16 bg-white ">
                 <SelectValue placeholder="0" />
               </SelectTrigger>
@@ -115,7 +129,19 @@ const RoomCountSelector = ({
 
           <div className="flex flex-col items-center">
             <span className="font-medium">Children</span>
-            <Select value={oc.childcount.toString()}>
+            <Select
+              value={oc.childcount.toString()}
+              onValueChange={(e) => {
+                updateocupentcount(
+                  typeid,
+                  viewid,
+                  basis,
+                  oc.roomid,
+                  'childcount',
+                  Number(e),
+                )
+              }}
+            >
               <SelectTrigger className="w-16 bg-white mt-1">
                 <SelectValue placeholder="0" />
               </SelectTrigger>
@@ -131,7 +157,19 @@ const RoomCountSelector = ({
 
           <div className="flex flex-col items-center">
             <span className="font-medium">Infant</span>
-            <Select value={oc.infantcount.toString()}>
+            <Select
+              value={oc.infantcount.toString()}
+              onValueChange={(e) => {
+                updateocupentcount(
+                  typeid,
+                  viewid,
+                  basis,
+                  oc.roomid,
+                  'infantcount',
+                  Number(e),
+                )
+              }}
+            >
               <SelectTrigger className="w-16 bg-white mt-1">
                 <SelectValue placeholder="0" />
               </SelectTrigger>

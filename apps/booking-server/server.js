@@ -66,10 +66,50 @@ app.post('/b', (req, res) => {
 //       })
 //     })
 // })
-app.post('/bookings', (req, res) => {
+
+app.post('/savebooking', (req, res) => {
   const {
-    // checkindate,
-    // checkoutdate,
+    fullname,
+    address,
+    email,
+    telephone,
+    city,
+    province,
+    country,
+    postalcode,
+  } = req.body
+
+  const insertSTMT = `
+      INSERT INTO registration (fullname , address , email, telephone, city, province, country, postalcode ) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id;`
+
+  pool
+    .query(insertSTMT, [
+      fullname,
+      address,
+      email,
+      telephone,
+      city,
+      province,
+      country,
+      postalcode,
+    ])
+    .then((response) => {
+      const lastInsertRowid = response.rows[0].id
+      console.log('Booking saved')
+      res.json({ success: true, msg: '', lastInsertRowid })
+    })
+    .catch((err) => {
+      console.error('Insert failed', err)
+      res.json({ success: false, msg: 'Insert failed', lastInsertRowid: 0 })
+    })
+})
+
+app.post('/bookinginsert', (req, res) => {
+  const {
+    checkindate,
+    checkoutdate,
     firstname,
     lastname,
     email,
@@ -79,6 +119,24 @@ app.post('/bookings', (req, res) => {
     country,
     postalcode,
   } = req.body
+
+  //1- check if phone exists in guest table
+  //if exists
+  //get id and update sixisting guest data with new values
+  //if no guest phone in db
+  //insert guest and take id
+  //2 insert booking header table
+  //get new booking id
+  //3 save deatls to bookingdetails table
+  // LOOP SELECTEDROOMS ARRAY
+  //for room in selectedrooms
+
+  //loop room.occupantdetals
+  //get empty room id from db using chekindate/checkoutdates
+  //insert row
+  //loop end
+
+  //main loop end
 
   // Insert guest information first
   const guestInsertSTMT = `

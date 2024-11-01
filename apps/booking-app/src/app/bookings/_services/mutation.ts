@@ -34,12 +34,12 @@ export const useInsertBookingMutation = () => {
 
   return useMutation({
     mutationFn: async (data: any) => {
-      // console.log("helloooooo",data.data )
+      console.log('helloooooo', data.data)
       // console.log("geeth",bapi + params.data.id)
 
       try {
         const res = await axios.post(`${bapi}bookings`, data.data)
-        // console.log("ressssssssssssssssssssssss",res.data)
+        console.log('ressssssssssssssssssssssss', res.data)
         return res.data
       } catch (error) {
         console.error('Error in API call:', error)
