@@ -93,7 +93,7 @@ export const RoomSummaryItem = ({
       </div>
 
       <button
-        className="bg-red-500 text-white py-1 px-2 rounded"
+        className="bg-red-500 text-white py-1 px-2 rounded w-15 h-14"
         onClick={() => {
           console.log('popo')
 

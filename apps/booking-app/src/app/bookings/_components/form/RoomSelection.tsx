@@ -1,25 +1,22 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import React, { useEffect, useState } from 'react'
 
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
+import { getDirtyValuesTF } from '@/lib/utils'
+import { useForm } from '@tanstack/react-form'
+import { useNavigate, useParams } from 'react-router-dom'
+import {
+  useInsertBookingMutation,
+  useUpdateBookingMutation,
+} from '../../_services/mutation'
 import {
   useGetBooking,
   useGetPhoneNumber,
   useGetPrice,
   useGetRoomtype,
 } from '../../_services/queries'
-import { useForm } from '@tanstack/react-form'
-import { Button } from '@/components/ui/button'
-import {
-  useInsertBookingMutation,
-  useInsertGuestInformationMutation,
-  useUpdateBookingMutation,
-} from '../../_services/mutation'
-import { useNavigate, useParams } from 'react-router-dom'
-import { getDirtyValuesTF } from '@/lib/utils'
-import { useToast } from '@/hooks/use-toast'
-import { CiCircleRemove } from 'react-icons/ci'
-import RoomCountSelector from './room-counter'
 import { RoomSummaryItem } from './room-summary-item'
+import SelectedRoomsList from './summary-compo'
 
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value)
@@ -54,70 +51,6 @@ type SelectedRoomType = {
   count?: number | null
   occupantdetails?: any[] | null
 }
-const SelectedRoomsList = ({
-  selectedRooms,
-  handleremove,
-  handleCount,
-  addoccupentdata,
-  handleremoveocd,
-}) => {
-  const [totalAmount, setTotalAmount] = useState<number>(0)
-  const calTotal = (selectedRooms1) => {
-    const t = selectedRooms1.reduce((a, c) => a + c.count * c.price, 0)
-    console.log('tttt', t)
-
-    setTotalAmount(t)
-  }
-  // const [roomAmounts, setRoomAmounts] = useState({}); // Track each room’s amount individually
-  // const handleCount = (c:number,typeid:number,viewid:number,basis:string)=>{
-  //  const t = selectedRooms.find(r=> r.typeid==typeid && r.viewid==viewid && r.basis ==basis)
-  //  if(t){
-  //   t.count = c
-  //  }
-
-  //  console.log("selectedRooms",selectedRooms)
-  //  calTotal(selectedRooms)
-
-  // }
-
-  useEffect(() => {
-    console.log('selectedRoomsx', selectedRooms)
-    calTotal(selectedRooms)
-  }, [selectedRooms])
-  // Function to update each room's total amount based on count and price
-  const updateTotal = (amount) => {
-    // setTotalAmount(p=> p+amount)
-    //setRoomAmounts((prev) => ({ ...prev, [`${typeid}-${viewid}`]: amount }));
-  }
-
-  // useEffect(() => {
-  //   // Calculate the total amount whenever roomAmounts changes
-  //   const newTotal = Object.values(roomAmounts).reduce((sum, amount) => sum + amount, 0);
-  //   setTotalAmount(newTotal);
-  // }, [roomAmounts]);
-
-  return (
-    <div className="p-4 border-l border-gray-300">
-      <h3 className="text-xl font-bold mb-4">Selected Rooms</h3>
-      {selectedRooms.length > 0 ? (
-        selectedRooms.map((room, index) => (
-          <RoomSummaryItem
-            room={room}
-            handleremove={handleremove}
-            updateTotal={updateTotal}
-            handleCount={handleCount}
-            addoccupentdata={addoccupentdata}
-            handleremoveocd={handleremoveocd}
-            key={index}
-          />
-        ))
-      ) : (
-        <p className="text-gray-500">No rooms selected.</p>
-      )}
-      <p className="font-bold">Total Amount : {totalAmount}</p>
-    </div>
-  )
-}
 
 const RoomSelection = () => {
   const { id } = useParams()
@@ -145,7 +78,7 @@ const RoomSelection = () => {
   )
   const { data: roomprices } = useGetPrice(checkindate)
 
-  // const [totalAmount, settotalAmount] = useState<number>(0)
+  //  const [totalAmount, settotalAmount] = useState<number>(0)
 
   const [selectedRooms, setselectedRooms] = useState<SelectedRoomType[]>([])
   const [selectedRoomBasis, setselectedRoomBasis] = useState<
@@ -324,15 +257,40 @@ const RoomSelection = () => {
     basis: string,
     roomid: any,
   ) => {
+    const room = selectedRooms.find(
+      (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
+    )
+
+    if (room) {
+      if (room.occupantdetails.length == 1) {
+        handleremove(room.typeid, room.viewid, room.basis)
+        return
+      }
+    }
+
     setselectedRooms((p) => {
-      return p.occupantdetails.filter((od) => {
-        !(
-          od.typeid == typeid &&
-          od.viewid == viewid &&
-          od.basis == basis &&
-          od.occupantdetails.roomid == roomid
-        )
-      })
+      const i = p.findIndex(
+        (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
+      )
+      if (i != -1) {
+        return [
+          ...p.slice(0, i),
+          {
+            ...p[i],
+            occupantdetails: p[i].occupantdetails.filter(
+              (r) => r.roomid != roomid,
+            ),
+          },
+          ...p.slice(i + 1),
+        ]
+      } else {
+        console.warn(' not fount type,view basis')
+        return p
+      }
+
+      // }else{
+      //   return p.filter(r=> r.typeid !== typeid && r.viewid !== viewid)
+      // }
     })
   }
 
@@ -356,10 +314,8 @@ const RoomSelection = () => {
   const bookinghandle = (
     typeid: number,
     viewid: number,
-    price: number,
     type: string,
     view: string,
-    basis: string,
   ) => {
     console.log('pop', typeid, viewid)
 
@@ -367,7 +323,31 @@ const RoomSelection = () => {
       const res = selectedRoomBasis.find(
         (r) => r.typeid == typeid && r.viewid == viewid,
       )
+
       if (res) {
+        console.log('res22', selectedRooms, 'sss', res.basis)
+        const resSelRooms = selectedRooms.find(
+          (r) => r.typeid == typeid && r.viewid == viewid,
+        )
+
+        let newIndex = -1
+        console.log('res11', resSelRooms)
+        if (resSelRooms) {
+          console.log('res', resSelRooms)
+
+          const newrooms = resSelRooms.occupantdetails?.filter(
+            (r) => r.roomid < 0,
+          )
+
+          if (newrooms.length != 0) {
+            const lastMinusIndexObj = newrooms.reduce((a, c) => {
+              return a.roomid < c.roomid ? a : c
+            })
+            console.log('lastMinusIndexObj', lastMinusIndexObj)
+            newIndex = lastMinusIndexObj.roomid - 1
+          }
+        }
+
         return [
           ...p,
           {
@@ -379,11 +359,18 @@ const RoomSelection = () => {
             basis: res.basis,
             count: 1,
             occupantdetails: [
-              { roomid: 1, adultcount: 3, childcount: 3, infantcount: 4 },
+              {
+                roomid: newIndex,
+                adultcount: 3,
+                childcount: 3,
+                infantcount: 4,
+              },
             ],
           },
         ]
       } else {
+        console.log('res not fount')
+
         return p
 
         // if(1){
@@ -459,6 +446,8 @@ const RoomSelection = () => {
   // }, [selectedRooms])
 
   useEffect(() => {
+    const t = selectedRooms.reduce((a, c) => a + c.count * c.price, 0)
+
     console.log('qqqselectedRooms', selectedRooms)
   }, [selectedRooms])
   useEffect(() => {
@@ -511,7 +500,7 @@ const RoomSelection = () => {
               e.preventDefault(), e.stopPropagation()
             }}
           >
-            <div className="grid grid-cols-6 gap-4 items-center ">
+            <div className="grid grid-cols-4 gap-4 items-center ">
               {/* Property Selection */}
               {/* <div className="col-span-2">
                     <label className="block text-sm font-semibold">
@@ -627,7 +616,7 @@ const RoomSelection = () => {
               {/* Flexible Dates */}
 
               {/* Adults */}
-              <form.Field
+              {/* <form.Field
                 name="adults"
                 children={(field) => (
                   <div className="col-span-1">
@@ -670,7 +659,7 @@ const RoomSelection = () => {
                     </select>
                   </div>
                 )}
-              />
+              /> */}
 
               {/* Children */}
               <form.Field
@@ -696,11 +685,11 @@ const RoomSelection = () => {
               {/* Currency */}
 
               {/* Promo Code & Search Button */}
-              <div className="col-span-2 flex flex-col justify-center">
+              {/* <div className="col-span-2 flex flex-col justify-center">
                 <label className="block text-sm font-semibold underline cursor-pointer">
                   Use Promo Code
                 </label>
-              </div>
+              </div> */}
               <div className="col-span-1">
                 <button
                   className="bg-yellow-500 text-white py-2 px-4 rounded w-full"
@@ -719,7 +708,7 @@ const RoomSelection = () => {
         {/* Header Section */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Hillroost Kandy (LKR)</h1>
-          <div>
+          {/* <div>
             <label htmlFor="currency" className="mr-2 font-bold">
               Currency:
             </label>
@@ -733,7 +722,7 @@ const RoomSelection = () => {
               <option value="USD">USD</option>
               <option value="EUR">EUR</option>
             </select>
-          </div>
+          </div> */}
         </div>
         <div className="flex justify-between">
           <div>
@@ -1014,10 +1003,8 @@ const RoomSelection = () => {
                                   bookinghandle(
                                     roomcat.roomtypeid,
                                     roomcat.roomviewid,
-                                    1000,
                                     roomcat.roomtype,
                                     roomcat.roomview,
-                                    'trgrdgg',
                                   )
                                 }
                               >
@@ -1178,11 +1165,22 @@ const RoomSelection = () => {
                   />
                 )}
               />
+
+              <Button
+                className="bg-yellow-500 text-white py-2 px-4 rounded w-full mt-4  "
+                type="submit"
+                onClick={form.handleSubmit}
+              >
+                BOOK NOW
+              </Button>
+              {/* <button className="bg-yellow-500 text-white py-2 px-4 rounded w-full mt-4">
+              BOOK NOW
+            </button> */}
             </div>
           </div>
 
           {/* Payment Method Section */}
-          <div className="col-span-1 bg-white p-4 rounded">
+          {/* <div className="col-span-1 bg-white p-4 rounded">
             <h2 className="text-lg font-semibold mb-2">Payment Method</h2>
             <div className="flex space-x-2 mb-4">
               <img src="visa-secure.svg" alt="Visa" className="w-12" />
@@ -1256,10 +1254,10 @@ const RoomSelection = () => {
             >
               BOOK NOW
             </Button>
-            {/* <button className="bg-yellow-500 text-white py-2 px-4 rounded w-full mt-4">
+            <button className="bg-yellow-500 text-white py-2 px-4 rounded w-full mt-4">
               BOOK NOW
-            </button> */}
-          </div>
+            </button>
+          </div> */}
         </div>
       </div>
     </>

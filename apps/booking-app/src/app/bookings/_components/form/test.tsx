@@ -16,7 +16,7 @@ const Test = () => {
 
   return (
     <div>
-      <header className=" top-0 z-50 flex h-14 items-center justify-center gap-4 border-b  backdrop-blur-md px-4 lg:h-[90px] lg:px-6 bg-[#89749A]">
+      {/* <header className=" top-0 z-50 flex h-14 items-center justify-center gap-4 border-b  backdrop-blur-md px-4 lg:h-[90px] lg:px-6 bg-[#89749A]">
         <div className="">
           <img src="icon.jpg" className="w-[60px] h-[80px] " />
         </div>
@@ -25,7 +25,7 @@ const Test = () => {
       <div>
         <span>{count}</span>
         <button onClick={inc}>one up</button>
-      </div>
+      </div> */}
       {/* <BookingTest /> */}
       {/* <MyButtonComponent />
         <Tests/>

@@ -64,15 +64,15 @@ const RoomCountSelector = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center space-x-4">
-        <Button
+      <div className="flex items-center space-x-4 justify-end">
+        {/* <Button
           onClick={() => {
             decrement()
           }}
           disabled={occupantdetails.length === 1}
         >
           -
-        </Button>
+        </Button> */}
         <Input
           type="number"
           value={count}
@@ -94,12 +94,13 @@ const RoomCountSelector = ({
         >
           <div className="flex flex-col items-center">
             <span className="font-medium">{oc.roomid}</span>
+            <span className="font-medium">Room</span>
           </div>
 
           <div className="flex flex-col items-center">
             <span className="font-medium">Adults</span>
             <Select value={oc.adultcount.toString()}>
-              <SelectTrigger className="w-16">
+              <SelectTrigger className="w-16 bg-white mt-7">
                 <SelectValue placeholder="0" />
               </SelectTrigger>
               <SelectContent>
@@ -115,7 +116,7 @@ const RoomCountSelector = ({
           <div className="flex flex-col items-center">
             <span className="font-medium">Children (2-12 y)</span>
             <Select value={oc.childcount.toString()}>
-              <SelectTrigger className="w-16">
+              <SelectTrigger className="w-16 bg-white mt-1">
                 <SelectValue placeholder="0" />
               </SelectTrigger>
               <SelectContent>
@@ -131,7 +132,7 @@ const RoomCountSelector = ({
           <div className="flex flex-col items-center">
             <span className="font-medium">Infants (0-2 y)</span>
             <Select value={oc.infantcount.toString()}>
-              <SelectTrigger className="w-16">
+              <SelectTrigger className="w-16 bg-white mt-1">
                 <SelectValue placeholder="0" />
               </SelectTrigger>
               <SelectContent>
@@ -146,10 +147,8 @@ const RoomCountSelector = ({
 
           <Button
             variant="ghost"
-            className="text-red-600"
-            onClick={() =>
-              handleremoveocd(typeid, viewid, basis, occupantdetails.roomid)
-            }
+            className="text-red-600 hover:bg-orange-600"
+            onClick={() => handleremoveocd(typeid, viewid, basis, oc.roomid)}
           >
             Remove
           </Button>
