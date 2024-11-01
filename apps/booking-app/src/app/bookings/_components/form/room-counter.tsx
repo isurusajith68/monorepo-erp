@@ -90,17 +90,17 @@ const RoomCountSelector = ({
       {occupantdetails?.map((oc) => (
         <div
           key={oc.roomid}
-          className="flex items-center justify-between gap-4 p-4 bg-gray-200 rounded-md"
+          className="flex items-center justify-between gap-4 p-1 bg-gray-200 rounded-md text-xs"
         >
           <div className="flex flex-col items-center">
-            <span className="font-medium">{oc.roomid}</span>
+            <span className="font-normal">{oc.roomid}</span>
             <span className="font-medium">Room</span>
           </div>
 
           <div className="flex flex-col items-center">
-            <span className="font-medium">Adults</span>
+            <span className="font-normal">Adults</span>
             <Select value={oc.adultcount.toString()}>
-              <SelectTrigger className="w-16 bg-white mt-7">
+              <SelectTrigger className="w-16 bg-white ">
                 <SelectValue placeholder="0" />
               </SelectTrigger>
               <SelectContent>
@@ -114,7 +114,7 @@ const RoomCountSelector = ({
           </div>
 
           <div className="flex flex-col items-center">
-            <span className="font-medium">Children (2-12 y)</span>
+            <span className="font-medium">Children</span>
             <Select value={oc.childcount.toString()}>
               <SelectTrigger className="w-16 bg-white mt-1">
                 <SelectValue placeholder="0" />
@@ -130,7 +130,7 @@ const RoomCountSelector = ({
           </div>
 
           <div className="flex flex-col items-center">
-            <span className="font-medium">Infants (0-2 y)</span>
+            <span className="font-medium">Infant</span>
             <Select value={oc.infantcount.toString()}>
               <SelectTrigger className="w-16 bg-white mt-1">
                 <SelectValue placeholder="0" />

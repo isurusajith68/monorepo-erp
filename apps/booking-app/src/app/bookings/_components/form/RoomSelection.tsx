@@ -317,21 +317,35 @@ const RoomSelection = () => {
     type: string,
     view: string,
   ) => {
-    console.log('pop', typeid, viewid)
+    const res = selectedRoomBasis.find(
+      (r) => r.typeid == typeid && r.viewid == viewid,
+    )
 
-    setselectedRooms((p) => {
-      const res = selectedRoomBasis.find(
-        (r) => r.typeid == typeid && r.viewid == viewid,
-      )
+    if (!res) {
+      console.warn('not found room basis - system error')
+      return
+    }
 
-      if (res) {
-        console.log('res22', selectedRooms, 'sss', res.basis)
+    const selRoom = selectedRooms.find(
+      (r) => r.typeid == typeid && r.viewid == viewid && r.basis == res.basis,
+    )
+
+    if (selRoom) {
+      addoccupentdata(typeid, viewid, res.basis)
+      return
+    } else {
+      setselectedRooms((p) => {
+        // const res = selectedRoomBasis.find(
+        //   (r) => r.typeid == typeid && r.viewid == viewid,
+        // )
+
         const resSelRooms = selectedRooms.find(
-          (r) => r.typeid == typeid && r.viewid == viewid,
+          (r) =>
+            r.typeid == typeid && r.viewid == viewid && r.basis == res.basis,
         )
 
         let newIndex = -1
-        console.log('res11', resSelRooms)
+
         if (resSelRooms) {
           console.log('res', resSelRooms)
 
@@ -368,17 +382,8 @@ const RoomSelection = () => {
             ],
           },
         ]
-      } else {
-        console.log('res not fount')
-
-        return p
-
-        // if(1){
-      }
-      // }else{
-      //   return p.filter(r=> r.typeid !== typeid && r.viewid !== viewid)
-      // }
-    })
+      })
+    }
   }
 
   const addoccupentdata = (typeid, viewid, basis) => {
@@ -387,6 +392,27 @@ const RoomSelection = () => {
         (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
       )
       if (i != -1) {
+        //find new index minus vals
+        let newIndex = -1
+        const resSelRooms = selectedRooms.find(
+          (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
+        )
+        if (resSelRooms) {
+          console.log('res', resSelRooms)
+
+          const newrooms = resSelRooms.occupantdetails?.filter(
+            (r) => r.roomid < 0,
+          )
+
+          if (newrooms.length != 0) {
+            const lastMinusIndexObj = newrooms.reduce((a, c) => {
+              return a.roomid < c.roomid ? a : c
+            })
+            console.log('lastMinusIndexObj', lastMinusIndexObj)
+            newIndex = lastMinusIndexObj.roomid - 1
+          }
+        }
+
         return [
           ...p.slice(0, i),
           {
@@ -394,7 +420,7 @@ const RoomSelection = () => {
             occupantdetails: [
               ...p[i].occupantdetails,
               {
-                roomid: p[i].occupantdetails.length + 1,
+                roomid: newIndex,
                 adultcount: 3,
                 childcount: 3,
                 infantcount: 4,
@@ -774,9 +800,9 @@ const RoomSelection = () => {
                             View Room Details
                           </button>
                         </div>
-                        <div>
+                        <div className="flex flex-col gap-1">
                           <label className="">
-                            <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                            <div className="flex items-center justify-between cursor-pointer  mb-1  hover:bg-gray-100 rounded-lg">
                               <div className="flex items-center">
                                 <input
                                   type="radio"
@@ -840,7 +866,7 @@ const RoomSelection = () => {
                             </div>
                           </label>
                           <label>
-                            <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                            <div className="flex items-center justify-between cursor-pointer     hover:bg-gray-100   rounded-lg">
                               <div className="flex items-center">
                                 <input
                                   type="radio"
@@ -890,7 +916,7 @@ const RoomSelection = () => {
                             </div>
                           </label>
                           <label>
-                            <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                            <div className="flex items-center justify-between cursor-pointer    hover:bg-gray-100  rounded-lg">
                               <div className="flex items-center">
                                 <input
                                   type="radio"
