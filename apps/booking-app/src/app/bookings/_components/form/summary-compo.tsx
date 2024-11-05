@@ -66,7 +66,7 @@ const SelectedRoomsList = ({
       ) : (
         <p className="text-gray-500">No rooms selected.</p>
       )}
-      <p className="font-bold">Total Amount : {totalAmount}</p>
+      <p className="font-bold ">Total Amount : {totalAmount}</p>
     </div>
   )
 }

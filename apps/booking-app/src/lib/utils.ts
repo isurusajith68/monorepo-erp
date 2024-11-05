@@ -10,7 +10,7 @@ export function getDirtyValuesTF(
   currnetValues: any,
   arrayPkNames: { arrayName: string; pkName: string }[] = [],
   rootPkName: string | null = null,
-) {
+): any {
   const dirtyValues = {}
   Object.keys(intialValues).map((key) => {
     // console.log('key11', key, allValues)
@@ -94,6 +94,32 @@ export function getDirtyValuesTF(
     return dirtyValues
   } else {
     return
+  }
+}
+
+export function getUpdateQuery1(obj: any, tablename: string, pkName: string) {
+  let sqlUpdates: any[] = []
+  let valuesArray: any[] = []
+  let keyCount = 1
+  Object.keys(obj).forEach((key, index) => {
+    if (key != pkName) {
+      sqlUpdates.push(` ${key} = $${keyCount} `)
+      valuesArray.push(obj[key])
+      keyCount++
+    }
+  })
+
+  if (keyCount > 1) {
+    valuesArray.push(obj[pkName])
+
+    return [
+      `update ${tablename} set ${sqlUpdates.join(
+        ',',
+      )} where ${pkName} = $${keyCount} `,
+      valuesArray,
+    ]
+  } else {
+    return ['', []]
   }
 }
 

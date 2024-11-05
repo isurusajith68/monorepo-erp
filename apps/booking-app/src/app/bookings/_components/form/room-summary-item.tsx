@@ -73,11 +73,12 @@ export const RoomSummaryItem = ({
   return (
     <div className="flex justify-between gap-2 mt-2">
       <div className="flex flex-col">
-        <p className="font-bold">
+        <hr className="h-1 border border-green-300 bg-green-300"></hr>
+        <p className="font-bold text-xl">
           {room.type} - {room.view}
         </p>
-        <p className="text-gray-600">Basis: {room.basis}</p>
-        <p className="text-gray-600">Price: {room.price}</p>
+        <p className="text-gray-600 font-bold">Basis: {room.basis}</p>
+        <p className="text-gray-600 font-bold">Price: {room.price}</p>
         <RoomCountSelector
           typeid={room.typeid}
           viewid={room.viewid}
@@ -89,7 +90,7 @@ export const RoomSummaryItem = ({
           handleremoveocd={handleremoveocd}
           updateocupentcount={updateocupentcount}
         />
-        <p className="text-gray-600">
+        <p className="text-gray-600 font-medium">
           Amount: {room.occupantdetails.length * room.price}
         </p>
       </div>

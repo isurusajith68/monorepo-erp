@@ -52,6 +52,8 @@ type SelectedRoomType = {
   occupantdetails?: any[] | null
 }
 
+const hotelid = 24
+
 const RoomSelection = () => {
   const { id } = useParams()
   const { toast } = useToast()
@@ -106,8 +108,11 @@ const RoomSelection = () => {
   const form = useForm({
     defaultValues: {
       booking_id: null,
+      guestid: null,
+      createdate: new Date().toISOString().split('T')[0],
       checkindate: new Date().toISOString().split('T')[0],
       checkoutdate: new Date().toISOString().split('T')[0],
+      remarks: 'add new booking',
       flexibledates: false,
       adults: 1,
       children: 0,
@@ -122,7 +127,7 @@ const RoomSelection = () => {
       postalcode: '',
     },
     onSubmit: async ({ value: data }) => {
-      console.log('dataaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', data)
+      console.log('dataaaaaaaaaaaaaa', data)
       if (id) {
         // If id exists, we're updating the booking
         const dirtyValues = getDirtyValuesTF(q, data, [], 'booking_id')
@@ -130,11 +135,22 @@ const RoomSelection = () => {
 
         if (dirtyValues) {
           console.log('Dirty values to update:', dirtyValues)
-
+          dirtyValues.hotelid = hotelid
           // Make the PUT request with only dirty fields
+          const bookingHeaderData = {
+            bookingid: id,
+            checkindate: dirtyValues.checkindate,
+            checkoutdate: dirtyValues.checkoutdate,
+          }
+          const guestInfo = { ...dirtyValues }
+          delete guestInfo.checkindate
+          delete guestInfo.checkoutdate
+
           const responseData = await updateMutation.mutateAsync({
             id,
-            dirtyValues,
+            bookingHeaderData,
+            guestInfo,
+            selectedRooms,
           })
 
           if (responseData) {
@@ -159,11 +175,13 @@ const RoomSelection = () => {
       } else {
         // Insert new booking
         const responseData = await insertMutation.mutateAsync({
-          data: { ...data, selectedRooms },
+          data: { ...data, selectedRooms, hotelid },
         })
 
+        console.log('responseData', responseData)
+
         if (responseData.success) {
-          const newId = responseData.bookingId
+          const newId = responseData.booking_id
 
           toast({
             className: 'text-green-600',
@@ -205,29 +223,30 @@ const RoomSelection = () => {
 
   console.log('roomviewtypes', roomviewtypes)
 
-  const { data: q, isLoading, isError, error } = useGetBooking(id)
+  const { data: bookingdata, isLoading, isError, error } = useGetBooking(id)
 
   //--------------------------------------------------------------------
 
   useEffect(() => {
-    if (q) {
+    if (bookingdata) {
       try {
         // Populate the form with fetched data
-        // form.setFieldValue('checkindate', q.checkindate)
-        form.setFieldValue('booking_id', q.booking_id)
-        // form.setFieldValue('checkoutdate', q.checkoutdate)
-        form.setFieldValue('flexibledates', q.flexibledates)
-        form.setFieldValue('adults', q.adults)
-        form.setFieldValue('children', q.children)
-        form.setFieldValue('currency', q.currency)
-        form.setFieldValue('firstname', q.firstname)
-        form.setFieldValue('lastname', q.lastname)
-        form.setFieldValue('email', q.email)
-        form.setFieldValue('phonenumber', q.phonenumber)
-        form.setFieldValue('address', q.address)
-        form.setFieldValue('city', q.city)
-        form.setFieldValue('country', q.country)
-        form.setFieldValue('postalcode', q.postalcode)
+        form.setFieldValue('checkindate', bookingdata.checkindate)
+        form.setFieldValue('booking_id', bookingdata.booking_id)
+        form.setFieldValue('guestid', bookingdata.guestid)
+        form.setFieldValue('checkoutdate', bookingdata.checkoutdate)
+        form.setFieldValue('flexibledates', bookingdata.flexibledates)
+        form.setFieldValue('adults', bookingdata.adults)
+        form.setFieldValue('children', bookingdata.children)
+        form.setFieldValue('currency', bookingdata.currency)
+        form.setFieldValue('firstname', bookingdata.firstname)
+        form.setFieldValue('lastname', bookingdata.lastname)
+        form.setFieldValue('email', bookingdata.email)
+        form.setFieldValue('phonenumber', bookingdata.phonenumber)
+        form.setFieldValue('address', bookingdata.address)
+        form.setFieldValue('city', bookingdata.city)
+        form.setFieldValue('country', bookingdata.country)
+        form.setFieldValue('postalcode', bookingdata.postalcode)
       } catch (error) {
         console.error('Error fetching booking data:', error)
         toast({
@@ -238,7 +257,7 @@ const RoomSelection = () => {
         })
       }
     }
-  }, [q])
+  }, [bookingdata])
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCurrency = e.target.value
@@ -578,21 +597,18 @@ const RoomSelection = () => {
                   </div> */}
               {/* Check-in Date */}
 
-              {/* <form.Field
+              <form.Field
                 name="booking_id"
                 children={(field) => (
-                  <div className="col-span-1">
-                    <label className="block text-sm font-semibold">
-                      Check in
-                    </label>
-                    <input
-                      type="hidden"
-                      value={field.state.value}
-                     
-                    />
-                  </div>
+                  <input type="hidden" value={field.state.value} />
                 )}
-              /> */}
+              />
+              <form.Field
+                name="guestid"
+                children={(field) => (
+                  <input type="hidden" value={field.state.value} />
+                )}
+              />
               <form.Field
                 name="checkindate"
                 children={(field) => (
@@ -756,12 +772,12 @@ const RoomSelection = () => {
                 </label>
               </div> */}
               <div className="col-span-1">
-                <button
-                  className="bg-yellow-500 text-white py-2 px-4 rounded w-full"
+                <Button
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded w-full"
                   onClick={handleSearch}
                 >
                   Search
-                </button>
+                </Button>
               </div>
             </div>
           </form>
@@ -802,7 +818,7 @@ const RoomSelection = () => {
 
                   return (
                     <div key={index} className="ml-4">
-                      <nav className="h-2 bg-green-400 items-center"></nav>
+                      <nav className="h-1 bg-green-400 items-center"></nav>
                       <div className="border-b py-4 grid grid-cols-2 gap-1">
                         <div className="ml-4">
                           <div className="flex items-center ">
@@ -841,7 +857,7 @@ const RoomSelection = () => {
                         </div>
                         <div className="flex flex-col gap-1">
                           <label className="">
-                            <div className="flex items-center justify-between cursor-pointer  mb-1  hover:bg-gray-100 rounded-lg">
+                            <div className="flex items-center justify-between cursor-pointer    hover:bg-gray-200 rounded-lg">
                               <div className="flex items-center">
                                 <input
                                   type="radio"
@@ -905,7 +921,7 @@ const RoomSelection = () => {
                             </div>
                           </label>
                           <label>
-                            <div className="flex items-center justify-between cursor-pointer     hover:bg-gray-100   rounded-lg">
+                            <div className="flex items-center justify-between cursor-pointer     hover:bg-gray-200   rounded-lg">
                               <div className="flex items-center">
                                 <input
                                   type="radio"
@@ -955,7 +971,7 @@ const RoomSelection = () => {
                             </div>
                           </label>
                           <label>
-                            <div className="flex items-center justify-between cursor-pointer    hover:bg-gray-100  rounded-lg">
+                            <div className="flex items-center justify-between cursor-pointer    hover:bg-gray-200  rounded-lg">
                               <div className="flex items-center">
                                 <input
                                   type="radio"
@@ -1005,7 +1021,7 @@ const RoomSelection = () => {
                             </div>
                           </label>
                           <label>
-                            <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-100 p-2 rounded-lg">
+                            <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-200  rounded-lg">
                               <div className="flex items-center">
                                 <input
                                   type="radio"
@@ -1060,10 +1076,10 @@ const RoomSelection = () => {
                               r.typeid == roomcat.roomtypeid &&
                               r.viewid == roomcat.roomviewid,
                           ) && (
-                            <div className="border border-green-500 flex items-center justify-between p-2 rounded-lg">
-                              <div>{selectedDeal}</div>
-                              <button
-                                className="bg-orange-300 text-black py-2 px-4 mt-4"
+                            <div className=" flex items-center justify-end p-2 rounded-lg">
+                              {/* <div>{selectedDeal}</div> */}
+                              <Button
+                                className="bg-orange-400 hover:bg-orange-500 text-black py-2 px-4 mt-4"
                                 onClick={() =>
                                   bookinghandle(
                                     roomcat.roomtypeid,
@@ -1074,7 +1090,7 @@ const RoomSelection = () => {
                                 }
                               >
                                 Book
-                              </button>
+                              </Button>
                             </div>
                           )}
                         </div>

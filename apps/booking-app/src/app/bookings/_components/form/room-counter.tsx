@@ -96,11 +96,11 @@ const RoomCountSelector = ({
         >
           <div className="flex flex-col items-center">
             <span className="font-normal">{oc.roomid}</span>
-            <span className="font-medium">Room</span>
+            <span className="font-medium ">Room</span>
           </div>
 
           <div className="flex flex-col items-center">
-            <span className="font-normal">Adults</span>
+            <span className="font-medium">Adults</span>
             <Select
               value={oc.adultcount.toString()}
               onValueChange={(e) => {

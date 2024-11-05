@@ -38,7 +38,7 @@ export const useInsertBookingMutation = () => {
       // console.log("geeth",bapi + params.data.id)
 
       try {
-        const res = await axios.post(`${bapi}bookings`, data.data)
+        const res = await axios.post(`${bapi}bookinginsert`, data.data)
         console.log('ressssssssssssssssssssssss', res.data)
         return res.data
       } catch (error) {

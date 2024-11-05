@@ -106,46 +106,16 @@ app.post('/savebooking', (req, res) => {
     })
 })
 
-app.post('/bookinginsert', (req, res) => {
-  const {
-    checkindate,
-    checkoutdate,
-    firstname,
-    lastname,
-    email,
-    phonenumber,
-    address,
-    city,
-    country,
-    postalcode,
-  } = req.body
+app.post('/bookinginsert', async (req, res) => {
+  console.log('request body ', req.body)
 
-  //1- check if phone exists in guest table
-  //if exists
-  //get id and update sixisting guest data with new values
-  //if no guest phone in db
-  //insert guest and take id
-  //2 insert booking header table
-  //get new booking id
-  //3 save deatls to bookingdetails table
-  // LOOP SELECTEDROOMS ARRAY
-  //for room in selectedrooms
-
-  //loop room.occupantdetals
-  //get empty room id from db using chekindate/checkoutdates
-  //insert row
-  //loop end
-
-  //main loop end
-
-  // Insert guest information first
-  const guestInsertSTMT = `
-      INSERT INTO guestinformation (firstname, lastname, email, phonenumber, address, city, country, postalcode) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING id;`
-
-  pool
-    .query(guestInsertSTMT, [
+  try {
+    const {
+      hotelid,
+      remarks,
+      createdate,
+      checkindate,
+      checkoutdate,
       firstname,
       lastname,
       email,
@@ -154,37 +124,245 @@ app.post('/bookinginsert', (req, res) => {
       city,
       country,
       postalcode,
+      selectedRooms,
+    } = req.body
+
+    //1- check if phone exists in guest table
+    const checkPhoneQuery =
+      'SELECT * FROM guestinformation WHERE phonenumber = $1'
+    const phoneResult = pool.query(checkPhoneQuery, [phonenumber])
+    console.log('qqqqqqqqqq', phoneResult)
+
+    let guestId = 0
+    //if exists
+    if (phoneResult.rowCount > 0) {
+      guestId = phoneResult.rows[0].id
+    } else {
+      const guestInsertSTMT = ` INSERT INTO guestinformation (firstname, lastname, email, phonenumber, address, city, country, postalcode,hotelid) 
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8 , $9)
+    RETURNING id;`
+
+      const guestRes = await pool.query(guestInsertSTMT, [
+        firstname,
+        lastname,
+        email,
+        phonenumber,
+        address,
+        city,
+        country,
+        postalcode,
+      ])
+      console.log('guestRes', guestRes)
+
+      guestId = guestRes.rows[0].id
+    }
+
+    //insert booking
+    const bookingInsertSTMT = `
+  INSERT INTO booking ( guestid, checkindate, checkoutdate ,createdate,remarks,hotelid)
+  VALUES ($1,$2,$3,$4,$5,$6)
+  RETURNING id;`
+
+    const bookRes = await pool.query(bookingInsertSTMT, [
+      guestId,
+      checkindate,
+      checkoutdate,
+      createdate,
+      remarks,
+      hotelid,
     ])
-    .then((guestResponse) => {
-      const guestId = guestResponse.rows[0].id // Get the guestinformation ID
+    const bookingid = bookRes.rows[0].id
 
-      console.log('Guest Information saved', guestId)
+    for (let index = 0; index < selectedRooms.length; index++) {
+      const room = selectedRooms[index]
 
-      // Now insert booking data with guestinformation foreign key
-      const bookingInsertSTMT = `
-        INSERT INTO booking ( guestinformation)
-        VALUES ($1)
-        RETURNING id;`
+      for (let rindex = 0; rindex < room.occupantdetails.length; rindex++) {
+        const rrow = room.occupantdetails[rindex]
+        //insert booking room
 
-      return pool.query(bookingInsertSTMT, [guestId])
+        const { roomid, basis, adultcount, childcount, infantcount } = rrow
+
+        const bookingInsertSTMT = `INSERT INTO bookingdetails ( bookingid,  roomid,  basis, adultcount,  childcount,  infantcount,price)
+                VALUES ($1,$2,$3,$4,$5,$6,$7)
+                RETURNING id;`
+
+        const res = await pool.query(bookingInsertSTMT, [
+          bookingid,
+          roomid,
+          basis,
+          adultcount,
+          childcount,
+          infantcount,
+          room.price,
+        ])
+      }
+    }
+  } catch (err) {
+    console.error('Insert failed', err)
+
+    // Respond with failure
+    res.json({
+      success: false,
+      msg: `Insert failed - ${err}`,
     })
-    .then((bookingResponse) => {
-      const bookingId = bookingResponse.rows[0].id
-      console.log('Booking saved', bookingId)
-
-      // Respond with success
-      res.json({ success: true, msg: '', bookingId })
-    })
-    .catch((err) => {
-      console.error('Insert failed', err)
-
-      // Respond with failure
-      res.json({
-        success: false,
-        msg: `Insert failed - ${err}`,
-      })
-    })
+  }
 })
+
+// for room in selectedrooms
+
+// loop room.occupantdetals
+// get empty room id from db using chekindate/checkoutdates
+// insert row
+// loop end
+
+// main loop end
+
+// Insert guest information first
+
+// const guestInsertSTMT = `
+//     INSERT INTO guestinformation (firstname, lastname, email, phonenumber, address, city, country, postalcode)
+//     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+//     RETURNING id;`
+
+// pool
+//   .query(guestInsertSTMT, [
+//     firstname,
+//     lastname,
+//     email,
+//     phonenumber,
+//     address,
+//     city,
+//     country,
+//     postalcode,
+//   ])
+//   .then((guestResponse) => {
+//     const guestId = guestResponse.rows[0].id // Get the guestinformation ID
+
+//     console.log('Guest Information saved', guestId)
+
+//     // Now insert booking data with guestinformation foreign key
+//     const bookingInsertSTMT = `
+//       INSERT INTO booking ( guestinformation)
+//       VALUES ($1)
+//       RETURNING id;`
+
+//     return pool.query(bookingInsertSTMT, [guestId])
+//   })
+//   .then((bookingResponse) => {
+//     const bookingId = bookingResponse.rows[0].id
+//     console.log('Booking saved', bookingId)
+
+//     // Respond with success
+//     res.json({ success: true, msg: '', bookingId })
+//   })
+//   .catch((err) => {
+//     console.error('Insert failed', err)
+
+//     // Respond with failure
+//     res.json({
+//       success: false,
+//       msg: `Insert failed - ${err}`,
+//     })
+//   })
+
+// app.post('/bookinginsert', async (req, res) => {
+//   const {
+//     checkindate,
+//     checkoutdate,
+//     firstname,
+//     lastname,
+//     email,
+//     phonenumber,
+//     address,
+//     city,
+//     country,
+//     postalcode,
+//     selectedRooms,
+//   } = req.body;
+
+//   try {
+//     // Step 1: Check if the phone number exists in the guestinformation table
+//     const checkPhoneQuery = 'SELECT id FROM guestinformation WHERE phonenumber = $1';
+//     const phoneResult = await pool.query(checkPhoneQuery, [phonenumber]);
+
+//     let guestId;
+
+//     if (phoneResult.rowCount > 0) {
+//       // Guest exists, get the ID and update the existing guest information
+//       guestId = phoneResult.rows[0].id;
+
+//       const updateGuestQuery = `
+//         UPDATE guestinformation
+//         SET firstname = $1, lastname = $2, email = $3, address = $4, city = $5, country = $6, postalcode = $7
+//         WHERE id = $8
+//       `;
+//       await pool.query(updateGuestQuery, [
+//         firstname, lastname, email, address, city, country, postalcode, guestId
+//       ]);
+//     } else {
+//       // Guest does not exist, insert new guest information and get the new guest ID
+//       const guestInsertQuery = `
+//         INSERT INTO guestinformation (firstname, lastname, email, phonenumber, address, city, country, postalcode)
+//         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+//         RETURNING id;
+//       `;
+//       const guestRes = await pool.query(guestInsertQuery, [
+//         firstname, lastname, email, phonenumber, address, city, country, postalcode
+//       ]);
+//       guestId = guestRes.rows[0].id;
+//     }
+
+//     // Step 2: Insert booking into the booking table
+//     const bookingInsertQuery = `
+//       INSERT INTO booking (guestid, checkindate, checkoutdate)
+//       VALUES ($1, $2, $3)
+//       RETURNING id;
+//     `;
+//     const bookingRes = await pool.query(bookingInsertQuery, [guestId, checkindate, checkoutdate]);
+//     const bookingId = bookingRes.rows[0].id;
+
+//     // Step 3: Insert booking details for each room
+//     for (const room of selectedRooms) {
+//       for (const occupant of room.occupantDetails) {
+//         // Fetch an empty room based on check-in and check-out dates
+//         const availableRoomQuery = `
+//           SELECT roomid FROM rooms
+//           WHERE roomid NOT IN (
+//             SELECT roomid FROM bookingdetails
+//             WHERE (checkindate, checkoutdate) OVERLAPS ($1, $2)
+//           ) LIMIT 1;
+//         `;
+//         const availableRoomRes = await pool.query(availableRoomQuery, [checkindate, checkoutdate]);
+
+//         if (availableRoomRes.rowCount > 0) {
+//           const roomId = availableRoomRes.rows[0].roomid;
+
+//           // Insert booking details into bookingdetails table
+//           const bookingDetailsInsertQuery = `
+//             INSERT INTO bookingdetails (bookingid, roomid, adultcount, childcount, infantcount, checkindate, checkoutdate)
+//             VALUES ($1, $2, $3, $4, $5, $6, $7);
+//           `;
+//           await pool.query(bookingDetailsInsertQuery, [
+//             bookingId,
+//             roomId,
+//             occupant.adultCount,
+//             occupant.childCount,
+//             occupant.infantCount,
+//             checkindate,
+//             checkoutdate
+//           ]);
+//         } else {
+//           return res.status(400).json({ message: 'No available room for the selected dates.' });
+//         }
+//       }
+//     }
+
+//     res.status(200).json({ message: 'Booking completed successfully.' });
+//   } catch (error) {
+//     console.error('Error in booking insert:', error);
+//     res.status(500).json({ message: 'Error processing booking.' });
+//   }
+// });
 
 //update booking
 // app.put('/bookings/:id', (req, res) => {
