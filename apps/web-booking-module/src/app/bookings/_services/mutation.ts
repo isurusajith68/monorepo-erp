@@ -1,9 +1,4 @@
-import {
-  MutateFunction,
-  useMutation,
-  UseMutationResult,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 const bapi = import.meta.env.VITE_API_BOOKINGAPI
 

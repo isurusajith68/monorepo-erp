@@ -1,0 +1,183 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { useToast } from '@/hooks/use-toast'
+import { useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useDeleteBookingMutation } from './_services/mutation'
+import { useGetAllBooking } from './_services/queries'
+
+export default function BookingListPage() {
+  const { toast } = useToast()
+  const [booking, setBooking] = useState([])
+  const navigate = useNavigate()
+  const deleteMutation = useDeleteBookingMutation()
+  const queryClient = useQueryClient()
+
+  const { data, isSuccess, isLoading } = useGetAllBooking()
+  // console.log("first",data)
+
+  useEffect(() => {
+    // Fetch booking data from the backend
+    try {
+      if (isSuccess) {
+        // console.log('id', data)
+        const sortedData = data.sort((a: any, b: any) => b.id - a.id)
+        setBooking(sortedData)
+      } else {
+        console.error('booking not found:', data.msg)
+      }
+    } catch (error) {
+      console.error('Error fetching booking:', error)
+    }
+  }, [data, isSuccess])
+
+  const handleEdit = (id: number) => {
+    navigate(`/booking/${id}`)
+  }
+
+  // if(isLoading){
+  //   return <h1>Loading...</h1>
+  // }
+
+  const deleteAction = async (id: number) => {
+    if (id) {
+      try {
+        // Trigger delete mutation
+        await deleteMutation.mutateAsync({ id })
+
+        // Invalidate the query to refetch the data
+        queryClient.invalidateQueries() // Replace with the actual query key used in `useGetAllBooking`
+
+        // Show success toast notification
+        toast({
+          className: 'text-red-600',
+          title: 'Booking',
+          description: <span>Deleted successfully.</span>,
+          duration: 3000,
+        })
+      } catch (error) {
+        // Handle any error that occurs during the delete process
+        console.error('Error deleting booking:', error)
+        toast({
+          className: 'text-red-600',
+          title: 'Error',
+          description: <span>Failed to delete the booking.</span>,
+          duration: 3000,
+        })
+      }
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center  justify-between ml-10 mt-5">
+        <h1 className="text-2xl font-bold ">View Booking</h1>
+        {/* <NavLink to={'list'}>View List</NavLink> */}
+        <Button
+          onClick={() => navigate('/booking/add')}
+          className="bg-green-600"
+        >
+          + Add
+        </Button>
+      </div>
+      <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
+
+      <Table className="rounded-xl overflow-hidden mt-10">
+        <TableHeader className="bg-green-300 text-center">
+          <TableRow>
+            <TableHead className="text-center">ID</TableHead>
+            {/* <TableHead className="text-center">Room No</TableHead> */}
+            <TableHead className="text-center">First Name</TableHead>
+            <TableHead className="text-center">Last Name </TableHead>
+            <TableHead className="text-center">Telephone</TableHead>
+            <TableHead className="text-center">Email</TableHead>
+            <TableHead className="text-center">Address</TableHead>
+            <TableHead className="text-center">City</TableHead>
+            <TableHead className="text-center">Country</TableHead>
+            <TableHead className="text-center">Postal Code</TableHead>
+            <TableHead className="text-center"> </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody className="bg-green-50">
+          {booking.map((booking: any) => (
+            <TableRow key={booking.id}>
+              <TableCell className="text-center">{booking.id}</TableCell>
+              {/* <TableCell className="text-center">
+                {booking.roomnumber}
+              </TableCell> */}
+
+              <TableCell className="text-center">{booking.firstname}</TableCell>
+              <TableCell className="text-center">{booking.lastname}</TableCell>
+              <TableCell className="text-center">
+                {booking.phonenumber}
+              </TableCell>
+              <TableCell className="text-center">{booking.email}</TableCell>
+              <TableCell className="text-center">{booking.address}</TableCell>
+              <TableCell className="text-center">{booking.city}</TableCell>
+              <TableCell className="text-center">{booking.country}</TableCell>
+              <TableCell className="text-center">
+                {booking.postalcode}
+              </TableCell>
+              <TableCell className="text-center flex">
+                <Button
+                  className="bg-green-600 ml-5"
+                  onClick={() => handleEdit(booking.id)}
+                  type="button"
+                >
+                  Edit
+                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger>
+                    <Button className="ml-5 bg-green-600 bg-destructive">
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you absolutely sure?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently
+                        delete your data and remove your data from our servers.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-red-600"
+                        onClick={() => deleteAction(booking.id)}
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}

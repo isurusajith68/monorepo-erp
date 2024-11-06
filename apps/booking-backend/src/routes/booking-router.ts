@@ -117,8 +117,8 @@ bookingRouter.post('/bookinginsert', async (req: Request, res: Response) => {
         elements[0].typeid,
         elements[0].viewid,
       ])
-      console.log('room count', resrooms.rows.length, 'ppp--', rowcount)
-      console.log('elements[0].typeid', elements[0].typeid, elements[0].viewid)
+      // console.log('room count', resrooms.rows.length, 'ppp--', rowcount)
+      // console.log('elements[0].typeid', elements[0].typeid, elements[0].viewid)
 
       if (resrooms.rows.length < rowcount) {
         res.status(200).json({
@@ -159,7 +159,7 @@ bookingRouter.post('/bookinginsert', async (req: Request, res: Response) => {
 
           //insert booking room
 
-          console.log('rindex', rindex)
+          // console.log('rindex', rindex)
 
           let roomId = 0
           //if exists
@@ -236,6 +236,55 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
 
       const bdsql = `select roomid from bookingdetails where bookingid= $1 `
       const bdresult = await pool.query(bdsql, [id])
+      // console.log("bdresultsssssssssssss",bdresult)
+
+      for (let index = 0; index < selectedRooms.length; index++) {
+        const room = selectedRooms[index]
+
+        for (let rindex = 0; rindex < room.occupantdetails.length; rindex++) {
+          const rrow = room.occupantdetails[rindex]
+
+          // Check for available rooms as in your original code
+          const roomCheckQuery = `
+              SELECT * FROM public.hotelrooms
+              WHERE id NOT IN (
+                SELECT bd.roomid
+                FROM public.booking b
+                JOIN public.bookingdetails bd ON bd.bookingid = b.id
+                WHERE $1 NOT BETWEEN b.checkindate AND b.checkoutdate
+                AND $2 NOT BETWEEN b.checkindate AND b.checkoutdate
+              )
+              AND roomtypeid = $3 AND roomviewid = $4;
+            `
+          const availableRooms = await client.query(roomCheckQuery, [
+            // checkindate,
+            // checkoutdate,
+            room.typeid,
+            room.viewid,
+          ])
+
+          // if (availableRooms.rowCount > 0) {
+          //   const roomId = availableRooms.rows[0].id;
+
+          //   // Insert new booking details
+          //   const bookingDetailsInsertQuery = `
+          //     INSERT INTO bookingdetails (bookingid, roomId, basis, adultcount, childcount, infantcount, price)
+          //     VALUES ($1, $2, $3, $4, $5, $6, $7);
+          //   `;
+          //   await client.query(bookingDetailsInsertQuery, [
+          //     bookingId,
+          //     roomId,
+          //     room.basis,
+          //     rrow.adultcount,
+          //     rrow.childcount,
+          //     rrow.infantcount,
+          //     room.price,
+          //   ]);
+          // } else {
+          //   console.log("No available rooms found for the requested dates.");
+          // }
+        }
+      }
 
       // const bookingUpdateQuery = `
       //   UPDATE booking
@@ -378,7 +427,7 @@ bookingRouter.get('/bookings/:id', async (req: Request, res: Response) => {
       bookingData.booking_id,
     ])
 
-    console.log('bdresult', bdresult)
+    // console.log('bdresult', bdresult)
 
     // Return the booking and guest information
     res.status(200).json({
