@@ -145,7 +145,12 @@ const RoomSelection = () => {
       console.log('dataaaaaaaaaaaaaa', data)
       if (id) {
         // If id exists, we're updating the booking
-        const dirtyValues = getDirtyValuesTF(q, data, [], 'booking_id')
+        const dirtyValues = getDirtyValuesTF(
+          bookingdata.data,
+          data,
+          [],
+          'booking_id',
+        )
         console.log('dirtyvaluessssssss', dirtyValues)
 
         if (dirtyValues) {
