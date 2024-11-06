@@ -18,6 +18,21 @@ import {
 import { RoomSummaryItem } from './room-summary-item'
 import SelectedRoomsList from './summary-compo'
 
+Object.defineProperty(Object, 'groupBy', {
+  value: function (array: any[], keyFunction: (item: any) => any) {
+    return array.reduce((result, item) => {
+      const key = keyFunction(item)
+      if (!result[key]) {
+        result[key] = []
+      }
+      result[key].push(item)
+      return result
+    }, {})
+  },
+  writable: true,
+  configurable: true,
+})
+
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value)
 
@@ -138,7 +153,7 @@ const RoomSelection = () => {
           dirtyValues.hotelid = hotelid
           // Make the PUT request with only dirty fields
           const bookingHeaderData = {
-            bookingid: id,
+            id,
             checkindate: dirtyValues.checkindate,
             checkoutdate: dirtyValues.checkoutdate,
           }
@@ -191,6 +206,13 @@ const RoomSelection = () => {
           })
 
           navigate(`/booking/${newId}`)
+        } else {
+          toast({
+            className: 'text-red-600',
+            title: 'Booking',
+            description: <span>Not Added . ${responseData.message}</span>,
+            duration: 2000,
+          })
         }
       }
     },
@@ -231,22 +253,42 @@ const RoomSelection = () => {
     if (bookingdata) {
       try {
         // Populate the form with fetched data
-        form.setFieldValue('checkindate', bookingdata.checkindate)
-        form.setFieldValue('booking_id', bookingdata.booking_id)
-        form.setFieldValue('guestid', bookingdata.guestid)
-        form.setFieldValue('checkoutdate', bookingdata.checkoutdate)
-        form.setFieldValue('flexibledates', bookingdata.flexibledates)
-        form.setFieldValue('adults', bookingdata.adults)
-        form.setFieldValue('children', bookingdata.children)
-        form.setFieldValue('currency', bookingdata.currency)
-        form.setFieldValue('firstname', bookingdata.firstname)
-        form.setFieldValue('lastname', bookingdata.lastname)
-        form.setFieldValue('email', bookingdata.email)
-        form.setFieldValue('phonenumber', bookingdata.phonenumber)
-        form.setFieldValue('address', bookingdata.address)
-        form.setFieldValue('city', bookingdata.city)
-        form.setFieldValue('country', bookingdata.country)
-        form.setFieldValue('postalcode', bookingdata.postalcode)
+        form.setFieldValue('checkindate', bookingdata.data.checkindate)
+        form.setFieldValue('booking_id', bookingdata.data.booking_id)
+        form.setFieldValue('guestid', bookingdata.data.guestid)
+        form.setFieldValue('checkoutdate', bookingdata.data.checkoutdate)
+        form.setFieldValue('flexibledates', bookingdata.data.flexibledates)
+        form.setFieldValue('adults', bookingdata.data.adults)
+        form.setFieldValue('children', bookingdata.data.children)
+        form.setFieldValue('currency', bookingdata.data.currency)
+        form.setFieldValue('firstname', bookingdata.data.firstname)
+        form.setFieldValue('lastname', bookingdata.data.lastname)
+        form.setFieldValue('email', bookingdata.data.email)
+        form.setFieldValue('phonenumber', bookingdata.data.phonenumber)
+        form.setFieldValue('address', bookingdata.data.address)
+        form.setFieldValue('city', bookingdata.data.city)
+        form.setFieldValue('country', bookingdata.data.country)
+        form.setFieldValue('postalcode', bookingdata.data.postalcode)
+
+        //set details
+
+        const grpRooms = Object.groupBy(bookingdata.details, (r) => {
+          return `${r.roomtypeid}-${r.roomviewid}-${r.basis}`
+        })
+
+        const r = Object.keys(grpRooms).map((r) => {
+          return {
+            ...grpRooms[r][0],
+            occupantdetails: grpRooms[r].map((a) => ({
+              roomid: a.roomid,
+              adultcount: a.adultcount,
+              childcount: a.childcount,
+              infantcount: a.infantcount,
+            })),
+          }
+        })
+        console.log('bookingdetails', r)
+        setselectedRooms(r)
       } catch (error) {
         console.error('Error fetching booking data:', error)
         toast({
@@ -1230,7 +1272,7 @@ const RoomSelection = () => {
                     required
                   >
                     <option value="">Country</option>
-                    <option value="lk">Sri Lanka</option>
+                    <option value="srilanka">Sri Lanka</option>
                     {/* Add more options as needed */}
                   </select>
                 )}

@@ -10,8 +10,10 @@ export function useGetBooking(id: string | undefined) {
     queryFn: async () => {
       let data1
       data1 = await Axios.get(`${bapi}bookings/${id ?? 0}`)
+      console.log('data1', data1)
+
       // data1 = await Axios.get(`http://localhost:4000/bookings/28`);
-      return data1.data.data
+      return { data: data1.data.data, details: data1.data.details }
     },
   })
 }
