@@ -151,47 +151,54 @@ const RoomSelection = () => {
           [],
           'booking_id',
         )
-        console.log('dirtyvaluessssssss', dirtyValues)
-
+        let bookingHeaderData: any
+        let guestInfo: any
         if (dirtyValues) {
+          console.log('dirtyvaluessssssss', dirtyValues)
+
+          // if (dirtyValues) {
           console.log('Dirty values to update:', dirtyValues)
           dirtyValues.hotelid = hotelid
           // Make the PUT request with only dirty fields
-          const bookingHeaderData = {
+          bookingHeaderData = {
             id,
             checkindate: dirtyValues.checkindate,
             checkoutdate: dirtyValues.checkoutdate,
           }
-          const guestInfo = { ...dirtyValues }
+
+          guestInfo = { ...dirtyValues }
           delete guestInfo.checkindate
           delete guestInfo.checkoutdate
+        }
+        const responseData = await updateMutation.mutateAsync({
+          id,
+          checkindate: data.checkindate,
+          checkoutdate: data.checkoutdate,
+          bookingHeaderData,
+          guestInfo,
+          selectedRooms,
+        })
+        console.log('responseData', responseData)
 
-          const responseData = await updateMutation.mutateAsync({
-            id,
-            bookingHeaderData,
-            guestInfo,
-            selectedRooms,
-          })
-
-          if (responseData) {
-            toast({
-              className: 'text-green-600',
-              title: 'Booking',
-              description: <span>Updated successfully.</span>,
-              duration: 2000,
-            })
-
-            navigate(`/booking/${id}`)
-          }
-        } else {
-          console.log('No fields were changed')
+        if (responseData) {
           toast({
-            className: 'text-blue-600',
+            className: 'text-green-600',
             title: 'Booking',
-            description: <span>No changes to update.</span>,
+            description: <span>Updated successfully.</span>,
             duration: 2000,
           })
+
+          navigate(`/booking/${id}`)
         }
+        // } else {
+        //   console.log('No fields were changed')
+        //   toast({
+        //     className: 'text-blue-600',
+        //     title: 'Booking',
+        //     description: <span>No changes to update.</span>,
+        //     duration: 2000,
+        //   })
+        // }
       } else {
         // Insert new booking
         const responseData = await insertMutation.mutateAsync({
