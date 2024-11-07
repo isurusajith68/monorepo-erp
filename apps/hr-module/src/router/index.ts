@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Layout from '@/layouts/Layout.vue'
+import Hr from '@/views/Hr.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,10 +10,9 @@ const router = createRouter({
       component: Layout,
       children: [
         {
-          path: '/home',
+          path: 'department',
           name: 'home',
-          // component: HomeView,
-          component: Layout,
+          component: Hr,
         },
       ],
     },

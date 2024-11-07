@@ -105,10 +105,10 @@ app.post('/login', (req, res1) => {
   const { email, password } = req.body
   console.log('Received data:', { password, email })
 
-  const select = `SELECT e.rid,e.erpuser,u.password,u.username
+  const select = `SELECT e.rid,e.erpuser,e.hotelid,u.password,u.username
                 FROM employees AS e
                 INNER JOIN users AS u
-                ON e.id = u.empid AND e.ememail='${email}'`
+                ON e.id = u.empid AND e.email='${email}'`
 
   pool
     .query(select)
@@ -120,6 +120,7 @@ app.post('/login', (req, res1) => {
           password: res.rows[0].password,
           rid: res.rows[0].rid,
           username: res.rows[0].username,
+          hotelid: res.rows[0].hotelid,
         }
         console.log('userData', userData)
 
@@ -167,6 +168,7 @@ app.post('/login', (req, res1) => {
           success: true,
           username: userData.username,
           rid: userData.rid,
+          hotelid: userData.hotelid,
           message: 'User logged in successfully',
         })
       } else {
@@ -241,10 +243,11 @@ app.post('/addrole', async (req, res) => {
       if (res1.rows.length > 0) {
         ignoredRoles.push(r.role)
       } else {
-        const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
+        const sqlInsert = `INSERT INTO userroles ( role, description,hotelid) VALUES ($1, $2,$3)`
         const insrtedData = await pool.query(sqlInsert, [
           r.role,
           r.description ?? 0,
+          r.hotelid,
         ])
         insertedRoles.push(r.role)
       }

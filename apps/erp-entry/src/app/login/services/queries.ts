@@ -9,7 +9,7 @@ export const useGetUser = (data: any) => {
     queryFn: async () => {
       if (data) {
         const response = await Axios.post(`${apiUrl}login`, data)
-        // console.log('response login q ', response)
+        console.log('response login data ', response)
         return response.data
       } else {
         return null

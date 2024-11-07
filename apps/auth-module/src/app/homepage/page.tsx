@@ -50,7 +50,7 @@ export default function HomePage() {
           <div className=" w-[35%] bg-blue-800 rounded-lg shadow-lg ">
             <div className="space-y-6 p-8 mt-8">
               {[
-                { item: 'User Role List', route: 'newform' },
+                { item: 'User Role List', route: `roles/${24}` },
                 { item: 'Module List', route: 'modules' },
                 { item: 'Document List', route: 'documents' },
                 { item: 'Action List', route: 'actions' },
@@ -63,6 +63,7 @@ export default function HomePage() {
                     Navigate(item.route)
                   }}
                 >
+                  {item.route}
                   <FaCheckCircle className="text-green-400 h-5 w-5" />
                   <span>{item.item}</span>
                   <FaChevronRight className="ml-2" />

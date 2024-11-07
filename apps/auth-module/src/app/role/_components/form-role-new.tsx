@@ -10,11 +10,12 @@ import { Label } from '@/components/ui/label'
 import { X } from 'lucide-react'
 import { zodValidator, ZodValidator } from '@tanstack/zod-form-adapter'
 import { getDirtyValuesTF } from '@/lib/utils'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import Navbar from '@/components/commonUi/navbar'
 import { toast } from '@/hooks/use-toast'
 
 const roleDetailSchema = z.object({
+  hotelid: z.number().optional(),
   rid: z.number().optional(),
   role: z.string().min(2, { message: 'Role must be at least 2 characters' }),
   description: z.string(),
@@ -28,6 +29,15 @@ type FormType = z.infer<typeof formSchema>
 
 export default function NewFormRole() {
   const Navigate = useNavigate()
+  const [id, setid] = useState<number>(0)
+
+  const { hotelid } = useParams()
+
+  // useEffect(() => {
+
+  //   setid(Number(hotelid))
+  // }, [hotelid])
+
   const {
     mutate,
     data: datamute,
@@ -40,13 +50,7 @@ export default function NewFormRole() {
 
   const form = useForm<FormType, ZodValidator>({
     defaultValues: {
-      roles: [
-        {
-          rid: 0,
-          role: 'Role',
-          description: 'Description',
-        },
-      ],
+      roles: [{ hotelid: 0, rid: 0, role: 'Role', description: 'Description' }],
     },
     validators: {
       //   onChange: formSchema,
@@ -61,7 +65,9 @@ export default function NewFormRole() {
     //   skills: [] as { language: string; rating: number }[],
 
     onSubmit: async ({ value }) => {
-      console.log(value)
+      // form.setFieldValue('hotelid.roles', 2)
+      console.log('val', value)
+
       const res = getDirtyValuesTF(
         { roles: roles.roles },
         value,
@@ -90,6 +96,11 @@ export default function NewFormRole() {
       //window.location.reload()
     },
   })
+  // const { id } = useParams()
+  //const id =2
+  console.log('Role ID:', Number(hotelid))
+  // form.setValue('name', 'value', { shouldValidate: true })
+
   const [searchTerm, setSearchTerm] = useState('')
   useEffect(() => {
     if (roles) {
@@ -161,7 +172,7 @@ export default function NewFormRole() {
               <form.Field
                 name="roles"
                 mode="array"
-                children={(field) => (
+                children={(field: any) => (
                   <>
                     <div className="flex gap-1 mb-6 font-bold text-center mt-6 rounded-t-md bg-blue-400 py-2">
                       <div className="flex-1 items-center text-center lg:ml-[10%]">
@@ -240,6 +251,7 @@ export default function NewFormRole() {
                           type="button"
                           onClick={() =>
                             field.pushValue({
+                              hotelid: Number(hotelid),
                               rid: 0,
                               role: '',
                               description: '',
@@ -256,7 +268,12 @@ export default function NewFormRole() {
                         type="button"
                         variant={'outline'}
                         onClick={() =>
-                          field.pushValue({ rid: 0, role: '', description: '' })
+                          field.pushValue({
+                            hotelid: Number(hotelid),
+                            rid: 0,
+                            role: '',
+                            description: '',
+                          })
                         }
                       >
                         Add
