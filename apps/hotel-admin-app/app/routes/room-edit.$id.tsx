@@ -116,19 +116,19 @@ function jsonWithSuccess(data: any, message: string) {
 export async function action({ request }: ActionFunctionArgs) {
   try {
     // Parse the form data
-    const formData = await request.formData();
-    console.log('Current form data:', formData);
+    const formData = await request.formData()
+    console.log('Current form data:', formData)
 
     // Extract form fields
-    const roomno = formData.get('roomno');
-    const roomtype = formData.get('roomtype');
-    const noofbed = formData.get('noofbed');
-    const roomview = formData.get('roomview');
-    const id = formData.get('id');
-    const selectedAmenities = formData.getAll('amenities');
+    const roomno = formData.get('roomno')
+    const roomtype = formData.get('roomtype')
+    const noofbed = formData.get('noofbed')
+    const roomview = formData.get('roomview')
+    const id = formData.get('id')
+    const selectedAmenities = formData.getAll('amenities')
 
     if (!id) {
-      return json({ success: false, message: 'No room ID provided.' });
+      return json({ success: false, message: 'No room ID provided.' })
     }
     // Update the room details
     const hotelUpdateQuery = `
@@ -136,64 +136,63 @@ export async function action({ request }: ActionFunctionArgs) {
       SET roomno = $1, roomtypeid = $2, noofbed = $3, roomviewid = $4
       WHERE id = $5
       RETURNING id
-    `;
-    const hotelUpdateValues = [roomno, roomtype, noofbed, roomview, id];
-    const result = await client.query(hotelUpdateQuery, hotelUpdateValues);
-    const roomId = result.rows[0]?.id;
+    `
+    const hotelUpdateValues = [roomno, roomtype, noofbed, roomview, id]
+    const result = await client.query(hotelUpdateQuery, hotelUpdateValues)
+    const roomId = result.rows[0]?.id
 
     if (!roomId) {
-      throw new Error('Room ID not found after update.');
+      throw new Error('Room ID not found after update.')
     }
 
     // Delete old amenities for the room
-    const deleteAmenitiesQuery = `DELETE FROM roomamenitydetails WHERE roomid = $1`;
-    await client.query(deleteAmenitiesQuery, [id]);
+    const deleteAmenitiesQuery = `DELETE FROM roomamenitydetails WHERE roomid = $1`
+    await client.query(deleteAmenitiesQuery, [id])
 
     // Insert new amenities
     for (const amenityId of selectedAmenities) {
       const insertAmenityQuery = `
         INSERT INTO roomamenitydetails (roomid, amenityid) 
         VALUES ($1, $2)
-      `;
-      await client.query(insertAmenityQuery, [roomId, amenityId]);
+      `
+      await client.query(insertAmenityQuery, [roomId, amenityId])
     }
 
     // // Delete old images for the room
-    const deleteImagesQuery = `DELETE FROM roomimages WHERE roomid = $1`;
-    await client.query(deleteImagesQuery, [id]);
+    const deleteImagesQuery = `DELETE FROM roomimages WHERE roomid = $1`
+    await client.query(deleteImagesQuery, [id])
 
     // // Handle image uploads
-    const images = formData.getAll('images'); // Get all images
-    console.log('selectedAmenities', images);
+    const images = formData.getAll('images') // Get all images
+    console.log('selectedAmenities', images)
     for (const image of images) {
       if (image && typeof image !== 'string') {
         // Convert the image to a buffer
-        const imageBuffer = Buffer.from(await image.arrayBuffer());
-        console.log('selectedAmenities', imageBuffer);
+        const imageBuffer = Buffer.from(await image.arrayBuffer())
+        console.log('selectedAmenities', imageBuffer)
         // Insert the image and room ID into roomimages
         const imageQuery = `
           INSERT INTO roomimages (images, roomid) 
           VALUES ($1, $2)
-        `;
-        await client.query(imageQuery, [imageBuffer, roomId]);
+        `
+        await client.query(imageQuery, [imageBuffer, roomId])
       }
     }
     // Return success response
     return jsonWithSuccess(
       { message: 'Room Data successfully updated!' },
-      'Room Data successfully updated!'
-    );
+      'Room Data successfully updated!',
+    )
   } catch (error) {
-    console.error('Error updating hotel info:', error);
+    console.error('Error updating hotel info:', error)
 
     // Return error response with details
     return jsonWithSuccess(
       { result: 'Failed to save room information. Please try again.' },
-      'Failed to update room information.'
-    );
+      'Failed to update room information.',
+    )
   }
 }
-
 
 ////////////
 function RoomEditForm() {
@@ -211,7 +210,7 @@ function RoomEditForm() {
   const actionData = useActionData()
 
   console.log('first', room)
- 
+
   // UseEffect to handle showing the toast when actionData changes
   useEffect(() => {
     if (actionData?.toast) {
@@ -244,7 +243,6 @@ function RoomEditForm() {
       })
     }
   }
-  
 
   const [selectedAmenities, setSelectedAmenities] = useState(room.amenities)
 
@@ -304,7 +302,11 @@ function RoomEditForm() {
             <label htmlFor="roomtype" className="text-gray-600">
               Room Type
             </label>
-            <Select name="roomtype" defaultValue={room.roomtypeid.toString()} required>
+            <Select
+              name="roomtype"
+              defaultValue={room.roomtypeid.toString()}
+              required
+            >
               <SelectTrigger className="mt-1 border-blue-500">
                 <SelectValue placeholder="Select Room Type" />
               </SelectTrigger>
@@ -339,7 +341,11 @@ function RoomEditForm() {
             <label htmlFor="roomview" className="text-gray-600">
               Room View
             </label>
-            <Select name="roomview" defaultValue={room.roomviewid.toString()} required>
+            <Select
+              name="roomview"
+              defaultValue={room.roomviewid.toString()}
+              required
+            >
               <SelectTrigger className="mt-1 border-blue-500">
                 <SelectValue placeholder="Select Room View" />
               </SelectTrigger>
@@ -413,7 +419,7 @@ function RoomEditForm() {
                   ))
                 : 'No Image Available'}
             </div>
-             New Image Previews *
+            New Image Previews *
             <div className="mt-4 flex gap-1">
               {imagePreviews.map((preview, index) => (
                 <img
@@ -433,8 +439,8 @@ function RoomEditForm() {
           <div className="flex gap-5 ml-[95%]">
             <div>
               <Button
-               type='submit'
-               className="bg-blue-200 hover:bg-blue-300 text-blue-700 px-4 py-2 rounded-lg w-32 "
+                type="submit"
+                className="bg-blue-200 hover:bg-blue-300 text-blue-700 px-4 py-2 rounded-lg w-32 "
               >
                 Update
               </Button>

@@ -27,22 +27,29 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '~/components/ui/alert-dialog'
-import { Form, json, Link, useActionData, useLoaderData, useNavigate, useSubmit } from '@remix-run/react'
+import {
+  Form,
+  json,
+  Link,
+  useActionData,
+  useLoaderData,
+  useNavigate,
+  useSubmit,
+} from '@remix-run/react'
 import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { client } from '~/db.server'
 import { useState } from 'react'
 import { useEffect } from 'react'
 import { Slide, ToastContainer, toast as notify } from 'react-toastify'
-import "react-toastify/dist/ReactToastify.css";
-import "../app-component/style.css"
-
+import 'react-toastify/dist/ReactToastify.css'
+import '../app-component/style.css'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const result = await client.query('SELECT * FROM hotelroompriceshedules')
   if (result.rows.length === 0) {
     return {}
   } else {
-    console.log("result.rows",result.rows)
+    console.log('result.rows', result.rows)
     return result.rows
   }
 }
@@ -58,32 +65,31 @@ function jsonWithSuccess(data: any, message: string) {
   })
 }
 
-
 export async function action({ request }: ActionFunctionArgs) {
   try {
-    const formData = await request.formData();
-    const id = formData.get('id');
-    console.log("id", id);
-    
+    const formData = await request.formData()
+    const id = formData.get('id')
+    console.log('id', id)
+
     if (!id) {
-      throw new Error("No id provided for deletion.");
+      throw new Error('No id provided for deletion.')
     }
 
     // First, delete related entries from hotelroomprices
-    const query1 = 'DELETE FROM hotelroomprices WHERE sheduleid = $1';
-    await client.query(query1, [id]);
+    const query1 = 'DELETE FROM hotelroomprices WHERE sheduleid = $1'
+    await client.query(query1, [id])
 
     // Then, delete the entry from hotelroompriceshedules
-    const query = 'DELETE FROM hotelroompriceshedules WHERE id = $1';
-    await client.query(query, [id]);
+    const query = 'DELETE FROM hotelroompriceshedules WHERE id = $1'
+    await client.query(query, [id])
 
     // Returning JSON with success toast data
-      return jsonWithSuccess(
+    return jsonWithSuccess(
       { result: 'Data deleted successfully' },
       'Room Price Shedules deleted successfully! 🗑️',
     )
   } catch (error) {
-    console.error('Error deleting data:', error);
+    console.error('Error deleting data:', error)
     return jsonWithSuccess(
       { result: 'Data deleted successfully' },
       'Error In Room Price Shedules deleted successfully! 🗑️',
@@ -91,13 +97,12 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
-
 export default function RoomPriceList() {
   const navigate = useNavigate()
   const data = useLoaderData<typeof loader>()
-  const [searchId, setSearchId] = useState("");
-  const [searchDate, setsearchDate] = useState("");
-  const [searchEndDate, setsearchEndDate] = useState("");
+  const [searchId, setSearchId] = useState('')
+  const [searchDate, setsearchDate] = useState('')
+  const [searchEndDate, setsearchEndDate] = useState('')
   const actionData = useActionData() // Capture action data (including toast data)
   const submit = useSubmit()
 
@@ -108,7 +113,7 @@ export default function RoomPriceList() {
       notify(actionData.toast.message, { type: actionData.toast.type })
     }
   }, [actionData])
-  
+
   const handleEdit = (id: number) => {
     navigate(`/room-price-edit/${id}`)
   }
@@ -117,21 +122,18 @@ export default function RoomPriceList() {
     navigate(`/room-price-view/${id}`)
   }
 
+  // Ensure `data` is an array before filtering
+  const filteredData = Array.isArray(data)
+    ? data.filter((item: any) => {
+        // Make sure the search criteria are strings for `.includes()`
+        const matchesSearchCriteria =
+          item.id?.toString().includes(searchId || '') &&
+          item.startdate?.toString().includes(searchDate || '') &&
+          item.enddate?.toString().includes(searchEndDate || '')
 
-// Ensure `data` is an array before filtering
-const filteredData = Array.isArray(data)
-  ? data.filter((item: any) => {
-      // Make sure the search criteria are strings for `.includes()`
-      const matchesSearchCriteria =
-        item.id?.toString().includes(searchId || '') &&
-        item.startdate?.toString().includes(searchDate || '') &&
-        item.enddate?.toString().includes(searchEndDate || '');
-
-      return matchesSearchCriteria;
-    })
-  : [];
-
-
+        return matchesSearchCriteria
+      })
+    : []
 
   return (
     <>
@@ -139,10 +141,13 @@ const filteredData = Array.isArray(data)
         <div className="ml-5 mt-2 text-xl font-semibold">
           <div className="flex items-center">
             <h1 className="text-3xl font-bold mt-12">Room Price Schedule</h1>
-            <Button className="h-9 text-white bg-blue-400 hover:bg-blue-500 lg:ml-[60%] mt-5" onClick={() => handleEdit(-1)}>
-                {' '}
-                + Add New
-              </Button>
+            <Button
+              className="h-9 text-white bg-blue-400 hover:bg-blue-500 lg:ml-[60%] mt-5"
+              onClick={() => handleEdit(-1)}
+            >
+              {' '}
+              + Add New
+            </Button>
           </div>
           <hr className="bg-blue-400 h-0.5 mt-2" />
         </div>
@@ -150,33 +155,39 @@ const filteredData = Array.isArray(data)
         <div className="flex justify-between items-center mt-4 w-full">
           <div className="relative flex flex-col-3 gap-16 ml-28">
             <div className="flex flex-col-2 gap-3 lg:w-[70%] ">
-              <label className="font-extralight text-sm mt-2 w-full">Schedule ID</label>
+              <label className="font-extralight text-sm mt-2 w-full">
+                Schedule ID
+              </label>
               <Input
                 type="search"
                 className="pl-3 pr-3 py-2 border border-blue-300 rounded-2xl"
                 placeholder=""
                 value={searchId}
-                onChange={(e) => setSearchId(e.target.value)} 
+                onChange={(e) => setSearchId(e.target.value)}
               />
             </div>
             <div className="flex flex-col-2 gap-3 lg:w-[80%] ">
-              <label className="font-extralight text-sm mt-2 w-full">Start Date</label>
+              <label className="font-extralight text-sm mt-2 w-full">
+                Start Date
+              </label>
               <Input
                 type="date"
                 className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl"
                 placeholder=""
                 value={searchDate}
-                onChange={(e) => setsearchDate(e.target.value)} 
+                onChange={(e) => setsearchDate(e.target.value)}
               />
             </div>
             <div className="flex flex-col-2 gap-3 lg:w-[80%] ">
-              <label className="font-extralight text-sm mt-2 w-full">End Date</label>
+              <label className="font-extralight text-sm mt-2 w-full">
+                End Date
+              </label>
               <Input
                 type="date"
                 className="pl-8 pr-3 py-2 border border-blue-300 rounded-2xl"
                 placeholder=""
                 value={searchEndDate}
-                onChange={(e) => setsearchEndDate(e.target.value)} 
+                onChange={(e) => setsearchEndDate(e.target.value)}
               />
             </div>
           </div>
@@ -199,77 +210,77 @@ const filteredData = Array.isArray(data)
               </TableRow>
             </TableHeader>
             <TableBody className="bg-blue-50">
-            {filteredData.length > 0 ? (
-              filteredData.map((data: any, index: any) => {
-                // Convert and format the startdate and enddate to yyyy.mm.dd
-                const startDateObj = new Date(data.startdate)
-                const formattedStartDate = `${startDateObj.getFullYear()}.${(
-                  startDateObj.getMonth() + 1
-                )
-                  .toString()
-                  .padStart(2, '0')}.${startDateObj
-                  .getDate()
-                  .toString()
-                  .padStart(2, '0')}`
+              {filteredData.length > 0 ? (
+                filteredData.map((data: any, index: any) => {
+                  // Convert and format the startdate and enddate to yyyy.mm.dd
+                  const startDateObj = new Date(data.startdate)
+                  const formattedStartDate = `${startDateObj.getFullYear()}.${(
+                    startDateObj.getMonth() + 1
+                  )
+                    .toString()
+                    .padStart(2, '0')}.${startDateObj
+                    .getDate()
+                    .toString()
+                    .padStart(2, '0')}`
 
-                const endDateObj = new Date(data.enddate)
-                const formattedEndDate = `${endDateObj.getFullYear()}.${(
-                  endDateObj.getMonth() + 1
-                )
-                  .toString()
-                  .padStart(2, '0')}.${endDateObj
-                  .getDate()
-                  .toString()
-                  .padStart(2, '0')}`
+                  const endDateObj = new Date(data.enddate)
+                  const formattedEndDate = `${endDateObj.getFullYear()}.${(
+                    endDateObj.getMonth() + 1
+                  )
+                    .toString()
+                    .padStart(2, '0')}.${endDateObj
+                    .getDate()
+                    .toString()
+                    .padStart(2, '0')}`
 
-                return (
-                  <TableRow key={index} className="hover:bg-blue-100">
-                    <TableCell className="text-center px-4 py-2">
-                      {data.id}
-                    </TableCell>
-                    <TableCell className="text-center px-4 py-2">
-                      {formattedStartDate}
-                    </TableCell>
-                    <TableCell className="text-center px-4 py-2">
-                      {formattedEndDate}
-                    </TableCell>
-                    <TableCell className=" py-2 px-4">
-                      <div className="flex items-center lg:ml-[20%]">
-                      <div>
-                          <Button
-                            onClick={() => handleView(data.id)}
-                            className="bg-blue-600 "
-                          >
-                            View
-                          </Button>
-                        </div>
-                        <div>
-                          <Button
-                            onClick={() => handleEdit(data.id)}
-                            className="bg-blue-600 ml-5"
-                          >
-                            Edit
-                          </Button>
-                        </div>
-                        <div>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button className="ml-5 bg-blue-600 bg-destructive">
-                                Delete
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Are you absolutely sure?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone. This will
-                                  permanently delete the room type.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  return (
+                    <TableRow key={index} className="hover:bg-blue-100">
+                      <TableCell className="text-center px-4 py-2">
+                        {data.id}
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-2">
+                        {formattedStartDate}
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-2">
+                        {formattedEndDate}
+                      </TableCell>
+                      <TableCell className=" py-2 px-4">
+                        <div className="flex items-center lg:ml-[20%]">
+                          <div>
+                            <Button
+                              onClick={() => handleView(data.id)}
+                              className="bg-blue-600 "
+                            >
+                              View
+                            </Button>
+                          </div>
+                          <div>
+                            <Button
+                              onClick={() => handleEdit(data.id)}
+                              className="bg-blue-600 ml-5"
+                            >
+                              Edit
+                            </Button>
+                          </div>
+                          <div>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button className="ml-5 bg-blue-600 bg-destructive">
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Are you absolutely sure?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete the room type.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
                                   <Form method="post">
                                     <input
                                       type="hidden"
@@ -284,15 +295,15 @@ const filteredData = Array.isArray(data)
                                         Continue
                                       </Button>
                                     </AlertDialogAction>
-                                </Form>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                                  </Form>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                 )
+                      </TableCell>
+                    </TableRow>
+                  )
                 })
               ) : (
                 <TableRow>
@@ -304,9 +315,9 @@ const filteredData = Array.isArray(data)
             </TableBody>
           </Table>
         </div>
-           {/* ToastContainer to display the notifications */}
-     
-           <ToastContainer
+        {/* ToastContainer to display the notifications */}
+
+        <ToastContainer
           position="bottom-right"
           autoClose={2000}
           hideProgressBar={false} // Show progress bar

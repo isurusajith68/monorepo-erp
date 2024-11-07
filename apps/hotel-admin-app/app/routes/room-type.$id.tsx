@@ -147,7 +147,9 @@ function RoomEdit() {
                         className="text-white bg-orange-500 hover:bg-orange-400  w-20 mt-10 h-20"
                         to={'/room-type/list'}
                       >
-                        <Button className='text-white bg-orange-500 hover:bg-orange-400 mt-10'>Close</Button>
+                        <Button className="text-white bg-orange-500 hover:bg-orange-400 mt-10">
+                          Close
+                        </Button>
                       </Link>
                     </div>
                     <div>

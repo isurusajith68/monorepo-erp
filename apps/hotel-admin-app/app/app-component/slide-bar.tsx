@@ -1,4 +1,3 @@
-
 import {
   Book,
   BookOpenCheck,
@@ -29,7 +28,6 @@ const Sidebar = () => {
     <div className="hidden border-r bg-muted/40 md:block fixed top-0 left-0 h-full w-[220px] lg:w-[280px] ">
       <div className="flex h-full max-h-screen flex-col gap-2 bg-blue-400 text-white">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 bg-green-400">
-         
           {/* <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
             <Bell className="h-4 w-4" />
             <span className="sr-only">Toggle notifications</span>
@@ -93,7 +91,6 @@ const Sidebar = () => {
               <TbReportAnalytics className="h-4 w-4" />
               Offers
             </Link>
-            
           </nav>
         </div>
       </div>

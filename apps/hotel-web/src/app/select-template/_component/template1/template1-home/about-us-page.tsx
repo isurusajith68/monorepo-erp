@@ -72,10 +72,10 @@ function AboutUsPage({ aboutFormData }: any) {
                   index === 0
                     ? 'w-[100%] h-[110%] mt-10'
                     : index === 1
-                    ? 'w-[120%] h-[120%] mr-5'
-                    : index === 2
-                    ? 'w-[80%] h-[80%] mt-20 ml-10'
-                    : 'w-[80%] h-[80%] mt-10'
+                      ? 'w-[120%] h-[120%] mr-5'
+                      : index === 2
+                        ? 'w-[80%] h-[80%] mt-20 ml-10'
+                        : 'w-[80%] h-[80%] mt-10'
                 }`}
               />
             ))}

@@ -35,19 +35,24 @@ import {
 import { useState } from 'react'
 import { ActionFunctionArgs, json, LoaderFunctionArgs } from '@remix-run/node'
 import { client } from '~/db.server'
-import { Form, useActionData, useLoaderData, useNavigate, useSubmit } from '@remix-run/react'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useNavigate,
+  useSubmit,
+} from '@remix-run/react'
 import { useEffect } from 'react'
 import { Slide, ToastContainer, toast as notify } from 'react-toastify'
-import "react-toastify/dist/ReactToastify.css";
-import "../app-component/style.css"
-
+import 'react-toastify/dist/ReactToastify.css'
+import '../app-component/style.css'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const result = await client.query('SELECT * FROM hotelroomview');
+  const result = await client.query('SELECT * FROM hotelroomview')
   if (result.rows.length === 0) {
-    return {};
+    return {}
   } else {
-    return result.rows;
+    return result.rows
   }
 }
 
@@ -62,34 +67,33 @@ function jsonWithSuccess(data: any, message: string) {
   })
 }
 
-
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const id = formData.get('id');
-  
+  const formData = await request.formData()
+  const id = formData.get('id')
+
   if (id) {
     // DELETE request
-     const queryroomprice = `DELETE FROM hotelroomprices WHERE roomviewid = $1`;
-     await client.query(queryroomprice, [id]);
+    const queryroomprice = `DELETE FROM hotelroomprices WHERE roomviewid = $1`
+    await client.query(queryroomprice, [id])
 
-     const queryroom = `DELETE FROM hotelrooms WHERE roomviewid = $1`;
-     await client.query(queryroom, [id]);
+    const queryroom = `DELETE FROM hotelrooms WHERE roomviewid = $1`
+    await client.query(queryroom, [id])
 
     // DELETE request
-    const query = `DELETE FROM hotelroomview WHERE id = $1`;
-    await client.query(query, [id]);
-     // If no ID, returning a generic success message
+    const query = `DELETE FROM hotelroomview WHERE id = $1`
+    await client.query(query, [id])
+    // If no ID, returning a generic success message
     return jsonWithSuccess(
       { result: 'Hotel room-type deleted successfully!' },
       'Hotel room-type deleted successfully!!',
     )
   } else {
     // INSERT request
-    const roomtype = formData.get('roomview');
-    const hotelQuery = `INSERT INTO hotelroomview (roomview) VALUES ($1)`;
-    await client.query(hotelQuery, [roomtype]);
-     // If no ID, returning a generic success message
-     return jsonWithSuccess(
+    const roomtype = formData.get('roomview')
+    const hotelQuery = `INSERT INTO hotelroomview (roomview) VALUES ($1)`
+    await client.query(hotelQuery, [roomtype])
+    // If no ID, returning a generic success message
+    return jsonWithSuccess(
       { result: 'Hotel room-type saved successfully!' },
       'Hotel room-type saved successfully!',
     )
@@ -100,34 +104,39 @@ export async function action({ request }: ActionFunctionArgs) {
 // COMPONENTS
 
 export default function RoomView() {
-  const navigate = useNavigate();
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const data = useLoaderData<typeof loader>();
-  
+  const navigate = useNavigate()
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false)
+  const data = useLoaderData<typeof loader>()
+
   const actionData = useActionData() // Capture action data (including toast data)
   const submit = useSubmit()
 
   const handleEdit = (id: number) => {
-    navigate(`/room-view/${id}`);
-  };
+    navigate(`/room-view/${id}`)
+  }
 
-    // UseEffect to handle showing the toast when actionData changes
-    useEffect(() => {
-      if (actionData?.toast) {
-        // Show success or error toast based on the type
-        notify(actionData.toast.message, { type: actionData.toast.type })
-      }
-    }, [actionData])
+  // UseEffect to handle showing the toast when actionData changes
+  useEffect(() => {
+    if (actionData?.toast) {
+      // Show success or error toast based on the type
+      notify(actionData.toast.message, { type: actionData.toast.type })
+    }
+  }, [actionData])
 
   return (
     <>
-      <div className={`ml-[18.4%] h-screen mt-14 ${isPopoverOpen ? 'bg-blue-100' : ''}`}>
+      <div
+        className={`ml-[18.4%] h-screen mt-14 ${isPopoverOpen ? 'bg-blue-100' : ''}`}
+      >
         <div className="ml-5 mt-2 text-xl font-semibold">
           <div className="flex items-center">
             <h1 className="text-3xl font-bold mt-12">Room View List</h1>
             <Popover onOpenChange={(open) => setIsPopoverOpen(open)}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="h-9 text-white bg-blue-400 hover:bg-blue-500 lg:ml-[70%]">
+                <Button
+                  variant="outline"
+                  className="h-9 text-white bg-blue-400 hover:bg-blue-500 lg:ml-[70%]"
+                >
                   + Add New
                 </Button>
               </PopoverTrigger>
@@ -139,8 +148,16 @@ export default function RoomView() {
                   <div className="grid gap-2 mt-5">
                     <div className="grid items-center gap-4">
                       <Form method="post">
-                        <Input id="width" name="roomview" placeholder="Room view" className="col-span-2 h-10" />
-                        <Button type="submit" className="text-white bg-blue-500 hover:bg-blue-400 mt-10 lg:ml-[80%]">
+                        <Input
+                          id="width"
+                          name="roomview"
+                          placeholder="Room view"
+                          className="col-span-2 h-10"
+                        />
+                        <Button
+                          type="submit"
+                          className="text-white bg-blue-500 hover:bg-blue-400 mt-10 lg:ml-[80%]"
+                        >
                           Add
                         </Button>
                       </Form>
@@ -163,72 +180,81 @@ export default function RoomView() {
               </TableRow>
             </TableHeader>
             <TableBody className="bg-blue-50">
-            {data.length > 0 ? (
-              data.map((data:any, index:any) => ( 
-              <TableRow key={index} className="hover:bg-blue-100">
-                <TableCell className="text-center px-4 py-2">
-                  {data.id}
-                </TableCell>
-                <TableCell className="text-center px-4 py-2">
-                  {data.roomview}
-                </TableCell>
-                <TableCell className="text-center px-4 py-2">
-                  <div className="flex gap-5 lg:ml-[20%]">
-                    <div>
-                      <Button
-                         onClick={() => handleEdit(data.id)}
-                        className="bg-blue-600"
-                      >
-                        Edit
-                      </Button>
-                    </div>
-                    <div>
-                      <AlertDialog>
-                        <AlertDialogTrigger>
-                          <Button className="ml-5 bg-blue-600 bg-destructive">
-                            Delete
+              {data.length > 0 ? (
+                data.map((data: any, index: any) => (
+                  <TableRow key={index} className="hover:bg-blue-100">
+                    <TableCell className="text-center px-4 py-2">
+                      {data.id}
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      {data.roomview}
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      <div className="flex gap-5 lg:ml-[20%]">
+                        <div>
+                          <Button
+                            onClick={() => handleEdit(data.id)}
+                            className="bg-blue-600"
+                          >
+                            Edit
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Are you absolutely sure?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will
-                              permanently delete your account and remove your
-                              data from our servers.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <Form method="post">
-                                <input type="hidden" name="id" value={data.id} />
-                                <AlertDialogAction asChild>
-                                  <Button type="submit" className="bg-red-500">Continue</Button>
-                                </AlertDialogAction>
-                              </Form>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                </TableCell>
-              </TableRow>
-           ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center px-4 py-2">
-                No data available
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
+                        </div>
+                        <div>
+                          <AlertDialog>
+                            <AlertDialogTrigger>
+                              <Button className="ml-5 bg-blue-600 bg-destructive">
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Are you absolutely sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will
+                                  permanently delete your account and remove
+                                  your data from our servers.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <Form method="post">
+                                  <input
+                                    type="hidden"
+                                    name="id"
+                                    value={data.id}
+                                  />
+                                  <AlertDialogAction asChild>
+                                    <Button
+                                      type="submit"
+                                      className="bg-red-500"
+                                    >
+                                      Continue
+                                    </Button>
+                                  </AlertDialogAction>
+                                </Form>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center px-4 py-2">
+                    No data available
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
           </Table>
         </div>
-         {/* ToastContainer to display the notifications */}
-     
-         <ToastContainer
+        {/* ToastContainer to display the notifications */}
+
+        <ToastContainer
           position="bottom-right"
           autoClose={2000}
           hideProgressBar={false} // Show progress bar
@@ -249,5 +275,3 @@ export default function RoomView() {
     </>
   )
 }
-
-

@@ -125,8 +125,8 @@ export async function action({ request }: ActionFunctionArgs) {
     const delamenity = `DELETE FROM roomamenitydetails WHERE roomid = $1`
     await client.query(delamenity, [id])
 
-    const queryroom = `DELETE FROM hotelrooms WHERE roomviewid = $1`;
-    await client.query(queryroom, [id]);
+    const queryroom = `DELETE FROM hotelrooms WHERE roomviewid = $1`
+    await client.query(queryroom, [id])
 
     const query = `DELETE FROM hotelrooms WHERE id = $1`
     await client.query(query, [id])

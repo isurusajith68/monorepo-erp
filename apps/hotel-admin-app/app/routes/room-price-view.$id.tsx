@@ -91,39 +91,37 @@ function jsonWithSuccess(data: any, message: string) {
   })
 }
 
-
 export async function action({ request }: ActionFunctionArgs) {
   try {
-    const formData = await request.formData();
-    const id = formData.get('id');
-    console.log("id", id);
-    
+    const formData = await request.formData()
+    const id = formData.get('id')
+    console.log('id', id)
+
     if (!id) {
-      throw new Error("No id provided for deletion.");
+      throw new Error('No id provided for deletion.')
     }
 
     // First, delete related entries from hotelroomprices
-    const query1 = 'DELETE FROM hotelroomprices WHERE sheduleid = $1';
-    await client.query(query1, [id]);
+    const query1 = 'DELETE FROM hotelroomprices WHERE sheduleid = $1'
+    await client.query(query1, [id])
 
     // Then, delete the entry from hotelroompriceshedules
-    const query = 'DELETE FROM hotelroompriceshedules WHERE id = $1';
-    await client.query(query, [id]);
+    const query = 'DELETE FROM hotelroompriceshedules WHERE id = $1'
+    await client.query(query, [id])
 
     // Returning JSON with success toast data
-      return jsonWithSuccess(
+    return jsonWithSuccess(
       { result: 'Data deleted successfully' },
       'Room Price Shedules deleted successfully! 🗑️',
     )
   } catch (error) {
-    console.error('Error deleting data:', error);
+    console.error('Error deleting data:', error)
     return jsonWithSuccess(
       { result: 'Data deleted successfully' },
       'Error In Room Price Shedules deleted successfully! 🗑️',
     )
   }
 }
-
 
 export default function RoomPriceScheduleViwe() {
   const navigate = useNavigate()
@@ -144,7 +142,6 @@ export default function RoomPriceScheduleViwe() {
       notify(fetcher.data.toast.message, { type: fetcher.data.toast.type })
     }
   }, [fetcher.data]) // Listen to changes in fetcher.data
-
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -443,9 +440,12 @@ export default function RoomPriceScheduleViwe() {
               <div>
                 <Form method="post">
                   <input hidden name="id" value={scheduleheder?.id} />
-                    <Button type="submit" className="bg-red-500 w-36 hover:bg-red-400">
-                      Delete
-                    </Button> 
+                  <Button
+                    type="submit"
+                    className="bg-red-500 w-36 hover:bg-red-400"
+                  >
+                    Delete
+                  </Button>
                 </Form>
               </div>
             </div>

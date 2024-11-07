@@ -75,7 +75,7 @@ export let loader: LoaderFunction = async ({ params }) => {
   const resultview = await client.query('SELECT * FROM hotelroomview')
   const resulttype = await client.query('SELECT * FROM hotelroomtypes')
 
- // console.log('kasun', resultroom.rows)
+  // console.log('kasun', resultroom.rows)
   if (result.rows.length == 0) {
     return {
       roomview: resultview.rows,
@@ -107,78 +107,72 @@ function jsonWithSuccess(data: any, message: string) {
   })
 }
 
-
 export async function action({ request }: ActionFunctionArgs) {
   try {
-    const formData = await request.formData();
-    const formDataCur = Object.fromEntries(formData);
+    const formData = await request.formData()
+    const formDataCur = Object.fromEntries(formData)
 
-    const id = formDataCur.schedulid;
-    console.log('Form Data:', formDataCur);
+    const id = formDataCur.schedulid
+    console.log('Form Data:', formDataCur)
 
     if (id) {
       // Update hotelroompriceshedules with new data
-      const startdate = formData.get('startdate');
-      const enddate = formData.get('enddate');
-      const remarks = formData.get('remarks');
+      const startdate = formData.get('startdate')
+      const enddate = formData.get('enddate')
+      const remarks = formData.get('remarks')
 
       const updateScheduleQuery = `
         UPDATE hotelroompriceshedules 
         SET startdate = $1, enddate = $2, remarks = $3, active = true
         WHERE id = $4
-      `;
-      await client.query(updateScheduleQuery, [
-        startdate,
-        enddate,
-        remarks,
-        id,
-      ]);
+      `
+      await client.query(updateScheduleQuery, [startdate, enddate, remarks, id])
 
       // Delete existing entries in hotelroomprices for this schedule to avoid duplicates
-      const deletePricesQuery = 'DELETE FROM hotelroomprices WHERE sheduleid = $1';
-      await client.query(deletePricesQuery, [id]);
+      const deletePricesQuery =
+        'DELETE FROM hotelroomprices WHERE sheduleid = $1'
+      await client.query(deletePricesQuery, [id])
 
       // Re-insert updated room prices
-      const groupPrices = (prefix : string) => {
-
-        const prices = [];
-        let i = 0;
+      const groupPrices = (prefix: string) => {
+        const prices = []
+        let i = 0
         while (formData.has(`${prefix}[${i}]`)) {
-          prices.push(formData.get(`${prefix}[${i}]`));
-          i++;
+          prices.push(formData.get(`${prefix}[${i}]`))
+          i++
         }
-        return prices;
-      };
+        return prices
+      }
 
       // Extract data arrays for room prices
-      const roomtypes = groupPrices('roomtype');
-      const roomviews = groupPrices('roomview');
-      const roprices = groupPrices('roprice');
-      const bbprices = groupPrices('bbprice');
-      const hbprices = groupPrices('hbprice');
-      const fbprices = groupPrices('fbprice');
-      const nrroprices = groupPrices('nrroprice');
-      const nrbbprices = groupPrices('nrbbprice');
-      const nrhbprices = groupPrices('nrhbprice');
-      const nrfbprices = groupPrices('nrfbprice');
+      const roomtypes = groupPrices('roomtype')
+      const roomviews = groupPrices('roomview')
+      const roprices = groupPrices('roprice')
+      const bbprices = groupPrices('bbprice')
+      const hbprices = groupPrices('hbprice')
+      const fbprices = groupPrices('fbprice')
+      const nrroprices = groupPrices('nrroprice')
+      const nrbbprices = groupPrices('nrbbprice')
+      const nrhbprices = groupPrices('nrhbprice')
+      const nrfbprices = groupPrices('nrfbprice')
 
       // Insert updated room prices with existing schedule ID
       for (let index = 0; index < roprices.length; index++) {
-        const roomtype = roomtypes[index];
-        const roomview = roomviews[index];
-        const roprice = roprices[index];
-        const bbprice = bbprices[index];
-        const hbprice = hbprices[index];
-        const fbprice = fbprices[index];
-        const nrroprice = nrroprices[index];
-        const nrbbprice = nrbbprices[index];
-        const nrhbprice = nrhbprices[index];
-        const nrfbprice = nrfbprices[index];
+        const roomtype = roomtypes[index]
+        const roomview = roomviews[index]
+        const roprice = roprices[index]
+        const bbprice = bbprices[index]
+        const hbprice = hbprices[index]
+        const fbprice = fbprices[index]
+        const nrroprice = nrroprices[index]
+        const nrbbprice = nrbbprices[index]
+        const nrhbprice = nrhbprices[index]
+        const nrfbprice = nrfbprices[index]
 
         const insertQuery = `
           INSERT INTO hotelroomprices (roomtypeid, roomviewid, sheduleid, roprice, bbprice, hbprice, fbprice, nrroprice, nrbbprice, nrhbprice, nrfbprice) 
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        `;
+        `
 
         await client.query(insertQuery, [
           roomtype,
@@ -192,69 +186,69 @@ export async function action({ request }: ActionFunctionArgs) {
           nrbbprice || null,
           nrhbprice || null,
           nrfbprice || null,
-        ]);
+        ])
       }
 
       // Return success message for update
       return jsonWithSuccess(
         { result: 'Room Price Schedule updated successfully!' },
         'Room Price Schedule updated successfully!',
-      );
+      )
     } else {
       // Insert new schedule as no id was found
-      const startdate = formData.get('startdate');
-      const enddate = formData.get('enddate');
-      const remarks = formData.get('remarks');
+      const startdate = formData.get('startdate')
+      const enddate = formData.get('enddate')
+      const remarks = formData.get('remarks')
 
       const insertScheduleQuery = `
         INSERT INTO public.hotelroompriceshedules (startdate, enddate, remarks, active) 
         VALUES ($1, $2, $3, true) RETURNING id;
-      `;
+      `
       const scheduleResult = await client.query(insertScheduleQuery, [
         startdate,
         enddate,
         remarks,
-      ]);
-      const scheduleId = scheduleResult.rows[0].id;
+      ])
+      const scheduleId = scheduleResult.rows[0].id
 
       // Insert new room prices associated with the new scheduleId
-      const groupPrices = (prefix :any) => {
-        const prices = [];
-        let i = 0;
+      const groupPrices = (prefix: any) => {
+        const prices = []
+        let i = 0
         while (formData.has(`${prefix}[${i}]`)) {
-          prices.push(formData.get(`${prefix}[${i}]`));
-          i++;
+          prices.push(formData.get(`${prefix}[${i}]`))
+          i++
         }
-        return prices;
-      };
+        return prices
+      }
 
-      const roomtypes = groupPrices('roomtype');
-      const roomviews = groupPrices('roomview');
-      const roprices = groupPrices('roprice');
-      const bbprices = groupPrices('bbprice');
-      const hbprices = groupPrices('hbprice');
-      const fbprices = groupPrices('fbprice');
-      const nrroprices = groupPrices('nrroprice');
-      const nrbbprices = groupPrices('nrbbprice');
-      const nrhbprices = groupPrices('nrhbprice');
-      const nrfbprices = groupPrices('nrfbprice');
+      const roomtypes = groupPrices('roomtype')
+      const roomviews = groupPrices('roomview')
+      const roprices = groupPrices('roprice')
+      const bbprices = groupPrices('bbprice')
+      const hbprices = groupPrices('hbprice')
+      const fbprices = groupPrices('fbprice')
+      const nrroprices = groupPrices('nrroprice')
+      const nrbbprices = groupPrices('nrbbprice')
+      const nrhbprices = groupPrices('nrhbprice')
+      const nrfbprices = groupPrices('nrfbprice')
 
       for (let index = 0; index < roprices.length; index++) {
-        const roomtype = roomtypes[index];
-        const roomview = roomviews[index];
-        const roprice = roprices[index];
-        const bbprice = bbprices[index];
-        const hbprice = hbprices[index];
-        const fbprice = fbprices[index];
-        const nrroprice = nrroprices[index];
-        const nrbbprice = nrbbprices[index];
-        const nrhbprice = nrhbprices[index];
-        const nrfbprice = nrfbprices[index];
+        const roomtype = roomtypes[index]
+        const roomview = roomviews[index]
+        const roprice = roprices[index]
+        const bbprice = bbprices[index]
+        const hbprice = hbprices[index]
+        const fbprice = fbprices[index]
+        const nrroprice = nrroprices[index]
+        const nrbbprice = nrbbprices[index]
+        const nrhbprice = nrhbprices[index]
+        const nrfbprice = nrfbprices[index]
 
         const insertQuery = `
           INSERT INTO hotelroomprices (roomtypeid, roomviewid, sheduleid, roprice, bbprice, hbprice, fbprice, nrroprice, nrbbprice, nrhbprice, nrfbprice) 
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        `;
+        `
 
         await client.query(insertQuery, [
           roomtype,
@@ -268,26 +262,24 @@ export async function action({ request }: ActionFunctionArgs) {
           nrbbprice || null,
           nrhbprice || null,
           nrfbprice || null,
-        ]);
+        ])
       }
 
       // Return success message for insertion
       return jsonWithSuccess(
         { result: 'Room Price Data successfully inserted!' },
         'Room Price Data successfully inserted!',
-      );
+      )
     }
   } catch (error) {
-    console.error('Error processing room info:', error.message);
+    console.error('Error processing room info:', error.message)
 
     return jsonWithSuccess(
       { result: 'Error processing room info' },
       'Error processing room info',
-    );
+    )
   }
 }
-
-
 
 export default function RoomPriceSchedule() {
   const navigate = useNavigate()
@@ -315,8 +307,8 @@ export default function RoomPriceSchedule() {
     console.log(event, 'hhhh')
 
     // Access form data using the FormData API
-    const formElement = document.getElementById("myForm");
-  const formData = new FormData(formElement as HTMLFormElement);
+    const formElement = document.getElementById('myForm')
+    const formData = new FormData(formElement as HTMLFormElement)
 
     // Submit data to the server
     const jsonPayload = JSON.stringify(data)
@@ -341,11 +333,15 @@ export default function RoomPriceSchedule() {
       <div className="ml-[18.4%] h-screen mt-14">
         <div className="ml-5 mt-2 text-xl font-semibold">
           <div className="flex items-center">
-          {!scheduleheder.id && (
-            <h1 className="text-3xl font-bold mt-12">Add Room Price Schedule</h1>
+            {!scheduleheder.id && (
+              <h1 className="text-3xl font-bold mt-12">
+                Add Room Price Schedule
+              </h1>
             )}
-               {scheduleheder.id && (
-            <h1 className="text-3xl font-bold mt-12">Update Room Price Schedule</h1>
+            {scheduleheder.id && (
+              <h1 className="text-3xl font-bold mt-12">
+                Update Room Price Schedule
+              </h1>
             )}
             <Link to={'/room-price-list'} className="lg:ml-[50%] mt-5">
               <Button className="h-9 text-white bg-blue-400 hover:bg-blue-500 ">

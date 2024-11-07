@@ -5,13 +5,20 @@ import {
   LoaderFunction,
   LoaderFunctionArgs,
 } from '@remix-run/node'
-import { json, useActionData, useFetcher, useLoaderData, useParams, useSubmit } from '@remix-run/react'
+import {
+  json,
+  useActionData,
+  useFetcher,
+  useLoaderData,
+  useParams,
+  useSubmit,
+} from '@remix-run/react'
 import { client } from '~/db.server'
 import getUpdateQuery, { getDirtyValuesTF } from '~/lib/utils'
 import { useEffect } from 'react'
 import { Slide, ToastContainer, toast as notify } from 'react-toastify'
-import "react-toastify/dist/ReactToastify.css";
-import "../app-component/style.css"
+import 'react-toastify/dist/ReactToastify.css'
+import '../app-component/style.css'
 
 export let loader: LoaderFunction = async ({ params }) => {
   const { id } = params
@@ -48,59 +55,57 @@ export async function action({ request }: ActionFunctionArgs) {
     const formData = await request.formData()
     const formDataCur = Object.fromEntries(formData)
     console.log('curdata', formDataCur)
-    
-    if(formDataCur.id){
+
+    if (formDataCur.id) {
       const jsonPayload = formData.get('payload')
       const initialdata = JSON.parse(jsonPayload as string)
 
-      const diff= getDirtyValuesTF(initialdata,formDataCur,[],"id")
+      const diff = getDirtyValuesTF(initialdata, formDataCur, [], 'id')
 
-      const [uq,vals]=getUpdateQuery(diff,"hotelinfo","id")
+      const [uq, vals] = getUpdateQuery(diff, 'hotelinfo', 'id')
 
       console.log('2222222', uq)
       console.log('2222222', vals)
 
-      if(uq){
-      await client.query(uq, vals);
+      if (uq) {
+        await client.query(uq, vals)
       }
       // Returning JSON with success toast data
       return jsonWithSuccess(
         { result: 'Hotel Info successfully Updated' },
         'Hotel Info successfully Updated !!',
       )
-    }else{
-
-    const hotelQuery = `INSERT INTO hotelinfo (name, email, mobile, address1, address2, city, country, province, telephone, url) 
+    } else {
+      const hotelQuery = `INSERT INTO hotelinfo (name, email, mobile, address1, address2, city, country, province, telephone, url) 
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
-    const hotelValues = [
-      formDataCur.name,
-      formDataCur.email,
-      formDataCur.mobile,
-      formDataCur.address1,
-      formDataCur.address2,
-      formDataCur.city,
-      formDataCur.country,
-      formDataCur.province,
-      formDataCur.telephone,
-      formDataCur.url,
-    ]
+      const hotelValues = [
+        formDataCur.name,
+        formDataCur.email,
+        formDataCur.mobile,
+        formDataCur.address1,
+        formDataCur.address2,
+        formDataCur.city,
+        formDataCur.country,
+        formDataCur.province,
+        formDataCur.telephone,
+        formDataCur.url,
+      ]
 
-    // Execute the query
-    await client.query(hotelQuery, hotelValues);
+      // Execute the query
+      await client.query(hotelQuery, hotelValues)
 
-    // On successful insertion, return success response
-    return  jsonWithSuccess(
-      { result: 'Hotel Info successfully Insert' },
-      'Hotel Info successfully Insert !!',
-    )
-
-  }
+      // On successful insertion, return success response
+      return jsonWithSuccess(
+        { result: 'Hotel Info successfully Insert' },
+        'Hotel Info successfully Insert !!',
+      )
+    }
   } catch (error) {
     console.error('Error inserting hotel info:', error)
 
     // Return error response with details to show in the alert
-    return  jsonWithSuccess(
+    return jsonWithSuccess(
       { result: 'Hotel Info successfully Insert' },
       'Error inserting hotel info: !!',
     )
@@ -108,8 +113,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function HotelInfoForm() {
-  const params = useParams();
-  const hotelId = params.id; // This gives you "23"
+  const params = useParams()
+  const hotelId = params.id // This gives you "23"
   const data = useLoaderData<typeof loader>()
   console.log('idh', data)
 
@@ -118,14 +123,13 @@ export default function HotelInfoForm() {
   const actionData = useActionData() // Capture action data (including toast data)
   const submit = useSubmit()
 
-    // UseEffect to handle showing the toast when fetcher.data changes
-    useEffect(() => {
-      if (fetcher.data?.toast) {
-        // Show success or error toast based on the type
-        notify(fetcher.data.toast.message, { type: fetcher.data.toast.type });
-      }
-    }, [fetcher.data]); // Listen to changes in fetcher.data
-  
+  // UseEffect to handle showing the toast when fetcher.data changes
+  useEffect(() => {
+    if (fetcher.data?.toast) {
+      // Show success or error toast based on the type
+      notify(fetcher.data.toast.message, { type: fetcher.data.toast.type })
+    }
+  }, [fetcher.data]) // Listen to changes in fetcher.data
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -133,8 +137,8 @@ export default function HotelInfoForm() {
     console.log(event, 'hhhh')
 
     // Access form data using the FormData API
-    const formElement = document.getElementById("myForm");
-  const formData = new FormData(formElement as HTMLFormElement);
+    const formElement = document.getElementById('myForm')
+    const formData = new FormData(formElement as HTMLFormElement)
 
     // Submit data to the server
     const jsonPayload = JSON.stringify(data)
@@ -153,15 +157,23 @@ export default function HotelInfoForm() {
         <div className="flex justify-between items-center bg-blue-400 w-full rounded-t-lg h-14">
           <h1 className="text-2xl font-bold text-white ml-10">Hotel Info</h1>
           <div className="flex space-x-4 mr-10">
-            {!data.id && (  <Button
-              onClick={handleSubmit}
-              className="bg-blue-200 text-blue-700 px-4 py-2 rounded-lg">Save</Button>
-              )}
-              {data.id && (  <Button
-              onClick={handleSubmit}
-              className="bg-blue-200 text-blue-700 px-4 py-2 rounded-lg">Update</Button>
-              )}
-          
+            {!data.id && (
+              <Button
+                onClick={handleSubmit}
+                className="bg-blue-200 text-blue-700 px-4 py-2 rounded-lg"
+              >
+                Save
+              </Button>
+            )}
+            {data.id && (
+              <Button
+                onClick={handleSubmit}
+                className="bg-blue-200 text-blue-700 px-4 py-2 rounded-lg"
+              >
+                Update
+              </Button>
+            )}
+
             <Button className="bg-orange-300 text-white px-4 py-2 rounded-lg">
               Close
             </Button>
@@ -172,8 +184,7 @@ export default function HotelInfoForm() {
         <form method="post" className="grid grid-cols-2 gap-6 p-6" id="myForm">
           {/* Name and Email */}
           <div className="flex flex-col">
-
-            <input name="id" type ="hidden" defaultValue={data.id} />
+            <input name="id" type="hidden" defaultValue={data.id} />
             <label htmlFor="name" className="text-gray-600">
               Name
             </label>
@@ -301,7 +312,7 @@ export default function HotelInfoForm() {
             </label>
             <Input
               name="url"
-              type='url'
+              type="url"
               className="mt-1 border-blue-500"
               placeholder="Enter primary Url"
               defaultValue={data.url}
@@ -330,5 +341,3 @@ export default function HotelInfoForm() {
     </div>
   )
 }
-
-

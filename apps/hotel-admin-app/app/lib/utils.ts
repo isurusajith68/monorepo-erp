@@ -1,10 +1,10 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
- ////difff
+////difff
 export function getDirtyValuesTF(
   intialValues: any,
   currnetValues: any,
@@ -41,10 +41,10 @@ export function getDirtyValuesTF(
           } else {
             //update
             const intitArrayRow = intialValues[key].find(
-              (i:any) => i[pkName] === el[pkName],
+              (i: any) => i[pkName] === el[pkName],
             )
             const currentArrayRow = currnetValues[key].find(
-              (i:any) => i[pkName] === el[pkName],
+              (i: any) => i[pkName] === el[pkName],
             )
 
             if (!intitArrayRow) {
@@ -66,9 +66,9 @@ export function getDirtyValuesTF(
         })
 
         //find deleted rows
-        intialValues[key].forEach((ir:any) => {
+        intialValues[key].forEach((ir: any) => {
           const currentArrayRow = currnetValues[key].find(
-            (i:any) => i[pkName] === ir[pkName],
+            (i: any) => i[pkName] === ir[pkName],
           )
           if (!currentArrayRow) {
             dirtyValues[key].deletes.push(ir[pkName])
@@ -97,10 +97,13 @@ export function getDirtyValuesTF(
   }
 }
 
-
-export default function getUpdateQuery(obj : any, tablename :string, pkName :string) {
-  let sqlUpdates :any[] =  []
-  let valuesArray :any[] = []
+export default function getUpdateQuery(
+  obj: any,
+  tablename: string,
+  pkName: string,
+) {
+  let sqlUpdates: any[] = []
+  let valuesArray: any[] = []
   let keyCount = 1
   Object.keys(obj).forEach((key, index) => {
     if (key != pkName) {
@@ -110,14 +113,14 @@ export default function getUpdateQuery(obj : any, tablename :string, pkName :str
     }
   })
 
-  if(keyCount>1){
-  valuesArray.push(obj[pkName])
+  if (keyCount > 1) {
+    valuesArray.push(obj[pkName])
 
-  return [
-    `update ${tablename} set ${sqlUpdates.join(',')} where ${pkName} = $${keyCount} `,
-    valuesArray,
-  ]
-}else{
-  return ["",[]]
-}
+    return [
+      `update ${tablename} set ${sqlUpdates.join(',')} where ${pkName} = $${keyCount} `,
+      valuesArray,
+    ]
+  } else {
+    return ['', []]
+  }
 }

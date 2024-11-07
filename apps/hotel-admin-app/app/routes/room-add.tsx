@@ -112,8 +112,8 @@ export async function action({ request }: ActionFunctionArgs) {
       if (image && typeof image !== 'string') {
         // Convert the image to a buffer
         const imageBuffer = Buffer.from(await image.arrayBuffer())
-         console.log("imageBuffer ",imageBuffer )
-         
+        console.log('imageBuffer ', imageBuffer)
+
         // SQL query to insert the image and room ID
         const imageQuery = `
           INSERT INTO roomimages (images, roomid) 
@@ -377,4 +377,3 @@ export default function RoomAddForm() {
     </div>
   )
 }
-

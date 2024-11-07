@@ -1,28 +1,28 @@
-import { LoaderFunctionArgs } from "@remix-run/node"
-import { useLoaderData } from "@remix-run/react";
-import { client } from "~/db.server"
+import { LoaderFunctionArgs } from '@remix-run/node'
+import { useLoaderData } from '@remix-run/react'
+import { client } from '~/db.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const roomsResult = await client.query('SELECT COUNT(*) FROM hotelrooms');
-  const roomtypesResult = await client.query('SELECT COUNT(*) FROM hotelroomtypes');
-  const offersResult = await client.query('SELECT COUNT(*) FROM hoteloffers');
+  const roomsResult = await client.query('SELECT COUNT(*) FROM hotelrooms')
+  const roomtypesResult = await client.query(
+    'SELECT COUNT(*) FROM hotelroomtypes',
+  )
+  const offersResult = await client.query('SELECT COUNT(*) FROM hoteloffers')
 
-  const roomsCount = roomsResult.rows[0].count;
-  const roomtypesCount = roomtypesResult.rows[0].count;
-  const offersCount = offersResult.rows[0].count;
+  const roomsCount = roomsResult.rows[0].count
+  const roomtypesCount = roomtypesResult.rows[0].count
+  const offersCount = offersResult.rows[0].count
 
   return {
     roomsCount,
     roomtypesCount,
     offersCount,
-  };
+  }
 }
 
-
 function Index() {
-
   const data = useLoaderData<typeof loader>()
-  
+
   return (
     <div className="ml-[18.4%] h-screen mt-16">
       <div className="flex">

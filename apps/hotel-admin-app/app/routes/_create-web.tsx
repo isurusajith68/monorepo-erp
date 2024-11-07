@@ -2,7 +2,11 @@ import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useParams } from '@remix-run/react'
 import React from 'react'
 import { Button } from '~/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '~/components/ui/popover'
 import { client } from '~/db.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -18,8 +22,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 function CreateWeb() {
   const params = useParams()
   const hotelid = params.id // This gives you "23"
-  const temp1id = 1;
-  const temp2id = 2;
+  const temp1id = 1
+  const temp2id = 2
   console.log('idh', hotelid)
 
   return (
@@ -30,7 +34,9 @@ function CreateWeb() {
         </PopoverTrigger>
         <PopoverContent className="w-[100%] -ml-[15%] bg-slate-100">
           <div className="space-x-2">
-            <h4 className="font-extrabold leading-none text-xl ml-10 mb-9">Select Template</h4>
+            <h4 className="font-extrabold leading-none text-xl ml-10 mb-9">
+              Select Template
+            </h4>
           </div>
           <div className="grid grid-cols-2 gap-5 ml-[7%]">
             <div>
@@ -41,16 +47,23 @@ function CreateWeb() {
               </div>
 
               <div className="bg-slate-100 border-2 w-[80%] text-center">
-                <img src="/temp.png" width={500} height={10} alt={'Template 1'} />
+                <img
+                  src="/temp.png"
+                  width={500}
+                  height={10}
+                  alt={'Template 1'}
+                />
               </div>
               <div className="mt-2 ml-[30%] flex gap-8">
                 <div>
-                 <Button className='bg-blue-400 hover:bg-blue-500'>Live Demo</Button>
+                  <Button className="bg-blue-400 hover:bg-blue-500">
+                    Live Demo
+                  </Button>
                 </div>
                 <div>
-                <Link to={`/create-web?hotelid=${hotelid}?tempid=${temp1id}`}>
-                  <Button>Use This</Button>
-                </Link>
+                  <Link to={`/create-web?hotelid=${hotelid}?tempid=${temp1id}`}>
+                    <Button>Use This</Button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -63,17 +76,24 @@ function CreateWeb() {
               </div>
 
               <div className="bg-slate-100 border-2 w-[80%] text-center">
-                <img src="/temp.png" width={500} height={10} alt={'Template 2'} />
+                <img
+                  src="/temp.png"
+                  width={500}
+                  height={10}
+                  alt={'Template 2'}
+                />
               </div>
               <div className="mt-2 ml-[30%] flex gap-8">
-              <div>
-                 <Button className='bg-blue-400 hover:bg-blue-500'>Live Demo</Button>
+                <div>
+                  <Button className="bg-blue-400 hover:bg-blue-500">
+                    Live Demo
+                  </Button>
                 </div>
-               <div>
-                <Link to={`/create-web?hotelid=${hotelid}?tempid=${temp2id}`}>
-                  <Button>Use This</Button>
-                </Link>
-               </div>
+                <div>
+                  <Link to={`/create-web?hotelid=${hotelid}?tempid=${temp2id}`}>
+                    <Button>Use This</Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

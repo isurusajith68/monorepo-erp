@@ -4,7 +4,13 @@ import { client } from '~/db.server'
 import RoomType from './room-type.list'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { json, Link, useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
+import {
+  json,
+  Link,
+  useFetcher,
+  useLoaderData,
+  useNavigate,
+} from '@remix-run/react'
 import getUpdateQuery, { getDirtyValuesTF } from '~/lib/utils'
 import { Slide, ToastContainer, toast as notify } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -70,8 +76,8 @@ export async function action({ request }: ActionFunctionArgs) {
   } catch (error) {
     console.error('Error inserting hotel info:', error)
     // Return error response with details to show in the alert
-     // Return error response with details to show in the alert
-     return jsonWithSuccess(
+    // Return error response with details to show in the alert
+    return jsonWithSuccess(
       { result: 'Failed to save Room information. Please try again.' },
       'Failed to save Room information. Please try again.',
     )
@@ -80,7 +86,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 function ViewEdit() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const data = useLoaderData<typeof loader>()
   console.log('idh', data)
 
@@ -109,10 +115,7 @@ function ViewEdit() {
 
     // Submit form data
     await fetcher.submit(formData, { method: 'post' })
-    
   }
-
-
 
   return (
     <div className="ml-[18.3%] h-screen mt-14 bg-blue-200 fixed w-full">
@@ -134,25 +137,27 @@ function ViewEdit() {
                     defaultValue={data.name}
                     required
                   />
-                 <div className='flex gap-10 lg:ml-[60%]'>
-                  <div>
-                  <Link
+                  <div className="flex gap-10 lg:ml-[60%]">
+                    <div>
+                      <Link
                         className="text-white bg-orange-500 hover:bg-orange-400  w-20 mt-10 h-20"
                         to={'/room-amenities/list'}
                       >
-                        <Button className='text-white bg-orange-500 hover:bg-orange-400 mt-10'>Close</Button>
+                        <Button className="text-white bg-orange-500 hover:bg-orange-400 mt-10">
+                          Close
+                        </Button>
                       </Link>
+                    </div>
+                    <div>
+                      <Button
+                        onClick={handleSubmit}
+                        //onClick={() => navigate('/room-type/list')}
+                        className="text-white bg-blue-500 hover:bg-blue-400 mt-10  "
+                      >
+                        Update
+                      </Button>
+                    </div>
                   </div>
-                  <div>
-                  <Button
-                    onClick={handleSubmit}
-                    //onClick={() => navigate('/room-type/list')}
-                    className="text-white bg-blue-500 hover:bg-blue-400 mt-10  "
-                  >
-                    Update
-                  </Button>
-                </div>
-                 </div>
                 </form>
               </div>
             </div>
