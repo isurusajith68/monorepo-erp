@@ -19,16 +19,18 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useGetModules } from '@/app/modules/_services/queries'
+import useHotelIdStore from '@/app/stores/modules-store'
 
 export default function ListDocuments() {
-  const { data } = useGetDocuments()
-  // console.log("data",data)
+  const { hotelid } = useHotelIdStore()
+
+  const { data } = useGetDocuments(hotelid)
 
   const [searchTerm, setSearchTerm] = useState('')
-  const { data: modules } = useGetModules()
+  const { data: modules } = useGetModules(hotelid)
 
   return (
-    <div className="mx-[10%] ">
+    <div className="mx-[10%]  ">
       <div className="m-10 border-2 border-blue-200 rounded-lg shadow-lg ">
         {/* Tab Buttons */}
         <Navbar />
@@ -90,20 +92,20 @@ export default function ListDocuments() {
                   return (
                     <div key={index}>
                       <p className="uppercase text-xl mb-6">{modname}</p>
-                      <TableHeader className="bg-blue-400 w-[200%]">
+                      <TableHeader className="bg-blue-400 ">
                         <TableRow>
-                          <TableHead className="w-[30%] text-center text-black">
+                          <TableHead className="w-[20%] text-center text-black">
                             ID
                           </TableHead>
-                          <TableHead className="w-[40%] text-center text-black">
+                          <TableHead className="w-[20%] text-center text-black">
                             DOCUMENT
                           </TableHead>
-                          <TableHead className="w-[30%] text-center text-black">
+                          <TableHead className="w-[20%] text-center text-black">
                             DESCRIPTION
                           </TableHead>
-                          <TableHead className="w-[50%] text-center text-black">
+                          {/* <TableHead className="w-[50%] text-center text-black">
                             MODULE
-                          </TableHead>
+                          </TableHead> */}
                         </TableRow>
                       </TableHeader>
 
@@ -118,9 +120,9 @@ export default function ListDocuments() {
                           <TableCell className="text-center">
                             {row.description}
                           </TableCell>
-                          <TableCell className="text-center">
+                          {/* <TableCell className="text-center">
                             {row.modname}
-                          </TableCell>
+                          </TableCell> */}
                         </TableRow>
                       ))}
                     </div>

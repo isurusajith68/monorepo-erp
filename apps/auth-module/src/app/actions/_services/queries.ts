@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import Axios from 'axios'
 
-export const useActions = () => {
+export const useActions = (hotelid: number) => {
   const apiUrl = import.meta.env.VITE_API_URL
 
   return useQuery({
     queryKey: ['actions'],
     queryFn: async () => {
-      const response = await Axios.get(`${apiUrl}getactions`)
+      const response = await Axios.get(`${apiUrl}getactions/${hotelid}`)
       console.log('response actions', response)
       return response.data
     },

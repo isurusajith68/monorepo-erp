@@ -1,8 +1,4 @@
-import {
-  useAddPermission,
-  useGetModules,
-  useGetPermissions,
-} from '../_services/queries'
+import { useAddPermission, useGetPermissions } from '../_services/queries'
 import Navbar from '@/components/commonUi/navbar'
 import {
   Select,
@@ -22,9 +18,10 @@ import { Button } from '@/components/ui/button'
 export default function ListPermission() {
   const [selectedModule, setSelectedModule] = useState(null)
   const [selectedRole, setSelectedRole] = useState(null)
+  const { hotelid } = useHotelIdStore()
 
-  const { data: modules } = useGetModules()
-  const { data: roles } = useGetRoles()
+  const { data: modules } = useGetModules(hotelid)
+  const { data: roles } = useGetRoles(hotelid)
   const { data: documents } = useGetDocumentsByModule(selectedModule)
   const { data: permissions } = useGetPermissions(selectedModule, selectedRole)
   const { mutate, data: datamute } = useAddPermission()
@@ -174,6 +171,8 @@ export default function ListPermission() {
 
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import useHotelIdStore from '@/app/stores/modules-store'
+import { useGetModules } from '@/app/modules/_services/queries'
 
 export const ActionSelector = ({
   actionId,

@@ -1,9 +1,20 @@
 import { Button } from '@/components/ui/button'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { FaCheckCircle, FaChevronRight } from 'react-icons/fa'
+import useHotelIdStore from '../stores/modules-store'
+import { useEffect } from 'react'
 
 export default function HomePage() {
   const Navigate = useNavigate()
+  const hid = 24
+  const { hotelid, addHotelId } = useHotelIdStore()
+  useEffect(() => {
+    addHotelId(hid)
+  }, [hid, addHotelId])
+  useEffect(() => {
+    console.log('hotelidmmm', hotelid)
+  }, [hotelid])
+
   return (
     // <div>
     //   <div className=" flex items-center justify-center">
@@ -50,8 +61,8 @@ export default function HomePage() {
           <div className=" w-[35%] bg-blue-800 rounded-lg shadow-lg ">
             <div className="space-y-6 p-8 mt-8">
               {[
-                { item: 'User Role List', route: `roles/${24}` },
-                { item: 'Module List', route: 'modules' },
+                { item: 'User Role List', route: `roles` },
+                { item: 'Module List', route: `modules` },
                 { item: 'Document List', route: 'documents' },
                 { item: 'Action List', route: 'actions' },
                 { item: 'Permission', route: 'permission' },
@@ -63,7 +74,6 @@ export default function HomePage() {
                     Navigate(item.route)
                   }}
                 >
-                  {item.route}
                   <FaCheckCircle className="text-green-400 h-5 w-5" />
                   <span>{item.item}</span>
                   <FaChevronRight className="ml-2" />

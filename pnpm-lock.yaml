@@ -242,6 +242,9 @@ importers:
       zod:
         specifier: ^3.23.8
         version: 3.23.8
+      zustand:
+        specifier: ^4.5.5
+        version: 4.5.5(@types/react@18.3.10)(react@18.3.1)
     devDependencies:
       '@babel/core':
         specifier: ^7.25.8
@@ -1224,7 +1227,7 @@ importers:
         version: 1.9.8(vue@3.5.12(typescript@5.6.3))
       shadcn-vue:
         specifier: ^0.11.0
-        version: 0.11.0(@vitest/ui@2.1.4(vitest@2.1.4))(eslint@9.13.0(jiti@2.3.3))(vitest@2.1.4(@types/node@22.8.5)(@vitest/ui@2.1.4)(stylus@0.57.0))(vue@3.5.12(typescript@5.6.3))
+        version: 0.11.0(@vitest/ui@2.1.4(vitest@2.1.4))(vitest@2.1.4(@types/node@22.8.5)(@vitest/ui@2.1.4)(stylus@0.57.0))(vue@3.5.12(typescript@5.6.3))
       tailwind-merge:
         specifier: ^2.5.4
         version: 2.5.4
@@ -1411,7 +1414,7 @@ importers:
         version: 0.1.2
       shadcn-vue:
         specifier: ^0.11.0
-        version: 0.11.0(@vitest/ui@2.1.4(vitest@2.1.4))(eslint@9.13.0(jiti@2.3.3))(vitest@2.1.4(@types/node@22.8.6)(@vitest/ui@2.1.4)(stylus@0.57.0))(vue@3.5.12(typescript@5.6.3))
+        version: 0.11.0(@vitest/ui@2.1.4(vitest@2.1.4))(vitest@2.1.4(@types/node@22.8.6)(@vitest/ui@2.1.4)(stylus@0.57.0))(vue@3.5.12(typescript@5.6.3))
       vue:
         specifier: ^3.5.12
         version: 3.5.12(typescript@5.6.3)
@@ -13952,7 +13955,7 @@ snapshots:
       sirv: 3.0.0
       tinyglobby: 0.2.10
       tinyrainbow: 1.2.0
-      vitest: 2.1.4(@types/node@22.8.6)(@vitest/ui@2.1.4)(stylus@0.57.0)
+      vitest: 2.1.4(@types/node@20.17.3)(@vitest/ui@2.1.4)(stylus@0.57.0)
 
   '@vitest/utils@2.1.4':
     dependencies:
@@ -19136,7 +19139,7 @@ snapshots:
       - supports-color
       - vue
 
-  shadcn-vue@0.11.0(@vitest/ui@2.1.4(vitest@2.1.4))(eslint@9.13.0(jiti@2.3.3))(vitest@2.1.4(@types/node@22.8.5)(@vitest/ui@2.1.4)(stylus@0.57.0))(vue@3.5.12(typescript@5.6.3)):
+  shadcn-vue@0.11.0(@vitest/ui@2.1.4(vitest@2.1.4))(vitest@2.1.4(@types/node@22.8.5)(@vitest/ui@2.1.4)(stylus@0.57.0))(vue@3.5.12(typescript@5.6.3)):
     dependencies:
       '@unovue/detypes': 0.8.4
       '@vitest/ui': 2.1.4(vitest@2.1.4)
@@ -19168,7 +19171,7 @@ snapshots:
       - supports-color
       - vue
 
-  shadcn-vue@0.11.0(@vitest/ui@2.1.4(vitest@2.1.4))(eslint@9.13.0(jiti@2.3.3))(vitest@2.1.4(@types/node@22.8.6)(@vitest/ui@2.1.4)(stylus@0.57.0))(vue@3.5.12(typescript@5.6.3)):
+  shadcn-vue@0.11.0(@vitest/ui@2.1.4(vitest@2.1.4))(vitest@2.1.4(@types/node@22.8.6)(@vitest/ui@2.1.4)(stylus@0.57.0))(vue@3.5.12(typescript@5.6.3)):
     dependencies:
       '@unovue/detypes': 0.8.4
       '@vitest/ui': 2.1.4(vitest@2.1.4)

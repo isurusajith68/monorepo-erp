@@ -18,13 +18,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useState } from 'react'
+import useHotelIdStore from '@/app/stores/modules-store'
 
 export default function ListActions() {
   const [selectedModule, setSelectedModule] = useState(null)
   const [selectedDocument, setSelectedDocument] = useState(null)
+  const { hotelid } = useHotelIdStore()
 
-  const { data } = useActions()
-  const { data: modules } = useGetModules()
+  const { data } = useActions(hotelid)
+  const { data: modules } = useGetModules(hotelid)
   const { data: documents } = useGetDocumentsByModule(selectedModule)
 
   const filteredActions = data?.actions.filter((action) => {

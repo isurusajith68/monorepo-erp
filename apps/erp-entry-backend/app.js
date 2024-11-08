@@ -296,9 +296,10 @@ app.post('/addrole', async (req, res) => {
   }
 })
 
-app.get('/getroles', (req, res) => {
-  const dbquery = `SELECT * FROM userroles ORDER BY rid;`
-  pool.query(dbquery).then((dbres) => {
+app.get('/getroles/:hotelid', (req, res) => {
+  const { hotelid } = req.params
+  const dbquery = `SELECT * FROM userroles where hotelid=$1 ORDER BY rid;`
+  pool.query(dbquery, [hotelid]).then((dbres) => {
     if (dbres.rows.length > 0) {
       res.send({ success: true, roles: dbres.rows })
     }
@@ -308,9 +309,15 @@ app.get('/getroles', (req, res) => {
 /////////////////////////////////////////////////////////////////////
 ////////////////////////////MODULES////////////////////////////////////
 
-app.get('/getmodules', (req, res) => {
-  const dbquery = `SELECT * FROM modules ORDER BY modid;`
-  pool.query(dbquery).then((dbres) => {
+app.get('/getmodules/:hotelid', (req, res) => {
+  const { hotelid } = req.params
+
+  // const dbquery = `SELECT * FROM modules ORDER BY modid;`
+  const dbquery = `SELECT m.*
+FROM modules m
+INNER JOIN hotelmodulemap hm ON m.modid = hm.modid
+WHERE hm.hotelid = $1;`
+  pool.query(dbquery, [hotelid]).then((dbres) => {
     if (dbres.rows.length > 0) {
       res.send({ success: true, modules: dbres.rows })
     }
@@ -320,10 +327,16 @@ app.get('/getmodules', (req, res) => {
 /////////////////////////////////////////////////////////////////////
 ////////////////////////////DOCUMENTS////////////////////////////////////
 
-app.get('/getdocuments', (req, res) => {
-  const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid ORDER BY documents.docid;`
+app.get('/getdocuments/:hotelid', (req, res) => {
+  const { hotelid } = req.params
+  // const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid  ORDER BY documents.docid;`
+  const dbquery = `SELECT documents.*, modules.modname 
+FROM modules 
+RIGHT JOIN documents ON documents.modid = modules.modid 
+INNER JOIN hotelmodulemap ON hotelmodulemap.hotelid = $1 AND hotelmodulemap.modid = modules.modid
+ORDER BY documents.docid;`
 
-  pool.query(dbquery).then((dbres) => {
+  pool.query(dbquery, [hotelid]).then((dbres) => {
     if (dbres.rows.length > 0) {
       res.send({ success: true, documents: dbres.rows })
     }
@@ -354,10 +367,13 @@ app.get('/documentsbymodule/:selectedModule', (req, res) => {
 /////////////////////////////////////////////////////////////////////
 ////////////////////////////ACTIONS////////////////////////////////////
 
-app.get('/getactions', (req, res) => {
-  const dbquery = `SELECT * FROM actions ORDER BY actid;`
+app.get('/getactions/:hotelid', (req, res) => {
+  const { hotelid } = req.params
+  // const dbquery = `SELECT * FROM actions ORDER BY actid;`
+  const dbquery = `SELECT a.* FROM actions a INNER JOIN hotelmodulemap hm ON a.modid = hm.modid and hm.hotelid=$1
+ORDER BY a.actid`
 
-  pool.query(dbquery).then((dbres) => {
+  pool.query(dbquery, [hotelid]).then((dbres) => {
     if (dbres.rows.length > 0) {
       res.send({ success: true, actions: dbres.rows })
     }

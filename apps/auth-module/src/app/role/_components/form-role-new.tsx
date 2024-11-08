@@ -13,6 +13,7 @@ import { getDirtyValuesTF } from '@/lib/utils'
 import { useNavigate, useParams } from 'react-router-dom'
 import Navbar from '@/components/commonUi/navbar'
 import { toast } from '@/hooks/use-toast'
+import useHotelIdStore from '@/app/stores/modules-store'
 
 const roleDetailSchema = z.object({
   hotelid: z.number().optional(),
@@ -28,15 +29,7 @@ const formSchema = z.object({
 type FormType = z.infer<typeof formSchema>
 
 export default function NewFormRole() {
-  const Navigate = useNavigate()
-  const [id, setid] = useState<number>(0)
-
-  const { hotelid } = useParams()
-
-  // useEffect(() => {
-
-  //   setid(Number(hotelid))
-  // }, [hotelid])
+  const { hotelid } = useHotelIdStore()
 
   const {
     mutate,
@@ -46,7 +39,7 @@ export default function NewFormRole() {
     isError,
     isPaused,
   } = useMuate()
-  const { data: roles } = useGetRoles()
+  const { data: roles } = useGetRoles(hotelid)
 
   const form = useForm<FormType, ZodValidator>({
     defaultValues: {

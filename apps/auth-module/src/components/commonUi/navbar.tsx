@@ -6,7 +6,7 @@ export default function Navbar() {
   const location = useLocation() // Get current path
 
   const tabs = [
-    { item: 'User Role List', route: '/newform' },
+    { item: 'User Role List', route: '/roles' },
     { item: 'Module List', route: '/modules' },
     { item: 'Document List', route: '/documents' },
     { item: 'Action List', route: '/actions' },

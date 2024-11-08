@@ -29,9 +29,9 @@ export const router = createBrowserRouter(
       {/* <Route path="/role" element={<Role />}></Route> */}
       <Route path="/test" element={<Test />}></Route>
       <Route path="/tform" element={<TanstackForm />}></Route>
-      <Route path="/roles/:hotelid" element={<NewFormRole />}></Route>
       <Route path="/roles/" element={<NewFormRole />}></Route>
-      <Route path="/modules" element={<Modules />}></Route>
+      {/* <Route path="/roles/" element={<NewFormRole />}></Route> */}
+      <Route path="/modules/" element={<Modules />}></Route>
       <Route path="/documents" element={<Documents />}></Route>
       <Route path="/actions" element={<Actions />}></Route>
       <Route path="/permission" element={<Permission />}></Route>
