@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import axios from 'axios';
 import { toast, useToast } from '@/components/ui/toast';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { toTypedSchema } from '@vee-validate/zod';
 import * as z from 'zod';
 import { useForm } from 'vee-validate';
-import { Plus, Minus, Edit } from 'lucide-vue-next';
+import { Plus, Minus, Edit, SlidersHorizontalIcon } from 'lucide-vue-next';
 
 import {
   FormControl,
@@ -39,15 +39,36 @@ type FormData1 = {
   requester: string;
   date: string;
   department: string;
-  item:string;
-  quentity:string;
-  remark:string;
+  // item:string;
+  // total_quantity:string;
+  // remark:string;
 };
 
 type RequestDetails = {
   item: string;
-  quantity: string;
+  quentity: string;
 };
+
+type EditForm = {
+  id:string;
+  date: string;
+  requester: string;
+  department: string;
+  remark: string;
+  item: string;
+  quentity: string;
+}
+
+const selectedData = ref<EditForm>({
+  id:'',
+  date: '',
+  requester: '',
+  department: '',
+  remark: '',
+  item: '',
+  quentity: ''
+});
+
 
 const formSchema = toTypedSchema(z.object({
   requester: z.string().optional(),
@@ -62,11 +83,13 @@ const form = useForm({
 
 const fetchedData = ref<FormData1[]>([]);
 const submittedData = ref<FormData[]>([]);
-const requestDetails = ref<RequestDetails[]>([{ item: '', quantity: '' }]);
+const requestDetails = ref<RequestDetails[]>([{ item: '', quentity: '' }]);
 const dialogRef = ref<HTMLDialogElement | null>(null);
 
 
-const fetchData = async () => {
+
+
+const fetchData1 = async () => {
   try {
     const response = await axios.get('http://localhost:3000/fetchrequests');
     console.log('Fetched Request Data:', response.data);
@@ -77,27 +100,91 @@ const fetchData = async () => {
 };
 
 
+
+
 onMounted(() => {
-  fetchData();
+  fetchData1();
 });
 
 
 const onSubmit = form.handleSubmit(async (values) => {
   try {
+
+    const requestBody = {
+      ...values, // Spread form values
+      details: requestDetails.value, // Include additional details
+    };
     console.log('Form Submitted with values:', values);
    
     console.log('Request Header:', values);
     console.log('Request Details:', requestDetails.value);
+
+    console.log("Request Body",requestBody)
    
-    const response = await axios.post('http://localhost:3000/requests', values);
-    console.log('Response:', response.data);
+    const response = await axios.post('http://localhost:3000/requests',requestBody);
+   
+    console.log('Request header:', response.data);
+   
     submittedData.value.push(values);
-    fetchData();
+    // requestDetails.value.push( requestDetails.value);
+    fetchData1();
     closeModal(); 
   } catch (error) {
     console.error('Error submitting form:', error);
   }
 });
+
+
+const editModalRef = ref<HTMLDialogElement | null>(null);
+
+
+
+
+
+
+const fetchData = async (id: any) => {
+  console.log("id",id)
+  try {
+    const response = await axios.get(`http://localhost:3000/fetchreqdetails/${id}`)
+
+    if (response.data.success) {
+      console.log('Fetched Request Header Data:', response.data.data.header);
+      console.log('Fetched Request Details Data:', response.data.data.details);
+      if (id) {
+        selectedData.value = {
+          id,
+          date: response.data.data.header.date,
+          requester: response.data.data.header.requester,
+          department: response.data.data.header.department,
+          remark: response.data.data.header.remark,
+          item: response.data.data.details.item,
+          quentity: response.data.data.details.quentity,
+        };
+        requestDetails.value = response.data.data.details.map((detail: RequestDetails) => ({
+          item: detail.item,
+          quentity: detail.quentity,
+        }));
+      }
+      
+    } else {
+      console.error('Error in API response:', response.data.msg);
+    }
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+};
+
+
+
+const openEditModal = async (id: any) => {
+  console.log("id ddddd",id)
+  await fetchData(id); 
+  editModalRef.value?.showModal(); 
+};
+
+
+
+const closeEditModal = () => editModalRef.value?.close();
 
 
 const openModal = () => dialogRef.value?.showModal();
@@ -113,6 +200,71 @@ const removeRow = (index: number) => {
     requestDetails.value.splice(index, 1);
   }
 };
+
+
+
+
+const deleteheader = async (id: string) => {
+  console.log("object",id)
+  try {
+    const response = await axios.delete(`http://localhost:3000/deleteheader/${id}`);
+    console.log('Header deleted:', response.data);
+    
+    
+    fetchData1();
+  } catch (error) {
+    console.error('Error deleting unit:', error);
+  }
+};
+
+
+watch([selectedData,requestDetails], (n,m) => {
+  console.log('Edited Data:', n);
+  console.log('Edited Data:', m);
+},{deep:true});
+
+
+
+// const submitEditedData = async () => {
+//   try {
+//     const editedDataPayload = {
+//       ...selectedData.value,
+//       details: requestDetails.value,
+//     };
+
+//     console.log('Submitting Edited Data:', editedDataPayload);
+//     console.log("Selected id",selectedData.value.id)
+//     const response = await axios.put(`http://localhost:3000/editrequests/${selectedData.value.id}`, editedDataPayload);
+    
+//     console.log('Edited Data Submitted Successfully:', response.data);
+
+    
+//     fetchData1();
+//     closeEditModal();
+//   } catch (error) {
+//     console.error('Error submitting edited data:', error);
+//   }
+// };
+
+
+//submit the edits
+
+const submitEditedData = async () => {
+  try {
+    const editedDataPayload = {
+      ...selectedData.value,
+      details: requestDetails.value,
+    };
+
+    const response = await axios.put(`http://localhost:3000/editrequests/${selectedData.value.id}`, editedDataPayload);
+
+    fetchData1();
+    closeEditModal();
+  } catch (error) {
+    console.error('Error submitting edited data:', error);
+  }
+};
+
 </script>
 
 <template>
@@ -134,8 +286,7 @@ const removeRow = (index: number) => {
           <TableHead>Requester</TableHead>
           <TableHead>Date</TableHead>
           <TableHead>Department</TableHead>
-          <!-- <TableHead>Remark</TableHead> -->
-          <TableHead></TableHead>
+                 
           
           <TableHead class="justify-center">Action</TableHead>
         </TableRow>
@@ -146,45 +297,19 @@ const removeRow = (index: number) => {
           <TableCell>{{ data.requester }}</TableCell>
           <TableCell>{{ data.date }}</TableCell>
           <TableCell>{{ data.department }}</TableCell>
+          <!-- <TableCell>{{ data.id }}</TableCell> -->
           <!-- <TableCell>{{ data.remark }}</TableCell> -->
-          <TableCell>
-
-            <Popover>
-    <PopoverTrigger as-child>
-      <Button variant="outline">
-        Items
-      </Button>
-    </PopoverTrigger>
-    <PopoverContent class="w-80 bg-gray-100">
-      <Table>
-        <TableHeader class="bg-blue-100">
-          <TableHead>Item</TableHead>
-          <TableHead>Quentity</TableHead>
-        </TableHeader>
-        <TableBody>
-          <TableRow class="border-solid">
-            <TableCell>
-              {{ data.item }}
-            </TableCell>
-            <TableCell>
-              {{ data.quentity }}
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    </PopoverContent>
-  </Popover>
-          </TableCell>
+          
           <TableCell class="flex gap-2 justify-left">
             <Button
               class="p-2 rounded-full bg-red-500 text-white hover:bg-red-600"
-              @click="removeRow(index)"
+              @click="deleteheader(data.id)"
             >
               <Minus class="size-4" />
             </Button>
             <Button
               class="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600"
-              @click="" 
+              @click="openEditModal(data.id)" 
             >
               <Edit class="size-4" />
             </Button>
@@ -194,6 +319,7 @@ const removeRow = (index: number) => {
     </Table>
   </Card>
 
+  <!-- submit form -->
   <dialog ref="dialogRef" class="bg-gray-200 rounded-md p-6 w-[600px] rounded-md">
     <form @submit.prevent="onSubmit" class="bg-white rounded-md p-6  ">
       <h3 class="text-lg font-bold mb-4">Add New Request</h3>
@@ -333,6 +459,154 @@ const removeRow = (index: number) => {
       </div>
     </form>
   </dialog>
+
+
+
+  <!-- edit form -->
+  <dialog ref="editModalRef" class="bg-gray-200 rounded-md p-6 w-[600px] rounded-md">
+    <form @submit.prevent="submitEditedData" class="bg-white rounded-md p-6  ">
+      <h3 class="text-lg font-bold mb-4">Add New Request</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="w-full">
+          <FormField  name="requester">
+            <FormItem>
+              <FormLabel>Requester</FormLabel>
+              <FormControl class="w-full">
+                <Input
+                  type="text"
+                  placeholder="Requester"
+                  v-model="selectedData.requester"
+                  class="border border-gray-300 rounded-md px-3 py-2"
+                />
+              </FormControl>
+            </FormItem>
+          </FormField>
+        </div>
+        <div>
+          <FormField  name="date">
+            <FormItem>
+              <FormLabel>Date</FormLabel>
+              <FormControl class="w-full">
+                <Input
+                  type="date"
+                  placeholder="Date"
+                  v-model="selectedData.date"
+                  class="border border-gray-300 rounded-md px-3 py-2"
+                />
+              </FormControl>
+            </FormItem>
+          </FormField>
+        </div>
+        <div>
+          <FormField  name="department">
+            <FormItem>
+              <FormLabel>Department</FormLabel>
+              <FormControl class="w-full">
+                <Input
+                  type="text"
+                  placeholder="Department"
+                  v-model="selectedData.department"
+                  class="border border-gray-300 rounded-md px-3 py-2"
+                />
+              </FormControl>
+            </FormItem>
+          </FormField>
+        </div>
+        <div>
+          <FormField  name="remark">
+            <FormItem>
+              <FormLabel>Remark</FormLabel>
+              <FormControl class="w-full">
+                <Textarea
+                  placeholder="Remark"
+                  v-model="selectedData.remark"
+                  class="border border-gray-300 rounded-md px-3 py-2"
+                />
+              </FormControl>
+            </FormItem>
+          </FormField>
+        </div>
+      </div>
+
+      <!-- Request details -->
+      <div class="border-1">
+        <Table class="mt-5">
+          <TableHeader class="bg-gray-500">
+            <TableRow>
+              <TableHead>Item</TableHead>
+              <TableHead>Quantity</TableHead>
+              
+              <TableHead class="w-[100px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="(detail, index) in requestDetails" :key="index">
+              <TableCell>
+                <FormField name="item">
+                  <FormItem>
+                    <FormControl class="w-full">
+                      <Input
+                        v-model="detail.item"
+                        type="text"
+                        placeholder="Item name"
+                        class="w-full"
+                      />
+                    </FormControl>
+                  </FormItem>
+                </FormField>
+              </TableCell>
+              <TableCell>
+                <FormField name="quantity">
+                  <FormItem>
+                    <FormControl class="w-full">
+                      <Input
+                        v-model="detail.quentity"
+                        type="text"
+                        placeholder="Quantity"
+                        class="w-full"
+                      />
+                    </FormControl>
+                  </FormItem>
+                </FormField>
+              </TableCell>
+              <TableCell>
+                
+              </TableCell>
+              <TableCell>
+                <div class="flex space-x-5">
+                  <Button
+                    type="button"
+                    class="bg-red-600 text-white p-2 rounded-full"
+                    @click="removeRow(index)"
+                    :disabled="requestDetails.length === 1"
+                  >
+                    <Minus class="size-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    class="bg-blue-600 text-white p-2 rounded-full"
+                    @click="addRow"
+                  >
+                    <Plus class="size-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+
+      <div class="flex justify-end gap-4 mt-6">
+        <Button type="button" class="bg-red-600 text-white" @click="closeEditModal">
+          Cancel
+        </Button>
+        <Button type="submit" class="bg-blue-600 text-white">
+          Submit
+        </Button>
+      </div>
+    </form>
+  </dialog>
+
 </template>
 
 <style scoped>

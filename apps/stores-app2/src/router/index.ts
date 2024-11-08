@@ -28,7 +28,7 @@ const router = createRouter({
     {
       path: '/request',
       name: 'request',
-      component: PurchaseRequest
+      component: PurchaseRequest,
     },
 
 
