@@ -6,6 +6,7 @@ import { useEffect } from 'react'
 
 export default function HomePage() {
   const Navigate = useNavigate()
+  /////////constant hotel id//////////////
   const hid = 24
   const { hotelid, addHotelId } = useHotelIdStore()
   useEffect(() => {

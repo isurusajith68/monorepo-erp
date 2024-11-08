@@ -298,7 +298,7 @@ app.post('/addrole', async (req, res) => {
 
 app.get('/getroles/:hotelid', (req, res) => {
   const { hotelid } = req.params
-  const dbquery = `SELECT * FROM userroles where hotelid=$1 ORDER BY rid;`
+  const dbquery = `SELECT * FROM userroles where hotelid=$1 or hotelid=0 ORDER BY rid;`
   pool.query(dbquery, [hotelid]).then((dbres) => {
     if (dbres.rows.length > 0) {
       res.send({ success: true, roles: dbres.rows })
