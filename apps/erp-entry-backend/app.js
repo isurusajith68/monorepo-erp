@@ -22,7 +22,11 @@ const port = 10000
 //app.use(cors());
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'http://localhost:5175'],
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:5175',
+      'http://localhost:5174',
+    ],
     credentials: true,
   }),
 )
@@ -43,7 +47,7 @@ app.post('/registerUser', async (req, res) => {
   const { email, password, role, username } = req.body
 
   try {
-    const sqlDelete = `SELECT 1 as name FROM users WHERE email = $1 `
+    const sqlCheck = `SELECT 1 as name FROM users WHERE email = $1 `
 
     const res1 = await pool.query(sqlCheck, [email])
 
@@ -101,19 +105,22 @@ app.post('/login', (req, res1) => {
   const { email, password } = req.body
   console.log('Received data:', { password, email })
 
-  const select = `SELECT *
-                  FROM users
-                  WHERE email='${email}';`
+  const select = `SELECT e.rid,e.erpuser,e.hotelid,u.password,u.username
+                FROM employees AS e
+                INNER JOIN users AS u
+                ON e.id = u.empid AND e.email='${email}'`
 
   pool
     .query(select)
     .then(async (res) => {
+      console.log('resaaa', res)
+
       if (res.rows.length > 0) {
         const userData = {
-          email: res.rows[0].email,
           password: res.rows[0].password,
-          id: res.rows[0].id,
+          rid: res.rows[0].rid,
           username: res.rows[0].username,
+          hotelid: res.rows[0].hotelid,
         }
         console.log('userData', userData)
 
@@ -124,7 +131,7 @@ app.post('/login', (req, res1) => {
         console.log('isPasswordValid', isPasswordValid)
 
         if (!isPasswordValid) {
-          return { success: false, message: 'Invalid credentials' }
+          return res1.send({ success: false, message: 'Invalid credentials' })
         }
 
         const token = createSessionToken(userData.id)
@@ -160,6 +167,8 @@ app.post('/login', (req, res1) => {
         return res1.send({
           success: true,
           username: userData.username,
+          rid: userData.rid,
+          hotelid: userData.hotelid,
           message: 'User logged in successfully',
         })
       } else {
@@ -207,6 +216,12 @@ const createSessionToken = (userId) => {
   return jwt.sign(payload, process.env.JWT_SECRET, options)
 }
 
+console.clear()
+
+/***********************************************************************/
+/****************************AUTH MODULE********************************/
+/***********************************************************************/
+
 /////////////////////////////////////////////////////////////////////
 ////////////////////////////ROLES////////////////////////////////////
 
@@ -228,10 +243,11 @@ app.post('/addrole', async (req, res) => {
       if (res1.rows.length > 0) {
         ignoredRoles.push(r.role)
       } else {
-        const sqlInsert = `INSERT INTO userroles ( role, description) VALUES ($1, $2)`
+        const sqlInsert = `INSERT INTO userroles ( role, description,hotelid) VALUES ($1, $2,$3)`
         const insrtedData = await pool.query(sqlInsert, [
           r.role,
           r.description ?? 0,
+          r.hotelid,
         ])
         insertedRoles.push(r.role)
       }
@@ -280,12 +296,12 @@ app.post('/addrole', async (req, res) => {
   }
 })
 
-app.get('/getroles', (req, res) => {
-  const dbquery = `SELECT * FROM userroles ORDER BY rid;`
-  pool.query(dbquery).then((dbres) => {
+app.get('/getroles/:hotelid', (req, res) => {
+  const { hotelid } = req.params
+  const dbquery = `SELECT * FROM userroles where hotelid=$1 or hotelid=0 ORDER BY rid;`
+  pool.query(dbquery, [hotelid]).then((dbres) => {
     if (dbres.rows.length > 0) {
-      const roles = { rows: dbres.rows }
-      res.send({ success: true, roles: roles })
+      res.send({ success: true, roles: dbres.rows })
     }
   })
 })
@@ -293,9 +309,15 @@ app.get('/getroles', (req, res) => {
 /////////////////////////////////////////////////////////////////////
 ////////////////////////////MODULES////////////////////////////////////
 
-app.get('/getmodules', (req, res) => {
-  const dbquery = `SELECT * FROM modules ORDER BY modid;`
-  pool.query(dbquery).then((dbres) => {
+app.get('/getmodules/:hotelid', (req, res) => {
+  const { hotelid } = req.params
+
+  // const dbquery = `SELECT * FROM modules ORDER BY modid;`
+  const dbquery = `SELECT m.*
+FROM modules m
+INNER JOIN hotelmodulemap hm ON m.modid = hm.modid
+WHERE hm.hotelid = $1;`
+  pool.query(dbquery, [hotelid]).then((dbres) => {
     if (dbres.rows.length > 0) {
       res.send({ success: true, modules: dbres.rows })
     }
@@ -305,11 +327,16 @@ app.get('/getmodules', (req, res) => {
 /////////////////////////////////////////////////////////////////////
 ////////////////////////////DOCUMENTS////////////////////////////////////
 
-app.get('/getdocuments', (req, res) => {
-  // const dbquery = `SELECT * FROM documents ORDER BY docid;`
-  const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid ORDER BY documents.docid;`
+app.get('/getdocuments/:hotelid', (req, res) => {
+  const { hotelid } = req.params
+  // const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid  ORDER BY documents.docid;`
+  const dbquery = `SELECT documents.*, modules.modname 
+FROM modules 
+RIGHT JOIN documents ON documents.modid = modules.modid 
+INNER JOIN hotelmodulemap ON hotelmodulemap.hotelid = $1 AND hotelmodulemap.modid = modules.modid
+ORDER BY documents.docid;`
 
-  pool.query(dbquery).then((dbres) => {
+  pool.query(dbquery, [hotelid]).then((dbres) => {
     if (dbres.rows.length > 0) {
       res.send({ success: true, documents: dbres.rows })
     }
@@ -326,20 +353,109 @@ app.get('/documentsall', (req, res) => {
   })
 })
 
+app.get('/documentsbymodule/:selectedModule', (req, res) => {
+  const selectedModule = req.params.selectedModule
+  const dbquery = `SELECT * FROM documents WHERE modid=${selectedModule} ORDER BY docid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, documents: dbres.rows })
+    }
+  })
+})
+
 /////////////////////////////////////////////////////////////////////
 ////////////////////////////ACTIONS////////////////////////////////////
 
-app.get('/getactions', (req, res) => {
-  const dbquery = `SELECT * FROM actions ORDER BY actid;`
-  // const dbquery = `SELECT documents.*,modules.modname FROM modules RIGHT JOIN documents ON documents.modid=modules.modid ORDER BY documents.docid;`
+app.get('/getactions/:hotelid', (req, res) => {
+  const { hotelid } = req.params
+  // const dbquery = `SELECT * FROM actions ORDER BY actid;`
+  const dbquery = `SELECT a.* FROM actions a INNER JOIN hotelmodulemap hm ON a.modid = hm.modid and hm.hotelid=$1
+ORDER BY a.actid`
 
-  pool.query(dbquery).then((dbres) => {
+  pool.query(dbquery, [hotelid]).then((dbres) => {
     if (dbres.rows.length > 0) {
       res.send({ success: true, actions: dbres.rows })
     }
   })
 })
 
+/////////////////////////////////////////////////////////////////////
+////////////////////////////PERMISSIONS////////////////////////////////////
+
+app.get('/getpermissons/:roleid/:modid', (req, res) => {
+  const modid = req.params.modid
+  const roleid = req.params.roleid
+
+  const dbquery = `SELECT a.docid, COALESCE(p.permission IS NOT NULL, false) AS permission ,
+                   a.actid, a.actname ,p.permissionid FROM actions a 
+                   left join  permissions p on a.actid=p.actid AND p.rid=${roleid}
+                   WHERE a.modid=${modid}
+                   ORDER BY permissionid;`
+
+  pool.query(dbquery).then((dbres) => {
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, list: dbres.rows })
+    }
+  })
+})
+
+app.post('/addpermission', async (req, res) => {
+  const { truePermissions, rid, module } = req.body
+
+  console.log('rid', req.body)
+  try {
+    const sqlDelete = `DELETE FROM permissions WHERE rid=${rid} and modid=${module}`
+    const res1 = await pool.query(sqlDelete)
+
+    truePermissions.map(async (p) => {
+      const sqlInsert = `INSERT INTO permissions ( rid, modid,docid,actid,permission) VALUES (${rid},${module},${
+        p.docid
+      },${p.actid},${true})`
+      const res2 = await pool.query(sqlInsert)
+    })
+
+    if (res1.rows.length > 0) {
+    }
+  } catch (error) {
+    console.log('error', error)
+  }
+})
+
+app.get('/userpermissions/:roleid', (req, res) => {
+  const roleid = req.params.roleid
+
+  console.log('roleid', roleid)
+
+  const query = `SELECT p.modid,m.modname,m.url FROM permissions AS p INNER JOIN modules AS m 
+                 ON p.modid=m.modid AND p.rid='${roleid}'`
+
+  pool.query(query).then((dbres) => {
+    console.log('dbres', dbres)
+
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, list: dbres.rows })
+    }
+  })
+})
+
+app.get('/permittedModules/:roleid', (req, res) => {
+  const roleid = req.params.roleid
+
+  console.log('roleid', roleid)
+
+  const query = `SELECT p.modid,m.modname,m.url,m.icon FROM permissions AS p INNER JOIN modules AS m 
+                 ON p.modid=m.modid AND p.rid='${roleid}'
+                 group by p.modid,m.modname,m.url,m.icon  `
+
+  pool.query(query).then((dbres) => {
+    console.log('dbres', dbres)
+
+    if (dbres.rows.length > 0) {
+      res.send({ success: true, list: dbres.rows })
+    }
+  })
+})
 app.listen(port, () => {
   console.log(`app listening on port ${port}`)
 })

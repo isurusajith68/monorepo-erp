@@ -14,6 +14,7 @@ import NewFormRole from './role/_components/form-role-new'
 import Modules from './modules/page'
 import Documents from './documents/page'
 import Actions from './actions/page'
+import Permission from './permissions/page'
 
 // create a browserRouter
 export const router = createBrowserRouter(
@@ -25,13 +26,15 @@ export const router = createBrowserRouter(
       {/* This defines the default child route under the root (/). */}
       {/* <Route path="/login" element={<Login />}></Route>
         <Route path="/signup" element={<SignUp />}></Route> */}
-      <Route path="/role" element={<Role />}></Route>
-      {/* <Route path="/test" element={<Test />}></Route> */}
+      {/* <Route path="/role" element={<Role />}></Route> */}
+      <Route path="/test" element={<Test />}></Route>
       <Route path="/tform" element={<TanstackForm />}></Route>
-      <Route path="/newform" element={<NewFormRole />}></Route>
-      <Route path="/modules" element={<Modules />}></Route>
+      <Route path="/roles/" element={<NewFormRole />}></Route>
+      {/* <Route path="/roles/" element={<NewFormRole />}></Route> */}
+      <Route path="/modules/" element={<Modules />}></Route>
       <Route path="/documents" element={<Documents />}></Route>
       <Route path="/actions" element={<Actions />}></Route>
+      <Route path="/permission" element={<Permission />}></Route>
       {/* this is a public route */}
       <Route path="*" element={<Navigate to="/" />}></Route>
     </Route>,

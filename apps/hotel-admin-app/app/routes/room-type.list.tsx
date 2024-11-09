@@ -66,6 +66,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (id) {
     // DELETE request
+    const queryroom = `DELETE FROM hotelroomprices WHERE roomtypeid = $1`
+    await client.query(queryroom, [id])
+    // DELETE request
     const query = `DELETE FROM hotelroomtypes WHERE id = $1`
     await client.query(query, [id])
     // Returning JSON with success toast data
@@ -165,63 +168,74 @@ export default function RoomType() {
               </TableRow>
             </TableHeader>
             <TableBody className="bg-blue-50">
-              {data.map((data: any, index: any) => (
-                <TableRow key={index} className="hover:bg-blue-100">
-                  <TableCell className="text-center px-4 py-2">
-                    {data.id}
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-2">
-                    {data.roomtype}
-                  </TableCell>
-                  <TableCell className="text-center py-2 px-4">
-                    <div className="flex items-center lg:ml-[20%]">
-                      <div>
-                        <Button
-                          onClick={() => handleEdit(data.id)}
-                          className="bg-blue-600"
-                        >
-                          Edit
-                        </Button>
+              {data.length > 0 ? (
+                data.map((data: any, index: any) => (
+                  <TableRow key={index} className="hover:bg-blue-100">
+                    <TableCell className="text-center px-4 py-2">
+                      {data.id}
+                    </TableCell>
+                    <TableCell className="text-center px-4 py-2">
+                      {data.roomtype}
+                    </TableCell>
+                    <TableCell className="text-center py-2 px-4">
+                      <div className="flex items-center lg:ml-[20%]">
+                        <div>
+                          <Button
+                            onClick={() => handleEdit(data.id)}
+                            className="bg-blue-600"
+                          >
+                            Edit
+                          </Button>
+                        </div>
+                        <div>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button className="ml-5 bg-blue-600 bg-destructive">
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Are you absolutely sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will
+                                  permanently delete the room type.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <Form method="post">
+                                  <input
+                                    type="hidden"
+                                    name="id"
+                                    value={data.id}
+                                  />
+                                  <AlertDialogAction asChild>
+                                    <Button
+                                      type="submit"
+                                      className="bg-red-500"
+                                    >
+                                      Continue
+                                    </Button>
+                                  </AlertDialogAction>
+                                </Form>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
-                      <div>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button className="ml-5 bg-blue-600 bg-destructive">
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Are you absolutely sure?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will
-                                permanently delete the room type.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <Form method="post">
-                                <input
-                                  type="hidden"
-                                  name="id"
-                                  value={data.id}
-                                />
-                                <AlertDialogAction asChild>
-                                  <Button type="submit" className="bg-red-500">
-                                    Continue
-                                  </Button>
-                                </AlertDialogAction>
-                              </Form>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center px-4 py-2">
+                    No data available
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>

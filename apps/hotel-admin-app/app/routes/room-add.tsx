@@ -5,6 +5,7 @@ import {
   ActionFunction,
   ActionFunctionArgs,
   LoaderFunction,
+  LoaderFunctionArgs,
 } from '@remix-run/node'
 import {
   Form,
@@ -12,6 +13,7 @@ import {
   redirect,
   useActionData,
   useLoaderData,
+  useNavigate,
   useSubmit,
 } from '@remix-run/react'
 import { client } from '~/db.server'
@@ -19,55 +21,90 @@ import { Checkbox } from '~/components/ui/checkbox'
 import { json } from '@remix-run/node' // Ensure you're importing Remix helpers
 import { Buffer } from 'buffer' // Ensure Buffer is available if it's not
 import { useToast } from '~/hooks/use-toast'
+import { Slide, ToastContainer, toast as notify } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import '../app-component/style.css'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select'
+import { Label } from '~/components/ui/label'
 
-export let loader: LoaderFunction = async ({ params }) => {
-  const { id } = params
+export async function loader({ request }: LoaderFunctionArgs) {
+  const result = await client.query('SELECT * FROM hotelroomview')
+  const resulttype = await client.query('SELECT * FROM hotelroomtypes')
+  const resultamenities = await client.query('SELECT * FROM roomamenities')
 
-  const result = await client.query('SELECT * FROM hotelrooms WHERE id = $1', [
-    11,
-  ])
-
-  if (result.rows.length === 0) {
+  // Check if both queries are empty
+  if (result.rows.length === 0 && resulttype.rows.length === 0) {
     return {}
   } else {
-    return result.rows[0]
+    // Return both datasets in an object
+    console.log('first', resultamenities.rows)
+    return {
+      rooms: result.rows,
+      roomTypes: resulttype.rows,
+      roomAmenities: resultamenities.rows,
+    }
   }
+}
+
+// Helper to return json with toast
+function jsonWithSuccess(data: any, message: string) {
+  return json({
+    ...data,
+    toast: {
+      type: 'success',
+      message,
+    },
+  })
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
     // Get the form data
     const formData = await request.formData()
+    console.log('first', formData)
 
     // Extract form fields
     const roomno = formData.get('roomno')
     const roomtype = formData.get('roomtype')
     const noofbed = formData.get('noofbed')
     const roomview = formData.get('roomview')
-    const ac = formData.get('ac')
-    const tv = formData.get('tv')
-    const wifi = formData.get('wifi')
-    const balcony = formData.get('balcony')
+    // Retrieve amenities as an array of checked amenity IDs
+    const selectedAmenities = formData.getAll('amenities')
+
+    console.log('selectedAmenities', selectedAmenities)
 
     // SQL query to insert the hotel room data
+
     const hotelQuery = `
-      INSERT INTO hotelrooms (roomno, roomtype, noofbed, roomview, ac, tv, wifi, balcony) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO hotelrooms (roomno, roomtypeid, noofbed, roomviewid) 
+      VALUES ($1, $2, $3, $4)
       RETURNING id`
-    const hotelValues = [
-      roomno,
-      roomtype,
-      noofbed,
-      roomview,
-      ac,
-      tv,
-      wifi,
-      balcony,
-    ]
+    const hotelValues = [roomno, roomtype, noofbed, roomview]
 
     // Execute SQL query to insert room data
     const result = await client.query(hotelQuery, hotelValues)
     const roomId = result.rows[0].id // Get inserted room ID
+
+    for (let index = 0; index < selectedAmenities.length; index++) {
+      const element = selectedAmenities[index]
+
+      const hotelamtQuery = `
+    INSERT INTO roomamenitydetails (roomid, amenityid) 
+    VALUES ($1, $2)
+    RETURNING id`
+      const hotelAmtValues = [roomId, element]
+      const hotelResult = await client.query(hotelamtQuery, hotelAmtValues)
+
+      /////////////////
+    }
 
     // Handle image uploads
     const images = formData.getAll('images') // Get all images
@@ -75,6 +112,7 @@ export async function action({ request }: ActionFunctionArgs) {
       if (image && typeof image !== 'string') {
         // Convert the image to a buffer
         const imageBuffer = Buffer.from(await image.arrayBuffer())
+        console.log('imageBuffer ', imageBuffer)
 
         // SQL query to insert the image and room ID
         const imageQuery = `
@@ -84,42 +122,40 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     }
 
-    // If everything is successful, return success toast
-    return json({
-      toast: {
-        type: 'success',
-        message: 'Room information saved successfully!',
-      },
-    })
+    // Returning JSON with success toast data
+    return jsonWithSuccess(
+      { result: 'Room Data successfully Insert!' },
+      'Room Data successfully Insert!',
+    )
   } catch (error) {
     console.error('Error saving room info:', error)
 
     // Return error toast data on failure
-    return json({
-      toast: { type: 'error', message: 'Failed to save room information.' },
-    })
+    return jsonWithSuccess(
+      { result: 'Error saving room info' },
+      'Error saving room info',
+    )
   }
 }
 
 export default function RoomAddForm() {
   const submit = useSubmit()
   const data = useLoaderData<typeof loader>()
+  const rooms = data?.rooms ?? []
+  const roomTypes = data?.roomTypes ?? []
+  const amenities = data?.roomAmenities ?? []
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const actionData = useActionData()
   const toast = useToast() // Get the toast function from Remix or your UI library
+  const navigate = useNavigate()
 
-  const handleSubmit = () => {
-    // Show toast notification when action data is received
-    useEffect(() => {
-      if (actionData?.toast) {
-        if (actionData.toast.type === 'success') {
-          toast.success(actionData.toast.message)
-        } else if (actionData.toast.type === 'error') {
-          toast.error(actionData.toast.message)
-        }
-      }
-    }, [actionData, toast])
-  }
+  // UseEffect to handle showing the toast when actionData changes
+  useEffect(() => {
+    if (actionData?.toast) {
+      // Show success or error toast based on the type
+      notify(actionData.toast.message, { type: actionData.toast.type })
+    }
+  }, [actionData])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -180,7 +216,6 @@ export default function RoomAddForm() {
               className="mt-1 border-blue-500"
               placeholder="Enter room number"
               required
-              defaultValue={data.roomno}
             />
           </div>
 
@@ -189,12 +224,21 @@ export default function RoomAddForm() {
             <label htmlFor="roomtype" className="text-gray-600">
               Room Type
             </label>
-            <Input
-              name="roomtype"
-              className="mt-1 border-blue-500"
-              placeholder="Enter room type"
-              defaultValue={data.roomtype}
-            />
+            <Select name="roomtype" required>
+              <SelectTrigger className="mt-1 border-blue-500">
+                <SelectValue placeholder="Select Room Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel> Room Type</SelectLabel>
+                  {roomTypes.map((type: any) => (
+                    <SelectItem key={type.id} value={`${type.id}`}>
+                      {type.roomtype}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Number of Beds */}
@@ -206,7 +250,7 @@ export default function RoomAddForm() {
               name="noofbed"
               className="mt-1 border-blue-500"
               placeholder="Enter number of beds"
-              defaultValue={data.noofbed}
+              required
             />
           </div>
 
@@ -215,12 +259,21 @@ export default function RoomAddForm() {
             <label htmlFor="roomview" className="text-gray-600">
               Room View
             </label>
-            <Input
-              name="roomview"
-              className="mt-1 border-blue-500"
-              placeholder="Enter room view"
-              defaultValue={data.roomview}
-            />
+            <Select name="roomview" required>
+              <SelectTrigger className="mt-1 border-blue-500">
+                <SelectValue placeholder="Select Room View" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel> Room View</SelectLabel>
+                  {rooms.map((view: any) => (
+                    <SelectItem key={view.id} value={`${view.id}`}>
+                      {view.roomview}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Amenities */}
@@ -230,49 +283,23 @@ export default function RoomAddForm() {
             </label>
           </div>
           <div className="grid grid-cols-4 gap-4 col-span-2">
-            <div>
-              <label htmlFor="ac" className="text-gray-600">
-                AC
-              </label>
-              <Checkbox
-                name="ac"
-                className="ml-5 w-10 h-10 border-blue-500"
-                defaultValue={data.ac}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="tv" className="text-gray-600">
-                TV
-              </label>
-              <Checkbox
-                name="tv"
-                className="ml-5 w-10 h-10 border-blue-500"
-                defaultValue={data.tv}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="wifi" className="text-gray-600">
-                Wi-Fi
-              </label>
-              <Checkbox
-                name="wifi"
-                className="ml-5 w-10 h-10 border-blue-500"
-                defaultValue={data.wifi}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="balcony" className="text-gray-600">
-                Balcony
-              </label>
-              <Checkbox
-                name="balcony"
-                className="ml-5 w-10 h-10 border-blue-500"
-                defaultValue={data.balcony}
-              />
-            </div>
+            {amenities.map((amenity: any) => (
+              <div key={amenity.name}>
+                <Label
+                  htmlFor={amenity.name.toLowerCase()}
+                  className="text-gray-600"
+                >
+                  {amenity.name}
+                </Label>
+                <Input
+                  type="checkbox"
+                  name="amenities"
+                  className="ml-5 w-10 h-10 border-blue-500"
+                  value={`${amenity.id}`}
+                  // You can add more properties like checked state, onChange handler if necessary
+                />
+              </div>
+            ))}
           </div>
 
           {/* Image Upload */}
@@ -308,20 +335,45 @@ export default function RoomAddForm() {
           <div className="flex gap-5 ml-[95%]">
             <div>
               <Button
-                onClick={handleSubmit}
+                type="submit"
                 className="bg-blue-200 hover:bg-blue-300 text-blue-700 px-4 py-2 rounded-lg w-32 "
               >
                 Save
               </Button>
             </div>
             <div>
-              <Button className="bg-orange-400 hover:bg-orange-300 text-white px-4 py-2 rounded-lg w-32">
-                Close
-              </Button>
+              <Link
+                className="text-white bg-orange-500 hover:bg-orange-400  "
+                to={'/room-list'}
+              >
+                <Button className="text-white bg-orange-500 hover:bg-orange-400 w-32">
+                  Close
+                </Button>
+              </Link>
             </div>
           </div>
         </Form>
       </div>
+      {/* ToastContainer to display the notifications */}
+
+      <ToastContainer
+        position="bottom-right"
+        autoClose={2000}
+        hideProgressBar={false} // Show progress bar
+        newestOnTop={true} // Display newest toast on top
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={true}
+        pauseOnHover={true}
+        theme="colored" // You can change to "light" or "dark"
+        transition={Slide} // Slide animation for toast appearance
+        icon={true} // Show icons for success, error, etc.
+        className="custom-toast-container" // Add custom classes
+        bodyClassName="custom-toast-body"
+        closeButton={false} // No close button for a clean look
+        onClick={() => navigate('/room-type/list')}
+      />
     </div>
   )
 }

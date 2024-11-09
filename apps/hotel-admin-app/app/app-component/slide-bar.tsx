@@ -2,7 +2,11 @@ import {
   Book,
   BookOpenCheck,
   BookOpenText,
+  CircleDollarSign,
+  DoorOpen,
   Home,
+  House,
+  HousePlus,
   LineChart,
   NotebookPen,
   Package,
@@ -39,7 +43,7 @@ const Sidebar = () => {
               Dashboard
             </Link>
             <Link
-              to="/hotel-info/23"
+              to="/hotel-info/24"
               className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
             >
               <NotebookPen className="h-4 w-4" />
@@ -49,28 +53,35 @@ const Sidebar = () => {
               to="/room-type/list"
               className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
             >
-              <BookOpenText className="h-4 w-4" />
+              <HousePlus className="h-4 w-4" />
               Room Type
             </Link>
             <Link
               to="/room-view/list"
               className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
             >
-              <UserPlus className="h-4 w-4" />
+              <DoorOpen className="h-4 w-4" />
               Room Views
+            </Link>
+            <Link
+              to="/room-amenities/list"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
+            >
+              <House className="h-4 w-4" />
+              Room Amenities
             </Link>
             <Link
               to="/room-list"
               className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
             >
-              <IoPeople className="h-4 w-4" />
+              <HousePlus className="h-4 w-4" />
               Rooms
             </Link>
             <Link
               to="/room-price-list"
               className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
             >
-              <TbReportAnalytics className="h-4 w-4" />
+              <CircleDollarSign className="h-4 w-4" />
               Room Price
             </Link>
             <Link

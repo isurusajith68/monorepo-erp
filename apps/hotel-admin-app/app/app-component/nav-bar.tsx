@@ -23,6 +23,7 @@ import {
 } from '~/components/ui/dropdown-menu'
 
 import { Sheet, SheetContent, SheetTrigger } from '~/components/ui/sheet'
+import CreateWeb from '../routes/_create-web'
 
 export const description =
   'A products dashboard with a sidebar navigation and a main content area. The dashboard has a header with a search input and a user menu. The sidebar has a logo, navigation links, and a card with a call to action. The main content area shows an empty state with a call to action.'
@@ -34,7 +35,8 @@ const Navbar = () => {
       {/*bg-white/90*/}
       <div className="flex w-full">
         <h1 className="text-white text-2xl font-extrabold">Hotel Admin App</h1>
-        <h2 className="text-black text-l text-end ml-[78%]">Create Web</h2>
+        <h2 className="text-black text-l text-end ml-[70%]"></h2>
+        <CreateWeb></CreateWeb>
       </div>
       <Sheet>
         <SheetTrigger asChild>
