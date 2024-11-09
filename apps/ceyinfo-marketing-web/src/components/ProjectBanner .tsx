@@ -24,7 +24,7 @@ const ProjectBanner = () => {
       {/* Right Section: Image */}
       <div className="flex-1 mt-8 md:mt-0">
         <img
-          src="https://via.placeholder.com/500x300" // Replace with your image URL or import an image
+          src="Auditing-Assurance.jpg" // Replace with your image URL or import an image
           alt="Project Monitoring"
           className="rounded-lg shadow-lg"
         />

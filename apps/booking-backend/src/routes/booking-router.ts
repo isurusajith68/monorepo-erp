@@ -211,6 +211,7 @@ bookingRouter.post('/bookinginsert', async (req: Request, res: Response) => {
 
 //booking update
 bookingRouter.patch('/bookings/:id', async (req, res) => {
+  // const {id}= req.params
   const {
     id,
     checkindate,
@@ -227,9 +228,11 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
     const client = await pool.connect()
     try {
       //update guest information
-      //console.log("guestInfo",guestInfo)
+      console.log('bookingHeaderData', bookingHeaderData)
 
       if (guestInfo) {
+        console.log('you', guestInfo)
+
         const [updatesql, valuesArray] = getUpdateQuery(
           guestInfo,
           'guestinformation',
@@ -468,8 +471,8 @@ bookingRouter.get('/bookings/:id', async (req: Request, res: Response) => {
     const query = `
         SELECT 
           b.id AS booking_id,
-          b.checkindate,
-          b.checkoutdate,
+          Date(b.checkindate) as checkindate ,
+          b.checkoutdate::DATE,
           g.firstname,
           g.lastname,
           g.email,
@@ -486,6 +489,7 @@ bookingRouter.get('/bookings/:id', async (req: Request, res: Response) => {
         WHERE 
           b.id = $1;
       `
+    console.log('process.env.TZ', process.env.TZ)
 
     const result = await client.query(query, [id])
 
@@ -502,10 +506,14 @@ bookingRouter.get('/bookings/:id', async (req: Request, res: Response) => {
 
     //get details
 
-    const bookingdetails = `SELECT bd.* , r.roomtypeid ,r.roomviewid 
+    const bookingdetails = `SELECT bd.* , r.roomtypeid ,r.roomviewid  ,ht.roomtype as type,hv.roomview as view
               FROM bookingdetails bd
               join public.hotelrooms r
               on bd.roomid = r.id
+              join hotelroomtypes ht
+              on r.roomtypeid= ht.id
+              join hotelroomview hv
+              on hv.id = r.roomviewid 
               WHERE bookingid =$1 `
 
     const bdresult = await client.query(bookingdetails, [
@@ -515,6 +523,8 @@ bookingRouter.get('/bookings/:id', async (req: Request, res: Response) => {
     // console.log('bdresult', bdresult)
 
     // Return the booking and guest information
+    console.log('bookingDatax', bookingData)
+
     res.status(200).json({
       success: true,
       data: bookingData,
@@ -534,8 +544,20 @@ bookingRouter.get('/bookings/:id', async (req: Request, res: Response) => {
 })
 
 // get all rooms
-bookingRouter.get('/rooms', (req, res) => {
+bookingRouter.get('/rooms', async (req, res) => {
   const { checkindate, checkoutdate } = req.query
+
+  const countsql = `select count(*), roomtypeid , roomviewid from public.hotelrooms where id not in
+        (SELECT bd.roomid FROM public.booking b
+      join public.bookingdetails bd on bd.bookingid = b.id
+        where $1  between b.checkindate   and b.checkoutdate 
+        and $2  between b.checkindate   and b.checkoutdate)
+	group by roomtypeid , roomviewid `
+
+  const count = await pool.query(countsql, [checkindate, checkoutdate])
+
+  console.log('count', count.rows)
+
   const getAllBookingQuery = `
       select r.roomtypeid,r.roomviewid, t.roomtype ,v.roomview,t.maxadultcount from public.hotelrooms r
     JOIN public.hotelroomtypes t 
@@ -557,7 +579,12 @@ bookingRouter.get('/rooms', (req, res) => {
     .then((response) => {
       if (response.rows.length > 0) {
         const bookingData = response.rows // Get all rows
-        res.json({ success: true, msg: '', data: bookingData })
+        res.json({
+          success: true,
+          msg: '',
+          data: bookingData,
+          roomcounts: count.rows,
+        })
       } else {
         res.json({ success: false, msg: 'No booking found', data: [] })
       }
@@ -610,6 +637,7 @@ bookingRouter.get('/prices', (req, res) => {
 
 bookingRouter.get('/guest-by-phone/:phone', async (req, res) => {
   const { phone } = req.params
+  console.log('phoneeee2222', phone)
   //rrrrrrr
   try {
     const query = 'SELECT * FROM guestinformation WHERE phonenumber = $1'
@@ -623,6 +651,28 @@ bookingRouter.get('/guest-by-phone/:phone', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, msg: 'Server error' })
   }
+})
+
+bookingRouter.get('/getbookedbookings/:phonenum', async (req, res) => {
+  const { phonenum } = req.params
+  console.log('phonenum', phonenum)
+
+  try {
+    const sql = `SELECT b.id,b.checkindate, b.checkoutdate,b.remarks FROM public.booking b
+JOIN guestinformation g
+on b.guestid=g.id
+where phonenumber = $1`
+
+    const resultsql = await pool.query(sql, [phonenum])
+
+    console.log('resultsql', resultsql.rows)
+
+    // if (resultsql.rows.length > 0) {
+    res.status(200).json({ success: true, data: resultsql.rows })
+    // } else {
+    //   res.status(200).json({ success: false, msg: 'Booking not found' })
+    // }
+  } catch {}
 })
 
 bookingRouter.get('/roomdetails', (req, res) => {

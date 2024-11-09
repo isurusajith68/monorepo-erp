@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react'
-
+import { formatInTimeZone } from 'date-fns-tz'
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { getDirtyValuesTF } from '@/lib/utils'
@@ -32,6 +41,35 @@ Object.defineProperty(Object, 'groupBy', {
   writable: true,
   configurable: true,
 })
+
+// const BookingCard = ({ booking }) => {
+//   const navigate = useNavigate()
+
+//   return (
+//     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg mb-4 border border-gray-200">
+//       <h3 className="text-lg font-semibold text-blue-600">
+//         Booking ID: {booking.id}
+//       </h3>
+//       <p className="text-gray-500 mt-2">
+//         <strong>Check-in:</strong>{' '}
+//         {new Date(booking.checkindate).toLocaleDateString()}
+//       </p>
+//       <p className="text-gray-500">
+//         <strong>Check-out:</strong>{' '}
+//         {new Date(booking.checkoutdate).toLocaleDateString()}
+//       </p>
+//       <p className="text-gray-700 mt-4">
+//         <strong>Remarks:</strong> {booking.remarks || 'No remarks'}
+//       </p>
+//       <Button className="bg-yellow-300" onClick={bookingcardview}>
+//         View Booking
+//       </Button>
+//       {/* <Button className="bg-red-500" onClick={}>
+//         Cancle Booking
+//       </Button> */}
+//     </div>
+//   )
+// }
 
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value)
@@ -69,6 +107,12 @@ type SelectedRoomType = {
 
 const hotelid = 24
 
+type RoomTypeViewType = {
+  roomtypeid: number | null
+  roomviewid: number | null
+  count: number | null
+}
+
 const RoomSelection = () => {
   const { id } = useParams()
   const { toast } = useToast()
@@ -88,12 +132,19 @@ const RoomSelection = () => {
   const updateMutation = useUpdateBookingMutation()
   const debouncedPhone = useDebounce(phone, 500)
   const { data: getphonedata, isFetched } = useGetPhoneNumber(debouncedPhone)
+  // const { data: getphonebookeddata,  } = useGetPhoneNumberBooked(debouncedPhone)
+
+  // console.log("getphonebookeddata",getphonebookeddata)
+  // console.log('getphonedata', getphonedata)
 
   const [checkindate, setcheckindate] = useState<string | undefined>(undefined)
   const [checkoutdate, setcheckoutdate] = useState<string | undefined>(
     undefined,
   )
+  const [bookeddata, setBookeddata] = useState([])
   const { data: roomprices } = useGetPrice(checkindate)
+
+  // console.log('roomprices', roomprices)
 
   //  const [totalAmount, settotalAmount] = useState<number>(0)
 
@@ -101,20 +152,32 @@ const RoomSelection = () => {
   const [selectedRoomBasis, setselectedRoomBasis] = useState<
     SelectedRoomType[]
   >([])
+  const [roomtypeviewcounts, setroomtypeviewcounts] = useState<
+    RoomTypeViewType[]
+  >([])
 
-  console.log('roomprice', roomprices)
+  // console.log('roomprice', roomprices)
+
+  // useEffect(() => {
+  //   if(getphonebookeddata){
+  //     setBookeddata(getphonebookeddata)
+  //   }
+  // }, [getphonebookeddata]);
 
   useEffect(() => {
     if (getphonedata) {
-      form.setFieldValue('firstname', getphonedata.firstname)
-      form.setFieldValue('lastname', getphonedata.lastname)
-      form.setFieldValue('email', getphonedata.email)
-      form.setFieldValue('phonenumber', getphonedata.phonenumber)
-      form.setFieldValue('address', getphonedata.address)
-      form.setFieldValue('city', getphonedata.city)
-      form.setFieldValue('country', getphonedata.country)
-      form.setFieldValue('postalcode', getphonedata.postalcode)
+      // console.log("getphonedata",getphonedata)
+
+      form.setFieldValue('firstname', getphonedata.a.firstname)
+      form.setFieldValue('lastname', getphonedata.a.lastname)
+      form.setFieldValue('email', getphonedata.a.email)
+      form.setFieldValue('phonenumber', getphonedata.a.phonenumber)
+      form.setFieldValue('address', getphonedata.a.address)
+      form.setFieldValue('city', getphonedata.a.city)
+      form.setFieldValue('country', getphonedata.a.country)
+      form.setFieldValue('postalcode', getphonedata.a.postalcode)
     } else {
+      // console.log("getphonedatasss",getphonedata)
       form.reset()
     }
   }, [getphonedata])
@@ -142,7 +205,7 @@ const RoomSelection = () => {
       postalcode: '',
     },
     onSubmit: async ({ value: data }) => {
-      console.log('dataaaaaaaaaaaaaa', data)
+      // console.log('dataaaaaaaaaaaaaa', data)
       if (id) {
         // If id exists, we're updating the booking
         const dirtyValues = getDirtyValuesTF(
@@ -154,10 +217,10 @@ const RoomSelection = () => {
         let bookingHeaderData: any
         let guestInfo: any
         if (dirtyValues) {
-          console.log('dirtyvaluessssssss', dirtyValues)
+          // console.log('dirtyvaluessssssss', dirtyValues)
 
           // if (dirtyValues) {
-          console.log('Dirty values to update:', dirtyValues)
+          // console.log('Dirty values to update:', dirtyValues)
           dirtyValues.hotelid = hotelid
           // Make the PUT request with only dirty fields
           bookingHeaderData = {
@@ -166,9 +229,10 @@ const RoomSelection = () => {
             checkoutdate: dirtyValues.checkoutdate,
           }
 
-          guestInfo = { ...dirtyValues }
+          guestInfo = { ...dirtyValues, id: data.guestid }
           delete guestInfo.checkindate
           delete guestInfo.checkoutdate
+          delete guestInfo.booking_id
         }
         const responseData = await updateMutation.mutateAsync({
           id,
@@ -178,7 +242,7 @@ const RoomSelection = () => {
           guestInfo,
           selectedRooms,
         })
-        console.log('responseData', responseData)
+        // console.log('responseData', responseData)
 
         if (responseData) {
           toast({
@@ -190,7 +254,7 @@ const RoomSelection = () => {
 
           navigate(`/booking/${id}`)
         }
-        // } else {
+        //  else {
         //   console.log('No fields were changed')
         //   toast({
         //     className: 'text-blue-600',
@@ -205,7 +269,7 @@ const RoomSelection = () => {
           data: { ...data, selectedRooms, hotelid },
         })
 
-        console.log('responseData', responseData)
+        // console.log('responseData', responseData)
 
         if (responseData.success) {
           const newId = responseData.booking_id
@@ -233,7 +297,7 @@ const RoomSelection = () => {
   const handleSearch = () => {
     const checkindate = form.getFieldValue('checkindate')
     const checkoutdate = form.getFieldValue('checkoutdate')
-    console.log('Searching for rooms with:', checkindate, checkoutdate)
+    // console.log('Searching for rooms with:', checkindate, checkoutdate)
 
     if (checkindate && checkoutdate) {
       // Set the state variables
@@ -241,21 +305,22 @@ const RoomSelection = () => {
       setcheckoutdate(checkoutdate)
 
       // Make API call with checkindate and checkoutdate
-      console.log('Searching for rooms with:', checkindate, checkoutdate)
+      // console.log('Searching for rooms with:', checkindate, checkoutdate)
       // Call your search function here
     } else {
       console.error('Both check-in and check-out dates are required.')
     }
   }
 
-  console.log('checkindateeeeeeeeeeeeeeeeeeeeeeee', checkindate)
+  // console.log('checkindateeeeeeeeeeeeeeeeeeeeeeee', checkindate)
 
   const { data: roomviewtypes, isFetched: isFetchedRoomTypes } = useGetRoomtype(
     checkindate,
     checkoutdate,
   )
+  // console.log('cooooooo', roomviewtypes)
 
-  console.log('roomviewtypes', roomviewtypes)
+  // console.log('roomviewtypes', roomviewtypes)
 
   const { data: bookingdata, isLoading, isError, error } = useGetBooking(id)
 
@@ -265,7 +330,20 @@ const RoomSelection = () => {
     if (bookingdata) {
       try {
         // Populate the form with fetched data
-        form.setFieldValue('checkindate', bookingdata.data.checkindate)
+        const tttt = formatInTimeZone(
+          bookingdata.data.checkindate,
+          'Asia/Colombo',
+          'yyyy-MM-dd HH:mm:ss zzz',
+        )
+        const ttttaa = formatInTimeZone(
+          bookingdata.data.checkindate,
+          'Asia/Colombo',
+          'yyyy-MM-dd ',
+        )
+        console.log('ttttaa', tttt)
+        console.log('ttttaa', ttttaa)
+
+        form.setFieldValue('checkindate', ttttaa)
         form.setFieldValue('booking_id', bookingdata.data.booking_id)
         form.setFieldValue('guestid', bookingdata.data.guestid)
         form.setFieldValue('checkoutdate', bookingdata.data.checkoutdate)
@@ -283,8 +361,11 @@ const RoomSelection = () => {
         form.setFieldValue('postalcode', bookingdata.data.postalcode)
 
         //set details
+        // console.log('bookingdata', bookingdata)
 
         const grpRooms = Object.groupBy(bookingdata.details, (r) => {
+          // console.log("r.roomtypeid,r.roomviewid,r.basis",r.roomtypeid,r.roomviewid,r.basis)
+
           return `${r.roomtypeid}-${r.roomviewid}-${r.basis}`
         })
 
@@ -299,7 +380,7 @@ const RoomSelection = () => {
             })),
           }
         })
-        console.log('bookingdetails', r)
+        // console.log('bookingdetails', r)
         setselectedRooms(r)
       } catch (error) {
         console.error('Error fetching booking data:', error)
@@ -312,6 +393,12 @@ const RoomSelection = () => {
       }
     }
   }, [bookingdata])
+
+  useEffect(() => {
+    if (roomviewtypes) {
+      setroomtypeviewcounts(roomviewtypes.roomcounts)
+    }
+  }, [roomviewtypes])
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCurrency = e.target.value
@@ -370,7 +457,7 @@ const RoomSelection = () => {
   }
 
   const handleremove = (typeid: number, viewid: number, basis: string) => {
-    console.log('pop2')
+    // console.log('pop2')
 
     setselectedRoomBasis((p) => {
       return p.filter(
@@ -422,7 +509,7 @@ const RoomSelection = () => {
         let newIndex = -1
 
         if (resSelRooms) {
-          console.log('res', resSelRooms)
+          // console.log('res', resSelRooms)
 
           const newrooms = resSelRooms.occupantdetails?.filter(
             (r) => r.roomid < 0,
@@ -432,7 +519,7 @@ const RoomSelection = () => {
             const lastMinusIndexObj = newrooms.reduce((a, c) => {
               return a.roomid < c.roomid ? a : c
             })
-            console.log('lastMinusIndexObj', lastMinusIndexObj)
+            // console.log('lastMinusIndexObj', lastMinusIndexObj)
             newIndex = lastMinusIndexObj.roomid - 1
           }
         }
@@ -473,7 +560,7 @@ const RoomSelection = () => {
           (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
         )
         if (resSelRooms) {
-          console.log('res', resSelRooms)
+          // console.log('res', resSelRooms)
 
           const newrooms = resSelRooms.occupantdetails?.filter(
             (r) => r.roomid < 0,
@@ -483,7 +570,7 @@ const RoomSelection = () => {
             const lastMinusIndexObj = newrooms.reduce((a, c) => {
               return a.roomid < c.roomid ? a : c
             })
-            console.log('lastMinusIndexObj', lastMinusIndexObj)
+            // console.log('lastMinusIndexObj', lastMinusIndexObj)
             newIndex = lastMinusIndexObj.roomid - 1
           }
         }
@@ -523,7 +610,7 @@ const RoomSelection = () => {
     propName: string,
     count: number,
   ) => {
-    console.log('xxcount', count, propName)
+    // console.log('xxcount', count, propName)
 
     const i = selectedRooms.findIndex(
       (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
@@ -560,11 +647,11 @@ const RoomSelection = () => {
     view: string,
     basis: string,
   ) => {
-    console.log('xxtypeid', typeid)
-    console.log('xxviewid', viewid)
-    console.log('xxselectedRooms', selectedRooms)
+    // console.log('xxtypeid', typeid)
+    // console.log('xxviewid', viewid)
+    // console.log('xxselectedRooms', selectedRooms)
     setselectedRoomBasis((p) => {
-      console.log('selectedRoomBasis falsee', checked)
+      // console.log('selectedRoomBasis falsee', checked)
       if (checked) {
         const t = p.filter((r) => !(r.typeid == typeid && r.viewid == viewid))
         return [...t, { typeid, viewid, price, type, view, basis }]
@@ -586,10 +673,10 @@ const RoomSelection = () => {
   useEffect(() => {
     const t = selectedRooms.reduce((a, c) => a + c.count * c.price, 0)
 
-    console.log('qqqselectedRooms', selectedRooms)
+    // console.log('qqqselectedRooms', selectedRooms)
   }, [selectedRooms])
   useEffect(() => {
-    console.log('selectedRoomBasis', selectedRoomBasis)
+    // console.log('selectedRoomBasis', selectedRoomBasis)
   }, [selectedRoomBasis])
 
   const handleCount = (
@@ -797,7 +884,7 @@ const RoomSelection = () => {
               /> */}
 
               {/* Children */}
-              <form.Field
+              {/* <form.Field
                 name="currency"
                 children={(field) => (
                   <div className="col-span-1">
@@ -815,10 +902,15 @@ const RoomSelection = () => {
                     </select>
                   </div>
                 )}
-              />
+              /> */}
 
               {/* Currency */}
-
+              <Button
+                className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded w-full"
+                onClick={handleSearch}
+              >
+                Search
+              </Button>
               {/* Promo Code & Search Button */}
               {/* <div className="col-span-2 flex flex-col justify-center">
                 <label className="block text-sm font-semibold underline cursor-pointer">
@@ -826,17 +918,73 @@ const RoomSelection = () => {
                 </label>
               </div> */}
               <div className="col-span-1">
-                <Button
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded w-full"
-                  onClick={handleSearch}
-                >
-                  Search
-                </Button>
+                <h1>Phonenumber</h1>
+                <form.Field
+                  name="phonenumber"
+                  children={(field) => (
+                    <input
+                      type="text"
+                      placeholder="Phone Number"
+                      className="w-full border border-gray-300 p-2 rounded"
+                      required
+                      value={field.state.value}
+                      // onChange={(e) => {
+                      //   console.log("q111111",e.target.value)
+                      //   field.handleChange(e.target.value)}}
+                      onChangeCapture={(e) => {
+                        // console.log('q122222', e.target.value)
+                        field.handleChange(e.target.value)
+
+                        setphone(e.target.value)
+                      }}
+                    />
+                  )}
+                />
               </div>
             </div>
           </form>
         </div>
       </div>
+
+      {/* <div className="flex flex-col items-center min-h-screen bg-gray-100 p-4"> */}
+      {getphonedata && (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">Booking ID</TableHead>
+              <TableHead>Check-in</TableHead>
+              <TableHead>Check-out</TableHead>
+              <TableHead className="text-right">Remarks</TableHead>
+              <TableHead className="text-right"></TableHead>
+            </TableRow>
+          </TableHeader>
+          {getphonedata.b.map((booking) => (
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">{booking.id}</TableCell>
+                <TableCell>
+                  {new Date(booking.checkindate).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  {new Date(booking.checkoutdate).toLocaleDateString()}
+                </TableCell>
+                <TableCell className="text-right">
+                  {booking.remarks || 'No remarks'}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    className="bg-green-400"
+                    onClick={() => navigate(`/booking/${booking.id}`)}
+                  >
+                    view booking
+                  </Button>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          ))}
+        </Table>
+      )}
+      {/* </div> */}
 
       {/* jhgjg-------------------------------------------------------------------- */}
       <div className="p-6">
@@ -863,7 +1011,7 @@ const RoomSelection = () => {
           <div>
             {isFetchedRoomTypes && roomprices && (
               <div>
-                {roomviewtypes.map((roomcat, index) => {
+                {roomviewtypes.data.map((roomcat, index) => {
                   const prices = roomprices.find(
                     (r) =>
                       r.roomtypeid === roomcat.roomtypeid &&
@@ -881,6 +1029,14 @@ const RoomSelection = () => {
                             </h3>
                             <p className="text-xl font-bold">
                               {roomcat.roomview}
+                            </p>
+                            <p className="text-xl font-bold">
+                              {roomtypeviewcounts &&
+                                roomtypeviewcounts?.find(
+                                  (rtv) =>
+                                    rtv.roomtypeid === roomcat.roomtypeid &&
+                                    rtv.roomviewid === roomcat.roomviewid,
+                                )?.count}
                             </p>
                           </div>
                           {/* <button
@@ -904,7 +1060,7 @@ const RoomSelection = () => {
                       )} */}
                           <button
                             className="text-blue-600 underline mt-2"
-                            onClick={() => openModal(roomcat)}
+                            // onClick={() => openModal(roomcat)}
                           >
                             View Room Details
                           </button>
@@ -931,11 +1087,6 @@ const RoomSelection = () => {
                                       : false
                                   }
                                   onChange={(e) => {
-                                    console.log(
-                                      'e.target.value',
-                                      e.target.checked,
-                                    )
-
                                     bookingBasishandle(
                                       e.target.checked,
                                       roomcat.roomtypeid,
@@ -992,11 +1143,6 @@ const RoomSelection = () => {
                                       : false
                                   }
                                   onChange={(e) => {
-                                    console.log(
-                                      'e.target.value 1',
-                                      e.target.checked,
-                                    )
-
                                     bookingBasishandle(
                                       e.target.checked,
                                       roomcat.roomtypeid,
@@ -1042,11 +1188,6 @@ const RoomSelection = () => {
                                       : false
                                   }
                                   onChange={(e) => {
-                                    console.log(
-                                      'e.target.value 2',
-                                      e.target.checked,
-                                    )
-
                                     bookingBasishandle(
                                       e.target.checked,
                                       roomcat.roomtypeid,
@@ -1092,11 +1233,6 @@ const RoomSelection = () => {
                                       : false
                                   }
                                   onChange={(e) => {
-                                    console.log(
-                                      'e.target.value 3',
-                                      e.target.checked,
-                                    )
-
                                     bookingBasishandle(
                                       e.target.checked,
                                       roomcat.roomtypeid,
@@ -1180,28 +1316,6 @@ const RoomSelection = () => {
               Been here before? Click here
             </p>
             <div className="space-y-4">
-              <form.Field
-                name="phonenumber"
-                children={(field) => (
-                  <input
-                    type="text"
-                    placeholder="Phone Number"
-                    className="w-full border border-gray-300 p-2 rounded"
-                    required
-                    value={field.state.value}
-                    // onChange={(e) => {
-                    //   console.log("q111111",e.target.value)
-                    //   field.handleChange(e.target.value)}}
-                    onChangeCapture={(e) => {
-                      console.log('q122222', e.target.value)
-                      field.handleChange(e.target.value)
-
-                      setphone(e.target.value)
-                    }}
-                  />
-                )}
-              />
-
               <form.Field
                 name="firstname"
                 validators={{
