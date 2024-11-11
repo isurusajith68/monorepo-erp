@@ -125,6 +125,13 @@ function ViewEdit() {
             <div className="grid gap-2 mt-5">
               <div className="grid items-center gap-4">
                 <form id="myForm" method="post">
+                <div>
+                      <input
+                        type="hidden"
+                        name="hotelid"
+                        defaultValue={data.hotelid}
+                      ></input>
+                    </div>
                   <input name="id" type="hidden" defaultValue={data.id} />
                   <Input
                     id="width"

@@ -33,6 +33,7 @@ import { useEffect } from 'react'
 import { Slide, ToastContainer, toast as notify } from 'react-toastify'
 import "react-toastify/dist/ReactToastify.css";
 import "../app-component/style.css"
+import { useGlobalContext } from '~/GlobalContext';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const result = await client.query('SELECT * FROM hotelroomtypes');
@@ -73,8 +74,10 @@ export async function action({ request }: ActionFunctionArgs) {
   } else {
     // INSERT request
     const roomtype = formData.get('roomtype');
-    const hotelQuery = `INSERT INTO hotelroomtypes (roomtype) VALUES ($1)`;
-    await client.query(hotelQuery, [roomtype]);
+    const hotelid = formData.get('hotelid');
+    const maxadult = formData.get('maxadult');
+    const hotelQuery = `INSERT INTO hotelroomtypes (roomtype, hotelid, maxadultcount) VALUES ($1, $2, $3)`;
+    await client.query(hotelQuery, [roomtype, hotelid, maxadult]);
      // Returning JSON with success toast data
      return jsonWithSuccess(
       { result: 'Hotel room-type saved successfully!' },
@@ -87,7 +90,7 @@ export default function RoomType() {
   const navigate = useNavigate();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const data = useLoaderData<typeof loader>();
-
+  const { hotelId } = useGlobalContext()
   const actionData = useActionData() // Capture action data (including toast data)
   const submit = useSubmit()
 
@@ -116,15 +119,29 @@ export default function RoomType() {
                   + Add New
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="lg:w-[180%] lg:-ml-[280%] lg:mt-[100%] h-52">
+              <PopoverContent className="lg:w-[180%] lg:-ml-[280%] lg:mt-[100%] h-72">
                 <div className="grid gap-4">
                   <div className="space-y-2">
-                    <h4 className="font-medium leading-none">Room Type</h4>
+                    <h4 className="font-medium leading-none"> Add Room Type</h4>
                   </div>
                   <div className="grid gap-2 mt-5">
                     <div className="grid items-center gap-4">
                       <Form method="post">
+                      <div>
+                        <input
+                          type="hidden"
+                          name="hotelid"
+                          defaultValue={hotelId}
+                        ></input>
+                      </div>
+                        <div>
+                          <label>Room Type</label>
                         <Input id="width" name="roomtype" placeholder="Room Type" className="col-span-2 h-10" />
+                        </div>
+                        <div className='mt-2'>
+                          <label>Max Adult Count</label>
+                        <Input id="width" name="maxadult" placeholder="Max Adult Count" className="col-span-2 h-10" />
+                        </div>
                         <Button type="submit" className="text-white bg-blue-500 hover:bg-blue-400 mt-10 lg:ml-[80%]">
                           Add
                         </Button>
@@ -138,12 +155,13 @@ export default function RoomType() {
           <hr className="bg-blue-400 h-0.5 mt-2" />
         </div>
 
-        <div className="overflow-x-auto mt-5 pl-12 pr-4 border-blue-300 w-[50%] ml-[15%]">
+        <div className="overflow-x-auto mt-5 pl-12 pr-4 border-blue-300 w-[60%] ml-[15%]">
           <Table className="rounded-xl border border-blue-300 overflow-hidden">
             <TableHeader className="bg-blue-300 text-center border border-blue-300">
               <TableRow>
                 <TableHead className="text-center px-4 py-2">ID</TableHead>
-                <TableHead className="text-center p-12 py-2">Type</TableHead>
+                <TableHead className="text-center py-2">Type</TableHead>
+                <TableHead className="text-center py-2">Max Adult Count</TableHead>
                 <TableHead className="text-center py-2">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -153,6 +171,7 @@ export default function RoomType() {
                 <TableRow key={index} className="hover:bg-blue-100">
                   <TableCell className="text-center px-4 py-2">{data.id}</TableCell>
                   <TableCell className="text-center px-4 py-2">{data.roomtype}</TableCell>
+                  <TableCell className="text-center px-4 py-2">{data.maxadultcount}</TableCell>
                   <TableCell className="text-center py-2 px-4">
                     <div className="flex items-center lg:ml-[20%]">
                       <div>

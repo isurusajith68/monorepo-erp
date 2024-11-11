@@ -425,9 +425,9 @@ function RoomEditForm() {
               ))}
             </div>
             <div className="flex flex-col w-32 mt-4">
-              <Button className="bg-blue-200 hover:bg-blue-300 text-blue-700 px-4 py-2 rounded-lg">
+              {/* <Button className="bg-blue-200 hover:bg-blue-300 text-blue-700 px-4 py-2 rounded-lg">
                 + Add More
-              </Button>
+              </Button> */}
             </div>
           </div>
           <div className="flex gap-5 ml-[95%]">

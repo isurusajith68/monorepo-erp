@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { Label } from '~/components/ui/label'
+import { useGlobalContext } from '~/GlobalContext'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const result = await client.query('SELECT * FROM hotelroomview')
@@ -76,6 +77,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const roomtype = formData.get('roomtype')
     const noofbed = formData.get('noofbed')
     const roomview = formData.get('roomview')
+    const hotelid = formData.get('hotelid')
     // Retrieve amenities as an array of checked amenity IDs
     const selectedAmenities = formData.getAll('amenities')
 
@@ -84,10 +86,10 @@ export async function action({ request }: ActionFunctionArgs) {
     // SQL query to insert the hotel room data
 
     const hotelQuery = `
-      INSERT INTO hotelrooms (roomno, roomtypeid, noofbed, roomviewid) 
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO hotelrooms (roomno, roomtypeid, noofbed, roomviewid, hotelid) 
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING id`
-    const hotelValues = [roomno, roomtype, noofbed, roomview]
+    const hotelValues = [roomno, roomtype, noofbed, roomview, hotelid]
 
     // Execute SQL query to insert room data
     const result = await client.query(hotelQuery, hotelValues)
@@ -148,6 +150,7 @@ export default function RoomAddForm() {
   const actionData = useActionData()
   const toast = useToast() // Get the toast function from Remix or your UI library
   const navigate = useNavigate()
+  const { hotelId } = useGlobalContext();
 
   // UseEffect to handle showing the toast when actionData changes
   useEffect(() => {
@@ -186,6 +189,7 @@ export default function RoomAddForm() {
     <div className="ml-[18.4%] h-screen mt-16">
       <div className="max-w-2xl mx-auto mt-24 bg-white shadow-lg rounded-lg">
         {/* Header */}
+        <div>Current Hotel ID: {hotelId}</div>
         <div className="flex justify-between items-center bg-blue-400 w-full rounded-t-lg h-14">
           <h1 className="text-2xl font-bold text-white ml-10">Room</h1>
           <div className="flex space-x-4 mr-10">
@@ -205,6 +209,7 @@ export default function RoomAddForm() {
           className="grid grid-cols-2 gap-6 p-6"
           id="my-form"
         >
+          <input type='hidden' name='hotelid' defaultValue={hotelId}></input>
           {/* Room Number */}
           <div className="flex flex-col">
             <label htmlFor="roomno" className="text-gray-600">
@@ -327,9 +332,9 @@ export default function RoomAddForm() {
               ))}
             </div>
             <div className="flex flex-col w-32 mt-4">
-              <Button className="bg-blue-200 hover:bg-blue-300 text-blue-700 px-4 py-2 rounded-lg">
+              {/* <Button className="bg-blue-200 hover:bg-blue-300 text-blue-700 px-4 py-2 rounded-lg">
                 + Add More
-              </Button>
+              </Button> */}
             </div>
           </div>
           <div className="flex gap-5 ml-[95%]">

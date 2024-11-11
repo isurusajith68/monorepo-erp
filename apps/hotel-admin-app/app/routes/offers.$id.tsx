@@ -76,8 +76,8 @@ export async function action({ request }: ActionFunctionArgs) {
   } catch (error) {
     console.error('Error inserting hotel info:', error)
     // Return error response with details to show in the alert
-     // Return error response with details to show in the alert
-     return jsonWithSuccess(
+    // Return error response with details to show in the alert
+    return jsonWithSuccess(
       { result: 'Failed to save Room information. Please try again.' },
       'Failed to save Room information. Please try again.',
     )
@@ -86,7 +86,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 function ViewOffers() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const data = useLoaderData<typeof loader>()
   console.log('idh', data)
 
@@ -115,16 +115,15 @@ function ViewOffers() {
 
     // Submit form data
     await fetcher.submit(formData, { method: 'post' })
-    
   }
 
-  const formatDate = (dateString : string) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Ensure 2 digits
-    const day = date.getDate().toString().padStart(2, "0"); // Ensure 2 digits
-    return `${year}-${month}-${day}`;
-  };
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0') // Ensure 2 digits
+    const day = date.getDate().toString().padStart(2, '0') // Ensure 2 digits
+    return `${year}-${month}-${day}`
+  }
 
   return (
     <div className="ml-[18.3%] h-screen mt-14 bg-blue-200 fixed w-full">
@@ -137,72 +136,81 @@ function ViewOffers() {
             <div className="grid gap-2 mt-5">
               <div className="grid items-center gap-4">
                 <form id="myForm" method="post">
-                <div className="grid grid-cols-2 items-center gap-4">
-                  <input name="id" type="hidden" defaultValue={data.id} />
                   <div>
-                    <Label>Offers Name</Label>
-                    <Input
-                      name="offername"
-                      id="width"
-                      placeholder="Offer Name"
-                      className="col-span-2 h-10 border-2 border-blue-300"
-                      defaultValue={data.offername}
-                    />
+                    <input
+                      type="hidden"
+                      name="hotelid"
+                      defaultValue={data.hotelid}
+                    ></input>
                   </div>
-                  <div>
-                    <Label>Discount Percentage</Label>
-                    <Input
-                      name="discount"
-                      id="width"
-                      placeholder="Discount Percentage"
-                      className="col-span-2 h-10 border-2 border-blue-300"
-                      defaultValue={data.discount}
-                    />
-                  </div>
-                  <div>
-                    <Label>Start Date</Label>
-                    <Input
-                      name="startdate"
-                      type="date"
-                      id="width"
-                      placeholder="Start Date"
-                      className="col-span-2 h-10 border-2 border-blue-300"
-                      defaultValue={formatDate(data.startdate)}
-                    />
-                  </div>
-                  <div>
-                    <Label>End Date</Label>
-                    <Input
-                      name="enddate"
-                      type="date"
-                      id="width"
-                      placeholder="End Date"
-                      className="col-span-2 h-10 border-2 border-blue-300"
-                      defaultValue={formatDate(data.enddate)}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2">
-                  <div>
-                  <Link
-                        className="text-white bg-orange-500 hover:bg-orange-400  w-20 mt-10 h-20"
-                        to={'/offers-list'}
-                      >
-                        <Button className='text-white bg-orange-500 hover:bg-orange-400 mt-10'>Close</Button>
-                      </Link>
-                  </div>
-                  <div>
-                  <Button
-                    onClick={handleSubmit}
-                    //onClick={() => navigate('/room-type/list')}
-                    className="text-white bg-blue-500 hover:bg-blue-400 mt-10  "
-                  >
-                    Update
-                  </Button>
-                </div>
-                  </div>
+                  <div className="grid grid-cols-2 items-center gap-4">
+                    <input name="id" type="hidden" defaultValue={data.id} />
+                    <div>
+                      <Label>Offers Name</Label>
+                      <Input
+                        name="offername"
+                        id="width"
+                        placeholder="Offer Name"
+                        className="col-span-2 h-10 border-2 border-blue-300"
+                        defaultValue={data.offername}
+                      />
+                    </div>
+                    <div>
+                      <Label>Discount Percentage</Label>
+                      <Input
+                        name="discount"
+                        id="width"
+                        placeholder="Discount Percentage"
+                        className="col-span-2 h-10 border-2 border-blue-300"
+                        defaultValue={data.discount}
+                      />
+                    </div>
+                    <div>
+                      <Label>Start Date</Label>
+                      <Input
+                        name="startdate"
+                        type="date"
+                        id="width"
+                        placeholder="Start Date"
+                        className="col-span-2 h-10 border-2 border-blue-300"
+                        defaultValue={formatDate(data.startdate)}
+                      />
+                    </div>
+                    <div>
+                      <Label>End Date</Label>
+                      <Input
+                        name="enddate"
+                        type="date"
+                        id="width"
+                        placeholder="End Date"
+                        className="col-span-2 h-10 border-2 border-blue-300"
+                        defaultValue={formatDate(data.enddate)}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2">
+                      <div>
+                        <Link
+                          className="text-white bg-orange-500 hover:bg-orange-400  w-20 mt-10 h-20"
+                          to={'/offers-list'}
+                        >
+                          <Button className="text-white bg-orange-500 hover:bg-orange-400 mt-10">
+                            Close
+                          </Button>
+                        </Link>
+                      </div>
+                      <div>
+                        <Button
+                          onClick={handleSubmit}
+                          //onClick={() => navigate('/room-type/list')}
+                          className="text-white bg-blue-500 hover:bg-blue-400 mt-10  "
+                        >
+                          Update
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </form>
-            </div>
+              </div>
             </div>
           </div>
         </div>

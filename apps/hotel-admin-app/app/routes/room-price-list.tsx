@@ -35,6 +35,7 @@ import { useEffect } from 'react'
 import { Slide, ToastContainer, toast as notify } from 'react-toastify'
 import "react-toastify/dist/ReactToastify.css";
 import "../app-component/style.css"
+import { useGlobalContext } from '~/GlobalContext'
 
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -100,6 +101,7 @@ export default function RoomPriceList() {
   const [searchEndDate, setsearchEndDate] = useState("");
   const actionData = useActionData() // Capture action data (including toast data)
   const submit = useSubmit()
+  
 
   // UseEffect to handle showing the toast when actionData changes
   useEffect(() => {

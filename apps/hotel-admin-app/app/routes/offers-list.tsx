@@ -42,6 +42,7 @@ import {
   useFetcher,
   useLoaderData,
   useNavigate,
+  useParams,
   useSubmit,
 } from '@remix-run/react'
 import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
@@ -49,6 +50,7 @@ import { client } from '~/db.server'
 import { Slide, ToastContainer, toast as notify } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import '../app-component/style.css'
+import { useGlobalContext } from '~/GlobalContext'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const result = await client.query('SELECT * FROM hoteloffers')
@@ -90,8 +92,15 @@ export async function action({ request }: ActionFunctionArgs) {
     const discount = formData.get('discount')
     const startdate = formData.get('startdate')
     const enddate = formData.get('enddate')
-    const hotelQuery = `INSERT INTO hoteloffers (offername, discount, startdate, enddate) VALUES ($1, $2, $3, $4)`
-    await client.query(hotelQuery, [offername, discount, startdate, enddate])
+    const hotelid = formData.get('hotelid')
+    const hotelQuery = `INSERT INTO hoteloffers (offername, discount, startdate, enddate, hotelid) VALUES ($1, $2, $3, $4, $5)`
+    await client.query(hotelQuery, [
+      offername,
+      discount,
+      startdate,
+      enddate,
+      hotelid,
+    ])
     // Returning JSON with success toast data
     return jsonWithSuccess(
       { result: 'Hotel Offer saved successfully!' },
@@ -107,6 +116,7 @@ export default function Offers() {
   const fetcher = useFetcher()
   const actionData = useActionData() // Capture action data (including toast data)
   const submit = useSubmit()
+  const { hotelId } = useGlobalContext()
 
   // UseEffect to handle showing the toast when actionData changes
   useEffect(() => {
@@ -127,6 +137,7 @@ export default function Offers() {
           isPopoverOpen ? 'bg-blue-100' : ''
         }`}
       >
+        <div>Current Hotel ID: {hotelId}</div>
         <div className="ml-5 mt-2 text-xl font-semibold">
           <div className="flex items-center">
             <h1 className="text-3xl font-bold mt-12">Special Offer List</h1>
@@ -151,6 +162,13 @@ export default function Offers() {
                   </div>
                   <div className="grid gap-2 mt-5">
                     <Form method="post">
+                      <div>
+                        <input
+                          type="hidden"
+                          name="hotelid"
+                          defaultValue={hotelId}
+                        ></input>
+                      </div>
                       <div className="grid grid-cols-2 items-center gap-4">
                         <div>
                           <Label>Offers Name</Label>

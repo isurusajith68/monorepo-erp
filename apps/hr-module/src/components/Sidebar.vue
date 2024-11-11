@@ -11,10 +11,10 @@ Hotel,
 
 
 const links = [
-  { text: 'Dashboard', to: '/', icon: CircleGauge },
+  { text: 'Dashboard', to: '/dashboard', icon: CircleGauge },
   { text: 'Departments', to: '/departments', icon: Landmark },
   { text: 'Employees', to: '/employees', icon: Users },
-  { text: 'Attendance', to: '/attendance', icon: FileSpreadsheet },
+  { text: 'Attendance', to: '/attendance/list', icon: FileSpreadsheet },
   { text: 'Leaves', to: '/leaves', icon: TentTree },
   { text: 'Report', to: '/report', icon: Files },
 ]

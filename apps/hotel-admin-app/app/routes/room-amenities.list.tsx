@@ -33,6 +33,7 @@ import { useEffect } from 'react'
 import { Slide, ToastContainer, toast as notify } from 'react-toastify'
 import "react-toastify/dist/ReactToastify.css";
 import "../app-component/style.css"
+import { useGlobalContext } from '~/GlobalContext';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const result = await client.query('SELECT * FROM roomamenities');
@@ -70,8 +71,9 @@ export async function action({ request }: ActionFunctionArgs) {
   } else {
     // INSERT request
     const amenityType = formData.get('name');
-    const hotelQuery = `INSERT INTO roomamenities (name) VALUES ($1)`;
-    await client.query(hotelQuery, [amenityType]);
+    const hotelid = formData.get('hotelid');
+    const hotelQuery = `INSERT INTO roomamenities (name, hotelid) VALUES ($1, $2)`;
+    await client.query(hotelQuery, [amenityType, hotelid]);
      // Returning JSON with success toast data
      return jsonWithSuccess(
       { result: 'Hotel Amenity Type saved successfully!' },
@@ -84,7 +86,7 @@ export default function RoomAmenities() {
   const navigate = useNavigate();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const data = useLoaderData<typeof loader>();
-
+  const { hotelId } = useGlobalContext()
   const actionData = useActionData() // Capture action data (including toast data)
   const submit = useSubmit()
 
@@ -121,6 +123,13 @@ export default function RoomAmenities() {
                   <div className="grid gap-2 mt-5">
                     <div className="grid items-center gap-4">
                       <Form method="post">
+                      <div>
+                        <input
+                          type="hidden"
+                          name="hotelid"
+                          defaultValue={hotelId}
+                        ></input>
+                      </div>
                         <Input id="width" name="name" placeholder="Amenity Type" className="col-span-2 h-10" />
                         <Button type="submit" className="text-white bg-blue-500 hover:bg-blue-400 mt-10 lg:ml-[80%]">
                           Add

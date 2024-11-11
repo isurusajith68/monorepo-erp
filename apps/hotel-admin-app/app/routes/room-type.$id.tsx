@@ -124,15 +124,23 @@ function RoomEdit() {
   return (
     <div className="ml-[18.3%] h-screen mt-14 bg-blue-200 fixed w-full">
       <div>
-        <div className="lg:w-[40%] lg:ml-[20%] h-52 bg-white p-8 shadow-xl mt-36">
+        <div className="lg:w-[40%] lg:ml-[20%] h-72 bg-white p-8 shadow-xl mt-36">
           <div className="grid gap-4">
             <div className="space-y-2">
-              <h4 className="font-medium leading-none">Room Type</h4>
+              <h4 className="font-medium leading-none">Edit Room Type</h4>
             </div>
             <div className="grid gap-2 mt-5">
               <div className="grid items-center gap-4">
                 <form id="myForm" method="post">
+                  <div>
+                    <input
+                      type="hidden"
+                      name="hotelid"
+                      defaultValue={data.hotelid}
+                    ></input>
+                  </div>
                   <input name="id" type="hidden" defaultValue={data.id} />
+                 <div>
                   <Input
                     id="width"
                     name="roomtype"
@@ -141,13 +149,26 @@ function RoomEdit() {
                     defaultValue={data.roomtype}
                     required
                   />
+                 </div>
+                  <div className='mt-5'>
+                  <Input
+                    id="width"
+                    name="maxadultcount"
+                    placeholder="Room Type"
+                    className="col-span-2 h-10"
+                    defaultValue={data.maxadultcount}
+                    required
+                  />
+                  </div>
                   <div className="flex gap-10 lg:ml-[60%]">
                     <div>
                       <Link
                         className="text-white bg-orange-500 hover:bg-orange-400  w-20 mt-10 h-20"
                         to={'/room-type/list'}
                       >
-                        <Button className='text-white bg-orange-500 hover:bg-orange-400 mt-10'>Close</Button>
+                        <Button className="text-white bg-orange-500 hover:bg-orange-400 mt-10">
+                          Close
+                        </Button>
                       </Link>
                     </div>
                     <div>
