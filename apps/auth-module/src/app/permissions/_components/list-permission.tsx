@@ -171,8 +171,8 @@ export default function ListPermission() {
 
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import useHotelIdStore from '@/app/stores/modules-store'
 import { useGetModules } from '@/app/modules/_services/queries'
+import { useHotelIdStore } from '@/app/stores/modules-store'
 
 export const ActionSelector = ({
   actionId,

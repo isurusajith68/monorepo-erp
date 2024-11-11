@@ -13,13 +13,27 @@ export const useGetUserPermission = (rid: any) => {
     },
   })
 }
-export const useGetPermittedModules = (rid: any) => {
+// export const useGetPermittedModules = (rid: any) => {
+//   const apiUrl = import.meta.env.VITE_API_URL
+
+//   return useQuery({
+//     queryKey: ['permittedModules', rid],
+//     queryFn: async () => {
+//       const response = await Axios.get(`${apiUrl}permittedModules/${rid}`)
+//       console.log('response permittedModules', response)
+//       return response.data
+//     },
+//   })
+// }
+export const useGetPermittedModules = (rid: number, hotelid: number) => {
   const apiUrl = import.meta.env.VITE_API_URL
 
   return useQuery({
     queryKey: ['permittedModules', rid],
     queryFn: async () => {
-      const response = await Axios.get(`${apiUrl}permittedModules/${rid}`)
+      const response = await Axios.get(
+        `${apiUrl}permittedModules/${rid}/${hotelid}`,
+      )
       console.log('response permittedModules', response)
       return response.data
     },

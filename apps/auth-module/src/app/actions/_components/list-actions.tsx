@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useState } from 'react'
-import useHotelIdStore from '@/app/stores/modules-store'
+import { useHotelIdStore } from '@/app/stores/modules-store'
 
 export default function ListActions() {
   const [selectedModule, setSelectedModule] = useState(null)

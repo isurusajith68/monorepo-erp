@@ -13,11 +13,13 @@ import { toast } from '@/hooks/use-toast'
 import Sidebar from '@/components/Navbar/sidebar'
 import Navbar from '@/components/Navbar/navbar'
 import { Toaster } from '@/components/ui/toaster'
-import useModuleStore from './stores/modules-store'
+import useModuleStore, { useHotelIdStore } from './stores/modules-store'
 
 export default function RootLayout() {
   const navigate = useNavigate()
   const { removeAllModules } = useModuleStore()
+  const { removeAllIds } = useHotelIdStore()
+
   const logout = async () => {
     const response = await Axios.get('http://localhost:10000/logout', {
       withCredentials: true,
@@ -26,6 +28,7 @@ export default function RootLayout() {
     console.log('logout respone', response)
     if (response.data.success) {
       removeAllModules()
+      removeAllIds()
       toast({
         title: 'Logout successfull',
         description: response.data.message,

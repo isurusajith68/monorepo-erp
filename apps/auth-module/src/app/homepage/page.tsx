@@ -1,17 +1,18 @@
 import { Button } from '@/components/ui/button'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { FaCheckCircle, FaChevronRight } from 'react-icons/fa'
-import useHotelIdStore from '../stores/modules-store'
+
 import { useEffect } from 'react'
+import { useHotelIdStore } from '../stores/modules-store'
 
 export default function HomePage() {
   const Navigate = useNavigate()
   /////////constant hotel id//////////////
   const hid = 24
-  const { hotelid, addHotelId } = useHotelIdStore()
+  const { hotelid, setHotelId } = useHotelIdStore()
   useEffect(() => {
-    addHotelId(hid)
-  }, [hid, addHotelId])
+    setHotelId(hid)
+  }, [hid, setHotelId])
   useEffect(() => {
     console.log('hotelidmmm', hotelid)
   }, [hotelid])

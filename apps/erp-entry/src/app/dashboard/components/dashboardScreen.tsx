@@ -6,7 +6,7 @@ import {
   useGetPermittedModules,
   useGetUserPermission,
 } from '../services/queries'
-import useModuleStore from '@/app/stores/modules-store'
+import useModuleStore, { useHotelIdStore } from '@/app/stores/modules-store'
 
 export default function DashboardScreen() {
   const navigate = useNavigate()
@@ -14,10 +14,12 @@ export default function DashboardScreen() {
 
   const { addModules } = useModuleStore()
 
-  const { rid } = useParams()
+  const { roleid, hotelid } = useHotelIdStore()
 
-  const { data: permissions } = useGetUserPermission(rid)
-  const { data: modules } = useGetPermittedModules(rid)
+  const { data: permissions } = useGetUserPermission(roleid)
+  const { data: modules } = useGetPermittedModules(roleid, hotelid)
+  console.log('hotelid', hotelid)
+  console.log('roleidqqq', roleid)
 
   useEffect(() => {
     addModules(modules)

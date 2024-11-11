@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form'
 import { toast } from '@/hooks/use-toast'
 import { useGetUser } from '../services/queries'
-import useModuleStore from '@/app/stores/modules-store'
+import useModuleStore, { useHotelIdStore } from '@/app/stores/modules-store'
 
 const FormSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -33,6 +33,10 @@ const LoginForm = () => {
   const [module, setModule] = useState([])
 
   const { modules } = useModuleStore()
+
+  /////////constant hotel id//////////////
+  const hid = 24
+  const { setRoleId, setHotelId } = useHotelIdStore()
 
   useEffect(() => {
     if (modules != undefined) {
@@ -67,13 +71,16 @@ const LoginForm = () => {
 
   useEffect(() => {
     if (dataLogin && dataLogin.success) {
+      setHotelId(hid)
+      setRoleId(dataLogin.rid)
+
       toast({
         title: 'Logging successfull',
         description: dataLogin.message,
       })
       window.localStorage.setItem('loggedin', 'true')
 
-      navigate(`/dashboard/${dataLogin.rid}`)
+      navigate(`/dashboard`)
     } else {
       if (dataLogin) {
         toast({

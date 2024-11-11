@@ -13,7 +13,7 @@ import { getDirtyValuesTF } from '@/lib/utils'
 import { useNavigate, useParams } from 'react-router-dom'
 import Navbar from '@/components/commonUi/navbar'
 import { toast } from '@/hooks/use-toast'
-import useHotelIdStore from '@/app/stores/modules-store'
+import { useHotelIdStore } from '@/app/stores/modules-store'
 
 const roleDetailSchema = z.object({
   hotelid: z.number().optional(),

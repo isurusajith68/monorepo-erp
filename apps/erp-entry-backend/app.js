@@ -298,6 +298,7 @@ app.post('/addrole', async (req, res) => {
 
 app.get('/getroles/:hotelid', (req, res) => {
   const { hotelid } = req.params
+
   const dbquery = `SELECT * FROM userroles where hotelid=$1 or hotelid=0 ORDER BY rid;`
   pool.query(dbquery, [hotelid]).then((dbres) => {
     if (dbres.rows.length > 0) {
@@ -439,16 +440,19 @@ app.get('/userpermissions/:roleid', (req, res) => {
   })
 })
 
-app.get('/permittedModules/:roleid', (req, res) => {
+app.get('/permittedModules/:roleid/:hotelid', (req, res) => {
   const roleid = req.params.roleid
-
-  console.log('roleid', roleid)
+  const hotelid = req.params.hotelid
 
   const query = `SELECT p.modid,m.modname,m.url,m.icon FROM permissions AS p INNER JOIN modules AS m 
-                 ON p.modid=m.modid AND p.rid='${roleid}'
-                 group by p.modid,m.modname,m.url,m.icon  `
+                 ON p.modid=m.modid AND p.rid=$1
+				 INNER JOIN hotelmodulemap hm  ON hm.modid=p.modid and hm.hotelid=$2
+                 group by p.modid,m.modname,m.url,m.icon`
+  // const query = `SELECT p.modid,m.modname,m.url,m.icon FROM permissions AS p INNER JOIN modules AS m
+  //                ON p.modid=m.modid AND p.rid='${roleid}'
+  //                group by p.modid,m.modname,m.url,m.icon `
 
-  pool.query(query).then((dbres) => {
+  pool.query(query, [roleid, hotelid]).then((dbres) => {
     console.log('dbres', dbres)
 
     if (dbres.rows.length > 0) {

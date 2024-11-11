@@ -19,7 +19,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useGetModules } from '@/app/modules/_services/queries'
-import useHotelIdStore from '@/app/stores/modules-store'
+import { useHotelIdStore } from '@/app/stores/modules-store'
+// import useHotelIdStore from '@/app/stores/modules-store'
 
 export default function ListDocuments() {
   const { hotelid } = useHotelIdStore()
