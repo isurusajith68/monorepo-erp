@@ -295,6 +295,8 @@ const RoomSelection = () => {
   })
 
   const handleSearch = () => {
+    console.log('testttttttttt')
+
     const checkindate = form.getFieldValue('checkindate')
     const checkoutdate = form.getFieldValue('checkoutdate')
     // console.log('Searching for rooms with:', checkindate, checkoutdate)
@@ -311,6 +313,10 @@ const RoomSelection = () => {
       console.error('Both check-in and check-out dates are required.')
     }
   }
+
+  useEffect(() => {
+    handleSearch()
+  }, [checkindate, checkoutdate])
 
   // console.log('checkindateeeeeeeeeeeeeeeeeeeeeeee', checkindate)
 
@@ -330,23 +336,28 @@ const RoomSelection = () => {
     if (bookingdata) {
       try {
         // Populate the form with fetched data
-        const tttt = formatInTimeZone(
+        const formatedcheckindate = formatInTimeZone(
           bookingdata.data.checkindate,
           'Asia/Colombo',
-          'yyyy-MM-dd HH:mm:ss zzz',
+          'yyyy-MM-dd',
+        )
+        const formatedcheckoutdate = formatInTimeZone(
+          bookingdata.data.checkoutdate,
+          'Asia/Colombo',
+          'yyyy-MM-dd',
         )
         const ttttaa = formatInTimeZone(
           bookingdata.data.checkindate,
           'Asia/Colombo',
           'yyyy-MM-dd ',
         )
-        console.log('ttttaa', tttt)
-        console.log('ttttaa', ttttaa)
+        // console.log('ttttaa', tttt)
+        // console.log('ttttaa', ttttaa)
 
-        form.setFieldValue('checkindate', ttttaa)
+        form.setFieldValue('checkindate', formatedcheckindate)
         form.setFieldValue('booking_id', bookingdata.data.booking_id)
         form.setFieldValue('guestid', bookingdata.data.guestid)
-        form.setFieldValue('checkoutdate', bookingdata.data.checkoutdate)
+        form.setFieldValue('checkoutdate', formatedcheckoutdate)
         form.setFieldValue('flexibledates', bookingdata.data.flexibledates)
         form.setFieldValue('adults', bookingdata.data.adults)
         form.setFieldValue('children', bookingdata.data.children)

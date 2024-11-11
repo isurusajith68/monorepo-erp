@@ -107,8 +107,8 @@ bookingRouter.post('/bookinginsert', async (req: Request, res: Response) => {
       const roomsql = `select * from public.hotelrooms where id not in
         (SELECT bd.roomid FROM public.booking b
       join public.bookingdetails bd on bd.bookingid = b.id
-        where $1 not between b.checkindate   and b.checkoutdate 
-        and $2 not between b.checkindate   and b.checkoutdate)
+        where $1  between b.checkindate   and b.checkoutdate 
+        and $2  between b.checkindate   and b.checkoutdate)
         and roomtypeid = $3 and roomviewid=$4;`
 
       const resrooms = await pool.query(roomsql, [
@@ -142,8 +142,8 @@ bookingRouter.post('/bookinginsert', async (req: Request, res: Response) => {
         const roomsql = `select * from public.hotelrooms where id not in
             (SELECT bd.roomid FROM public.booking b
             join public.bookingdetails bd on bd.bookingid = b.id
-            where $1 not between b.checkindate   and b.checkoutdate 
-            and $2 not between b.checkindate   and b.checkoutdate)
+            where $1  between b.checkindate   and b.checkoutdate 
+            and $2  between b.checkindate   and b.checkoutdate)
             and roomtypeid = $3 and roomviewid=$4;`
 
         const resrooms1 = await pool.query(roomsql, [
@@ -228,10 +228,10 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
     const client = await pool.connect()
     try {
       //update guest information
-      console.log('bookingHeaderData', bookingHeaderData)
+      // console.log('bookingHeaderData', bookingHeaderData)
 
       if (guestInfo) {
-        console.log('you', guestInfo)
+        // console.log('you', guestInfo)
 
         const [updatesql, valuesArray] = getUpdateQuery(
           guestInfo,
@@ -305,13 +305,13 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
                   a + c.occupantdetails.filter((o: any) => o.roomid < 0).length,
                 0,
               )
-              console.log('rowCountaaa', elements[0])
+              // console.log('rowCountaaa', elements[0])
 
               const roomsql = `select * from public.hotelrooms where id not in
         (SELECT bd.roomid FROM public.booking b
       join public.bookingdetails bd on bd.bookingid = b.id
-        where $1 not between b.checkindate   and b.checkoutdate 
-        and $2 not between b.checkindate   and b.checkoutdate)
+        where $1  between b.checkindate   and b.checkoutdate 
+        and $2  between b.checkindate   and b.checkoutdate)
         and roomtypeid = $3 and roomviewid=$4;`
 
               const resrooms = await pool.query(roomsql, [
@@ -344,16 +344,16 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
               )
               //const rowcount = minusvalrooms.length
               // const room = selectedRooms[index]
-              console.log('-insert0', room)
+              // console.log('-insert0', room)
               for (let i1 = 0; i1 < minusvalrooms.length; i1++) {
                 const room = elements[i1]
-                console.log('-insert1', room)
+                // console.log('-insert1', room)
 
                 const roomsql = `select * from public.hotelrooms where id not in
             (SELECT bd.roomid FROM public.booking b
             join public.bookingdetails bd on bd.bookingid = b.id
-            where $1 not between b.checkindate   and b.checkoutdate 
-            and $2 not between b.checkindate   and b.checkoutdate)
+            where $1  between b.checkindate   and b.checkoutdate 
+            and $2  between b.checkindate   and b.checkoutdate)
             and roomtypeid = $3 and roomviewid=$4;`
 
                 const resrooms1 = await pool.query(roomsql, [
@@ -370,8 +370,8 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
                   rindex++
                 ) {
                   const rrow = room.occupantdetails[rindex]
-                  console.log('-insert2', rrow)
-                  console.log('insert-begins')
+                  // console.log('-insert2', rrow)
+                  // console.log('insert-begins')
 
                   //insert booking room
 
@@ -380,7 +380,7 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
                   let roomId = 0
                   //if exists
                   if (resrooms1.rowCount ?? 0 > 0) {
-                    console.log('awaa')
+                    // console.log('awaa')
 
                     roomId = resrooms1.rows[rindex].id
                     // if(!allocatedRoomids.includes(roomId)){
@@ -405,7 +405,7 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
                       infantcount,
                       room.price,
                     ])
-                    console.log('res', res)
+                    // console.log('res', res)
 
                     //   let bid = res.rowCount ?? 0 > 0 ? res.rows[0].id : 0
                     //   if (res.rowCount ?? 0 > 0) {
@@ -455,7 +455,7 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
       client.release()
     }
   } catch (error) {
-    console.log('error', error)
+    // console.log('error', error)
     res.status(500).json({ message: 'Error creating user', error })
   }
 })
@@ -489,7 +489,7 @@ bookingRouter.get('/bookings/:id', async (req: Request, res: Response) => {
         WHERE 
           b.id = $1;
       `
-    console.log('process.env.TZ', process.env.TZ)
+    // console.log('process.env.TZ', process.env.TZ)
 
     const result = await client.query(query, [id])
 
@@ -506,7 +506,7 @@ bookingRouter.get('/bookings/:id', async (req: Request, res: Response) => {
 
     //get details
 
-    const bookingdetails = `SELECT bd.* , r.roomtypeid ,r.roomviewid  ,ht.roomtype as type,hv.roomview as view
+    const bookingdetails = `SELECT bd.* , r.roomtypeid as typeid ,r.roomviewid as viewid  ,ht.roomtype as type,hv.roomview as view
               FROM bookingdetails bd
               join public.hotelrooms r
               on bd.roomid = r.id
@@ -523,7 +523,7 @@ bookingRouter.get('/bookings/:id', async (req: Request, res: Response) => {
     // console.log('bdresult', bdresult)
 
     // Return the booking and guest information
-    console.log('bookingDatax', bookingData)
+    // console.log('bookingDatax', bookingData)
 
     res.status(200).json({
       success: true,
@@ -547,16 +547,16 @@ bookingRouter.get('/bookings/:id', async (req: Request, res: Response) => {
 bookingRouter.get('/rooms', async (req, res) => {
   const { checkindate, checkoutdate } = req.query
 
-  const countsql = `select count(*), roomtypeid , roomviewid from public.hotelrooms where id not in
+  const countsql = `select count(*), roomtypeid as typeid, roomviewid as viewid from public.hotelrooms where id not in
         (SELECT bd.roomid FROM public.booking b
       join public.bookingdetails bd on bd.bookingid = b.id
         where $1  between b.checkindate   and b.checkoutdate 
-        and $2  between b.checkindate   and b.checkoutdate)
+        or $2  between b.checkindate   and b.checkoutdate)
 	group by roomtypeid , roomviewid `
 
   const count = await pool.query(countsql, [checkindate, checkoutdate])
 
-  console.log('count', count.rows)
+  // console.log('count', count.rows)
 
   const getAllBookingQuery = `
       select r.roomtypeid,r.roomviewid, t.roomtype ,v.roomview,t.maxadultcount from public.hotelrooms r
@@ -564,18 +564,25 @@ bookingRouter.get('/rooms', async (req, res) => {
     on t.id = r.roomtypeid 
     JOIN public.hotelroomview v
     on v.id = r.roomviewid 
-    WHERE r.id not in 
-    (SELECT bd.roomid FROM public.bookingdetails bd
-    join public.booking b 
-    on b.id =bd.bookingid
-    WHERE $1 BETWEEN b.checkindate AND b.checkoutdate
-    or $2  between b.checkindate AND b.checkoutdate)
     group by r.roomtypeid , r.roomviewid ,t.roomtype ,v.roomview,t.maxadultcount
-    
     `
+  // const getAllBookingQuery = `
+  //     select r.roomtypeid,r.roomviewid, t.roomtype ,v.roomview,t.maxadultcount from public.hotelrooms r
+  //   JOIN public.hotelroomtypes t
+  //   on t.id = r.roomtypeid
+  //   JOIN public.hotelroomview v
+  //   on v.id = r.roomviewid
+  //   WHERE r.id not in
+  //   (SELECT bd.roomid FROM public.bookingdetails bd
+  //   join public.booking b
+  //   on b.id =bd.bookingid
+  //   WHERE $1 BETWEEN b.checkindate AND b.checkoutdate
+  //   or $2  between b.checkindate AND b.checkoutdate)
+  //   group by r.roomtypeid , r.roomviewid ,t.roomtype ,v.roomview,t.maxadultcount
+  //   `
 
   pool
-    .query(getAllBookingQuery, [checkindate, checkoutdate])
+    .query(getAllBookingQuery, [])
     .then((response) => {
       if (response.rows.length > 0) {
         const bookingData = response.rows // Get all rows
@@ -604,7 +611,8 @@ bookingRouter.get('/rooms', async (req, res) => {
 bookingRouter.get('/prices', (req, res) => {
   const { checkindate } = req.query
   const getAllBookingQuery = `
-      SELECT p.*, v.roomview, t.roomtype from public.hotelroompriceshedules s
+      SELECT p.id, p.roprice, p.bbprice, p.hbprice, p.fbprice, p.nrroprice, p.nrbbprice, p.nrhbprice, p.nrfbprice, p.sheduleid, p.roomtypeid as typeid, p.roomviewid as viewid
+, v.roomview, t.roomtype from public.hotelroompriceshedules s
     JOIN public.hotelroomprices p
     on s.id = p.sheduleid
     join public.hotelroomview v 
@@ -637,7 +645,7 @@ bookingRouter.get('/prices', (req, res) => {
 
 bookingRouter.get('/guest-by-phone/:phone', async (req, res) => {
   const { phone } = req.params
-  console.log('phoneeee2222', phone)
+  // console.log('phoneeee2222', phone)
   //rrrrrrr
   try {
     const query = 'SELECT * FROM guestinformation WHERE phonenumber = $1'
@@ -655,7 +663,7 @@ bookingRouter.get('/guest-by-phone/:phone', async (req, res) => {
 
 bookingRouter.get('/getbookedbookings/:phonenum', async (req, res) => {
   const { phonenum } = req.params
-  console.log('phonenum', phonenum)
+  // console.log('phonenum', phonenum)
 
   try {
     const sql = `SELECT b.id,b.checkindate, b.checkoutdate,b.remarks FROM public.booking b
@@ -665,19 +673,13 @@ where phonenumber = $1`
 
     const resultsql = await pool.query(sql, [phonenum])
 
-    console.log('resultsql', resultsql.rows)
+    // console.log('resultsql', resultsql.rows)
 
     // if (resultsql.rows.length > 0) {
     res.status(200).json({ success: true, data: resultsql.rows })
     // } else {
     //   res.status(200).json({ success: false, msg: 'Booking not found' })
     // }
-  } catch {}
-})
-
-bookingRouter.get('/roomdetails', (req, res) => {
-  try {
-    const allrooms = `select * from `
   } catch {}
 })
 
