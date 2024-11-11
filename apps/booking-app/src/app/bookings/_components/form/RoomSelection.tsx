@@ -108,8 +108,8 @@ type SelectedRoomType = {
 const hotelid = 24
 
 type RoomTypeViewType = {
-  roomtypeid: number | null
-  roomviewid: number | null
+  typeid: number | null
+  viewid: number | null
   count: number | null
 }
 
@@ -142,7 +142,7 @@ const RoomSelection = () => {
     undefined,
   )
   const [bookeddata, setBookeddata] = useState([])
-  const { data: roomprices } = useGetPrice(checkindate)
+  const { data: roomprices } = useGetPrice(checkindate, id)
 
   // console.log('roomprices', roomprices)
 
@@ -182,6 +182,8 @@ const RoomSelection = () => {
     }
   }, [getphonedata])
 
+  // console.log("roomtypeviewcounts",roomtypeviewcounts)
+
   // form.setFieldValue('roles', roles.roles)
   const form = useForm({
     defaultValues: {
@@ -217,7 +219,7 @@ const RoomSelection = () => {
         let bookingHeaderData: any
         let guestInfo: any
         if (dirtyValues) {
-          // console.log('dirtyvaluessssssss', dirtyValues)
+          console.log('dirtyvaluessssssss', dirtyValues)
 
           // if (dirtyValues) {
           // console.log('Dirty values to update:', dirtyValues)
@@ -314,15 +316,16 @@ const RoomSelection = () => {
     }
   }
 
-  useEffect(() => {
-    handleSearch()
-  }, [checkindate, checkoutdate])
+  // useEffect(() => {
+  //   handleSearch()
+  // }, [checkindate, checkoutdate])
 
   // console.log('checkindateeeeeeeeeeeeeeeeeeeeeeee', checkindate)
 
   const { data: roomviewtypes, isFetched: isFetchedRoomTypes } = useGetRoomtype(
     checkindate,
     checkoutdate,
+    id,
   )
   // console.log('cooooooo', roomviewtypes)
 
@@ -353,6 +356,7 @@ const RoomSelection = () => {
         )
         // console.log('ttttaa', tttt)
         // console.log('ttttaa', ttttaa)
+        setcheckindate(bookingdata.data.checkindate)
 
         form.setFieldValue('checkindate', formatedcheckindate)
         form.setFieldValue('booking_id', bookingdata.data.booking_id)
@@ -375,9 +379,9 @@ const RoomSelection = () => {
         // console.log('bookingdata', bookingdata)
 
         const grpRooms = Object.groupBy(bookingdata.details, (r) => {
-          // console.log("r.roomtypeid,r.roomviewid,r.basis",r.roomtypeid,r.roomviewid,r.basis)
+          // console.log("r.typeid,r.viewid,r.basis",r.typeid,r.viewid,r.basis)
 
-          return `${r.roomtypeid}-${r.roomviewid}-${r.basis}`
+          return `${r.typeid}-${r.viewid}-${r.basis}`
         })
 
         const r = Object.keys(grpRooms).map((r) => {
@@ -406,10 +410,21 @@ const RoomSelection = () => {
   }, [bookingdata])
 
   useEffect(() => {
+    console.log('roomviewtypes', roomviewtypes)
+
     if (roomviewtypes) {
       setroomtypeviewcounts(roomviewtypes.roomcounts)
     }
   }, [roomviewtypes])
+
+  useEffect(() => {
+    const t = selectedRooms.reduce((a, c) => a + c.count * c.price, 0)
+
+    // console.log('qqqselectedRooms', selectedRooms)
+  }, [selectedRooms])
+  useEffect(() => {
+    // console.log('selectedRoomBasis', selectedRoomBasis)
+  }, [selectedRoomBasis])
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCurrency = e.target.value
@@ -437,9 +452,29 @@ const RoomSelection = () => {
     if (room) {
       if (room.occupantdetails.length == 1) {
         handleremove(room.typeid, room.viewid, room.basis)
+
         return
       }
     }
+    //increse room count
+    setroomtypeviewcounts((rc) => {
+      const rtindex = rc.findIndex(
+        (r) => r.typeid == typeid && r.viewid == viewid,
+      )
+      if (rtindex != -1) {
+        return [
+          ...rc.slice(0, rtindex),
+          {
+            ...rc[rtindex],
+            count: rc[rtindex].count + 1,
+          },
+          ...rc.slice(rtindex + 1),
+        ]
+      } else {
+        console.warn('not found typeis && viewid')
+        return rc
+      }
+    })
 
     setselectedRooms((p) => {
       const i = p.findIndex(
@@ -476,11 +511,40 @@ const RoomSelection = () => {
           !(rb.typeid == typeid && rb.viewid == viewid && rb.basis == basis),
       )
     })
+
+    const totalRemovedCount = selectedRooms
+      .filter(
+        (rb) => rb.typeid == typeid && rb.viewid == viewid && rb.basis == basis,
+      )
+      .reduce((a, c) => {
+        return a + c.occupantdetails.length
+      }, 0)
+
     setselectedRooms((p) => {
       return p.filter(
         (rb) =>
           !(rb.typeid == typeid && rb.viewid == viewid && rb.basis == basis),
       )
+    })
+
+    //increse room count
+    setroomtypeviewcounts((rc) => {
+      const rtindex = rc.findIndex(
+        (r) => r.typeid == typeid && r.viewid == viewid,
+      )
+      if (rtindex != -1) {
+        return [
+          ...rc.slice(0, rtindex),
+          {
+            ...rc[rtindex],
+            count: rc[rtindex].count + totalRemovedCount,
+          },
+          ...rc.slice(rtindex + 1),
+        ]
+      } else {
+        console.warn('not found typeis && viewid')
+        return rc
+      }
     })
   }
 
@@ -507,6 +571,25 @@ const RoomSelection = () => {
       addoccupentdata(typeid, viewid, res.basis)
       return
     } else {
+      //decrease room conuts
+      setroomtypeviewcounts((rc) => {
+        const rtindex = rc.findIndex(
+          (r) => r.typeid == typeid && r.viewid == viewid,
+        )
+        if (rtindex != -1) {
+          return [
+            ...rc.slice(0, rtindex),
+            {
+              ...rc[rtindex],
+              count: rc[rtindex].count - 1,
+            },
+            ...rc.slice(rtindex + 1),
+          ]
+        } else {
+          console.warn('not found typeis && viewid')
+          return rc
+        }
+      })
       setselectedRooms((p) => {
         // const res = selectedRoomBasis.find(
         //   (r) => r.typeid == typeid && r.viewid == viewid,
@@ -560,6 +643,26 @@ const RoomSelection = () => {
   }
 
   const addoccupentdata = (typeid, viewid, basis) => {
+    //decrease available room count
+    setroomtypeviewcounts((rc) => {
+      const rtindex = rc.findIndex(
+        (r) => r.typeid == typeid && r.viewid == viewid,
+      )
+      if (rtindex != -1) {
+        return [
+          ...rc.slice(0, rtindex),
+          {
+            ...rc[rtindex],
+            count: rc[rtindex].count - 1,
+          },
+          ...rc.slice(rtindex + 1),
+        ]
+      } else {
+        console.warn('not found typeis && viewid')
+        return rc
+      }
+    })
+
     setselectedRooms((p) => {
       const i = p.findIndex(
         (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
@@ -680,15 +783,6 @@ const RoomSelection = () => {
   //     settotalAmount((p) => p + r.count * r.price)
   //   })
   // }, [selectedRooms])
-
-  useEffect(() => {
-    const t = selectedRooms.reduce((a, c) => a + c.count * c.price, 0)
-
-    // console.log('qqqselectedRooms', selectedRooms)
-  }, [selectedRooms])
-  useEffect(() => {
-    // console.log('selectedRoomBasis', selectedRoomBasis)
-  }, [selectedRoomBasis])
 
   const handleCount = (
     typeid: number,
@@ -916,12 +1010,22 @@ const RoomSelection = () => {
               /> */}
 
               {/* Currency */}
-              <Button
-                className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded w-full"
-                onClick={handleSearch}
-              >
-                Search
-              </Button>
+              {!id && (
+                <Button
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded w-full"
+                  onClick={handleSearch}
+                >
+                  Search
+                </Button>
+              )}
+              {id && (
+                <Button
+                  className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded w-full"
+                  onClick={() => navigate('/booking/add')}
+                >
+                  Add
+                </Button>
+              )}
               {/* Promo Code & Search Button */}
               {/* <div className="col-span-2 flex flex-col justify-center">
                 <label className="block text-sm font-semibold underline cursor-pointer">
@@ -1025,8 +1129,8 @@ const RoomSelection = () => {
                 {roomviewtypes.data.map((roomcat, index) => {
                   const prices = roomprices.find(
                     (r) =>
-                      r.roomtypeid === roomcat.roomtypeid &&
-                      r.roomviewid === roomcat.roomviewid,
+                      r.typeid === roomcat.typeid &&
+                      r.viewid === roomcat.viewid,
                   )
 
                   return (
@@ -1039,17 +1143,24 @@ const RoomSelection = () => {
                               {roomcat.roomtype} -{' '}
                             </h3>
                             <p className="text-xl font-bold">
-                              {roomcat.roomview}
+                              {roomcat.roomview} -{' '}
                             </p>
                             <p className="text-xl font-bold">
                               {roomtypeviewcounts &&
                                 roomtypeviewcounts?.find(
                                   (rtv) =>
-                                    rtv.roomtypeid === roomcat.roomtypeid &&
-                                    rtv.roomviewid === roomcat.roomviewid,
+                                    rtv.typeid === roomcat.typeid &&
+                                    rtv.viewid === roomcat.viewid,
                                 )?.count}
                             </p>
                           </div>
+                          {(roomtypeviewcounts.find(
+                            (r) =>
+                              r.typeid == roomcat.typeid &&
+                              r.viewid == roomcat.viewid,
+                          )?.count ?? 0 != 0)
+                            ? ''
+                            : 'No rooms'}
                           {/* <button
                       className="text-blue-600 underline mt-2"
                       onClick={() => openModal(roomcat)}
@@ -1081,16 +1192,25 @@ const RoomSelection = () => {
                             <div className="flex items-center justify-between cursor-pointer    hover:bg-gray-200 rounded-lg">
                               <div className="flex items-center">
                                 <input
+                                  disabled={
+                                    !Boolean(
+                                      roomtypeviewcounts.find(
+                                        (r) =>
+                                          r.typeid == roomcat.typeid &&
+                                          r.viewid == roomcat.viewid,
+                                      )?.count,
+                                    )
+                                  }
                                   type="radio"
-                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  name={`deal-${roomcat.typeid}-${roomcat.viewid}`}
                                   className="mr-2"
                                   checked={
                                     selectedRoomBasis.find((rb) => {
                                       // console.log("ioi",rb )
 
                                       return (
-                                        rb.typeid == roomcat.roomtypeid &&
-                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.typeid == roomcat.typeid &&
+                                        rb.viewid == roomcat.viewid &&
                                         rb.basis == 'hb'
                                       )
                                     })
@@ -1100,8 +1220,8 @@ const RoomSelection = () => {
                                   onChange={(e) => {
                                     bookingBasishandle(
                                       e.target.checked,
-                                      roomcat.roomtypeid,
-                                      roomcat.roomviewid,
+                                      roomcat.typeid,
+                                      roomcat.viewid,
                                       prices?.hbprice,
                                       roomcat.roomtype,
                                       roomcat.roomview,
@@ -1111,8 +1231,8 @@ const RoomSelection = () => {
                                 />
                                 {/* onChangeCapture={(e) => {
                                 bookingBasishandle(e.target.checked,
-                                  roomcat.roomtypeid,
-                                  roomcat.roomviewid,
+                                  roomcat.typeid,
+                                  roomcat.viewid,
                                   prices?.hbprice,
                                   roomcat.roomtype,
                                   roomcat.roomview,
@@ -1140,14 +1260,23 @@ const RoomSelection = () => {
                             <div className="flex items-center justify-between cursor-pointer     hover:bg-gray-200   rounded-lg">
                               <div className="flex items-center">
                                 <input
+                                  disabled={
+                                    !Boolean(
+                                      roomtypeviewcounts.find(
+                                        (r) =>
+                                          r.typeid == roomcat.typeid &&
+                                          r.viewid == roomcat.viewid,
+                                      )?.count,
+                                    )
+                                  }
                                   type="radio"
-                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  name={`deal-${roomcat.typeid}-${roomcat.viewid}`}
                                   className="mr-2"
                                   checked={
                                     selectedRoomBasis.find(
                                       (rb) =>
-                                        rb.typeid == roomcat.roomtypeid &&
-                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.typeid == roomcat.typeid &&
+                                        rb.viewid == roomcat.viewid &&
                                         rb.basis == 'fb',
                                     )
                                       ? true
@@ -1156,8 +1285,8 @@ const RoomSelection = () => {
                                   onChange={(e) => {
                                     bookingBasishandle(
                                       e.target.checked,
-                                      roomcat.roomtypeid,
-                                      roomcat.roomviewid,
+                                      roomcat.typeid,
+                                      roomcat.viewid,
                                       prices?.fbprice,
                                       roomcat.roomtype,
                                       roomcat.roomview,
@@ -1185,14 +1314,23 @@ const RoomSelection = () => {
                             <div className="flex items-center justify-between cursor-pointer    hover:bg-gray-200  rounded-lg">
                               <div className="flex items-center">
                                 <input
+                                  disabled={
+                                    !Boolean(
+                                      roomtypeviewcounts.find(
+                                        (r) =>
+                                          r.typeid == roomcat.typeid &&
+                                          r.viewid == roomcat.viewid,
+                                      )?.count,
+                                    )
+                                  }
                                   type="radio"
-                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  name={`deal-${roomcat.typeid}-${roomcat.viewid}`}
                                   className="mr-2"
                                   checked={
                                     selectedRoomBasis.find(
                                       (rb) =>
-                                        rb.typeid == roomcat.roomtypeid &&
-                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.typeid == roomcat.typeid &&
+                                        rb.viewid == roomcat.viewid &&
                                         rb.basis == 'ro',
                                     )
                                       ? true
@@ -1201,8 +1339,8 @@ const RoomSelection = () => {
                                   onChange={(e) => {
                                     bookingBasishandle(
                                       e.target.checked,
-                                      roomcat.roomtypeid,
-                                      roomcat.roomviewid,
+                                      roomcat.typeid,
+                                      roomcat.viewid,
                                       prices?.roprice,
                                       roomcat.roomtype,
                                       roomcat.roomview,
@@ -1230,14 +1368,23 @@ const RoomSelection = () => {
                             <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-200  rounded-lg">
                               <div className="flex items-center">
                                 <input
+                                  disabled={
+                                    !Boolean(
+                                      roomtypeviewcounts.find(
+                                        (r) =>
+                                          r.typeid == roomcat.typeid &&
+                                          r.viewid == roomcat.viewid,
+                                      )?.count,
+                                    )
+                                  }
                                   type="radio"
-                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  name={`deal-${roomcat.typeid}-${roomcat.viewid}`}
                                   className="mr-2"
                                   checked={
                                     selectedRoomBasis.find(
                                       (rb) =>
-                                        rb.typeid == roomcat.roomtypeid &&
-                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.typeid == roomcat.typeid &&
+                                        rb.viewid == roomcat.viewid &&
                                         rb.basis == 'bb',
                                     )
                                       ? true
@@ -1246,8 +1393,8 @@ const RoomSelection = () => {
                                   onChange={(e) => {
                                     bookingBasishandle(
                                       e.target.checked,
-                                      roomcat.roomtypeid,
-                                      roomcat.roomviewid,
+                                      roomcat.typeid,
+                                      roomcat.viewid,
                                       prices?.bbprice,
                                       roomcat.roomtype,
                                       roomcat.roomview,
@@ -1274,17 +1421,26 @@ const RoomSelection = () => {
 
                           {selectedRoomBasis.find(
                             (r) =>
-                              r.typeid == roomcat.roomtypeid &&
-                              r.viewid == roomcat.roomviewid,
+                              r.typeid == roomcat.typeid &&
+                              r.viewid == roomcat.viewid,
                           ) && (
                             <div className=" flex items-center justify-end p-2 rounded-lg">
                               {/* <div>{selectedDeal}</div> */}
                               <Button
+                                disabled={
+                                  !Boolean(
+                                    roomtypeviewcounts.find(
+                                      (r) =>
+                                        r.typeid == roomcat.typeid &&
+                                        r.viewid == roomcat.viewid,
+                                    )?.count,
+                                  )
+                                }
                                 className="bg-orange-400 hover:bg-orange-500 text-black py-2 px-4 mt-4"
                                 onClick={() =>
                                   bookinghandle(
-                                    roomcat.roomtypeid,
-                                    roomcat.roomviewid,
+                                    roomcat.typeid,
+                                    roomcat.viewid,
                                     roomcat.roomtype,
                                     roomcat.roomview,
                                   )
@@ -1310,6 +1466,7 @@ const RoomSelection = () => {
               addoccupentdata={addoccupentdata}
               handleremoveocd={handleremoveocd}
               updateocupentcount={updateocupentcount}
+              roomtypeviewcounts={roomtypeviewcounts}
             />
           </div>
         </div>

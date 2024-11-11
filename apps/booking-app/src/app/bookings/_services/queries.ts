@@ -134,11 +134,13 @@ export function useGetPhoneNumber(id: any | undefined) {
 //   })
 // }
 
-export function useGetRoomtype(checkindate, checkoutdate) {
+export function useGetRoomtype(checkindate, checkoutdate, id) {
   return useQuery({
-    queryKey: ['availableRooms', checkindate, checkoutdate],
+    queryKey: ['availableRooms', checkindate, checkoutdate, id],
     queryFn: async () => {
       let data1
+      console.log('checkindate, checkoutdate', checkindate, checkoutdate, id)
+
       data1 = await Axios.get(`${bapi}rooms`, {
         params: { checkindate, checkoutdate },
       })
@@ -149,13 +151,13 @@ export function useGetRoomtype(checkindate, checkoutdate) {
     },
   })
 }
-export function useGetPrice(checkindate) {
+export function useGetPrice(checkindate, id) {
   return useQuery({
-    queryKey: ['price', checkindate],
+    queryKey: ['price', checkindate, id],
     queryFn: async () => {
       let data1
       data1 = await Axios.get(`${bapi}prices`, {
-        params: { checkindate },
+        params: { checkindate, id },
       })
       return data1.data.data
     },

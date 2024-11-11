@@ -26,6 +26,7 @@ type P = {
   addoccupentdata: (typeid, viewid, basis, count) => void
   handleremoveocd: (typeid, viewid, basis, roomid) => void
   updateocupentcount: (typeid, viewid, basis, roomid, propName, count) => void
+  roomtypeviewcounts: any[]
 }
 
 const RoomCountSelector = ({
@@ -38,7 +39,12 @@ const RoomCountSelector = ({
   addoccupentdata,
   handleremoveocd,
   updateocupentcount,
+  roomtypeviewcounts,
 }: P) => {
+  // useEffect(() => {
+  //   console.log("roomtypeviewcountsq",roomtypeviewcounts)
+
+  // }, [roomtypeviewcounts]);
   //   const [roomCount, setRoomCount] = useState(count ?? 1)
   //   console.log("xroomcount 1", roomCount)
 
@@ -82,6 +88,13 @@ const RoomCountSelector = ({
           className="w-16 text-center"
         />
         <Button
+          disabled={
+            Number(
+              roomtypeviewcounts?.find(
+                (r) => r.typeid === typeid && r.viewid === viewid,
+              )?.count ?? 0,
+            ) == 0
+          }
           onClick={() => {
             increment()
           }}

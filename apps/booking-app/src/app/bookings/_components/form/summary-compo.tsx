@@ -8,6 +8,7 @@ const SelectedRoomsList = ({
   addoccupentdata,
   handleremoveocd,
   updateocupentcount,
+  roomtypeviewcounts,
 }) => {
   const [totalAmount, setTotalAmount] = useState<number>(0)
   const calTotal = (selectedRooms1) => {
@@ -60,6 +61,7 @@ const SelectedRoomsList = ({
             addoccupentdata={addoccupentdata}
             handleremoveocd={handleremoveocd}
             updateocupentcount={updateocupentcount}
+            roomtypeviewcounts={roomtypeviewcounts}
             key={index}
           />
         ))

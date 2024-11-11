@@ -220,7 +220,7 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
     guestInfo,
     selectedRooms,
   }: any = req.body // modified fields from the frontend
-  // console.log("req.body",req.body)
+  console.log('update 1')
 
   // const {firstname,lastname,email,phonenumber,address,city,country,postalcode,hotelid} = guestInfo
   // const{bookingid,checkindate,checkoutdate}=bookingHeaderData
@@ -240,24 +240,29 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
         )
         const guestResult = await client.query(updatesql, valuesArray)
       }
-
+      console.log('update 1.01')
       // Update booking information
       if (bookingHeaderData) {
         const [updateHsql, valuesHArray] = getUpdateQuery(
           bookingHeaderData,
-          'bookings',
+          'booking',
           'id',
         )
+        console.log('updateHsql', updateHsql, valuesHArray)
+
         const hResult = await client.query(updateHsql, valuesHArray)
       }
+      console.log('update 1.02')
       const bdsql = `select roomid from bookingdetails where bookingid= $1 `
       const bdresult = await pool.query(bdsql, [id])
       // console.log("bdresultsssssssssssss",bdresult)
       //check for deleted rooms which are already booked in a prev session
       for (let index = 0; index < bdresult.rows.length; index++) {
+        console.log('update 1.1')
         const row = bdresult.rows[index]
         let roomFound: boolean = false
         for (let index = 0; index < selectedRooms.length; index++) {
+          console.log('update 1.2')
           const room = selectedRooms[index]
           const bookedRoom = room.occupantdetails.find(
             (r: any) => r.roomid == row.roomid,
@@ -267,14 +272,16 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
             break
           }
         }
+        console.log('update 1.3')
         if (!roomFound) {
           //delete from db
-
+          console.log('update 1.4')
           const deleteRoomm = `delete from bookingdetails where roomid=$1 and bookingid=$2`
           const del = await client.query(deleteRoomm, [row.roomid, id])
         }
       }
       // look for newly inserted rooms -- occupantdetails roomid is minus
+      console.log('update 2')
 
       for (let index = 0; index < selectedRooms.length; index++) {
         const room = selectedRooms[index]
@@ -317,8 +324,8 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
               const resrooms = await pool.query(roomsql, [
                 checkindate,
                 checkoutdate,
-                elements[0].roomtypeid,
-                elements[0].roomviewid,
+                elements[0].typeid,
+                elements[0].viewid,
               ])
               // console.log('room count', resrooms.rows.length, 'ppp--', rowcount)
               // console.log('elements[0].typeid', elements[0].typeid, elements[0].viewid)
@@ -359,8 +366,8 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
                 const resrooms1 = await pool.query(roomsql, [
                   checkindate,
                   checkoutdate,
-                  room.roomtypeid,
-                  room.roomviewid,
+                  room.typeid,
+                  room.viewid,
                 ])
                 // console.log("resrooms",resrooms)
 
@@ -559,7 +566,7 @@ bookingRouter.get('/rooms', async (req, res) => {
   // console.log('count', count.rows)
 
   const getAllBookingQuery = `
-      select r.roomtypeid,r.roomviewid, t.roomtype ,v.roomview,t.maxadultcount from public.hotelrooms r
+      select r.roomtypeid as typeid ,r.roomviewid as viewid, t.roomtype ,v.roomview,t.maxadultcount from public.hotelrooms r
     JOIN public.hotelroomtypes t 
     on t.id = r.roomtypeid 
     JOIN public.hotelroomview v
@@ -611,8 +618,7 @@ bookingRouter.get('/rooms', async (req, res) => {
 bookingRouter.get('/prices', (req, res) => {
   const { checkindate } = req.query
   const getAllBookingQuery = `
-      SELECT p.id, p.roprice, p.bbprice, p.hbprice, p.fbprice, p.nrroprice, p.nrbbprice, p.nrhbprice, p.nrfbprice, p.sheduleid, p.roomtypeid as typeid, p.roomviewid as viewid
-, v.roomview, t.roomtype from public.hotelroompriceshedules s
+      SELECT p.id, p.roprice, p.bbprice, p.hbprice, p.fbprice, p.nrroprice, p.nrbbprice, p.nrhbprice, p.nrfbprice, p.sheduleid, p.roomtypeid as typeid, p.roomviewid as viewid, v.roomview, t.roomtype from public.hotelroompriceshedules s
     JOIN public.hotelroomprices p
     on s.id = p.sheduleid
     join public.hotelroomview v 
