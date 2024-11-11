@@ -93,8 +93,8 @@ const CalendarScreen: React.FC = () => {
               date === checkInDate
                 ? 'bg-green-200'
                 : date === checkOutDate
-                ? 'bg-blue-200'
-                : 'hover:bg-gray-100'
+                  ? 'bg-blue-200'
+                  : 'hover:bg-gray-100'
             }`}
             onClick={() => handleDateClick(date)}
           >
