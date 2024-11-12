@@ -52,6 +52,7 @@ export const RoomSummaryItem = ({
   addoccupentdata,
   handleremoveocd,
   updateocupentcount,
+  roomtypeviewcounts,
 }) => {
   //   const [count, setCount] = useState<number>(room.count ?? 1)
 
@@ -89,6 +90,7 @@ export const RoomSummaryItem = ({
           addoccupentdata={addoccupentdata}
           handleremoveocd={handleremoveocd}
           updateocupentcount={updateocupentcount}
+          roomtypeviewcounts={roomtypeviewcounts}
         />
         <p className="text-gray-600 font-medium">
           Amount: {room.occupantdetails.length * room.price}

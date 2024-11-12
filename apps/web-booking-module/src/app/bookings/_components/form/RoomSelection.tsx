@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react'
-
+import { formatInTimeZone } from 'date-fns-tz'
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { getDirtyValuesTF } from '@/lib/utils'
@@ -15,6 +24,7 @@ import {
   useGetPrice,
   useGetRoomtype,
 } from '../../_services/queries'
+import { RoomSummaryItem } from './room-summary-item'
 import SelectedRoomsList from './summary-compo'
 
 Object.defineProperty(Object, 'groupBy', {
@@ -31,6 +41,35 @@ Object.defineProperty(Object, 'groupBy', {
   writable: true,
   configurable: true,
 })
+
+// const BookingCard = ({ booking }) => {
+//   const navigate = useNavigate()
+
+//   return (
+//     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg mb-4 border border-gray-200">
+//       <h3 className="text-lg font-semibold text-blue-600">
+//         Booking ID: {booking.id}
+//       </h3>
+//       <p className="text-gray-500 mt-2">
+//         <strong>Check-in:</strong>{' '}
+//         {new Date(booking.checkindate).toLocaleDateString()}
+//       </p>
+//       <p className="text-gray-500">
+//         <strong>Check-out:</strong>{' '}
+//         {new Date(booking.checkoutdate).toLocaleDateString()}
+//       </p>
+//       <p className="text-gray-700 mt-4">
+//         <strong>Remarks:</strong> {booking.remarks || 'No remarks'}
+//       </p>
+//       <Button className="bg-yellow-300" onClick={bookingcardview}>
+//         View Booking
+//       </Button>
+//       {/* <Button className="bg-red-500" onClick={}>
+//         Cancle Booking
+//       </Button> */}
+//     </div>
+//   )
+// }
 
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value)
@@ -68,6 +107,12 @@ type SelectedRoomType = {
 
 const hotelid = 24
 
+type RoomTypeViewType = {
+  typeid: number | null
+  viewid: number | null
+  count: number | null
+}
+
 const RoomSelection = () => {
   const { id } = useParams()
   const { toast } = useToast()
@@ -87,12 +132,19 @@ const RoomSelection = () => {
   const updateMutation = useUpdateBookingMutation()
   const debouncedPhone = useDebounce(phone, 500)
   const { data: getphonedata, isFetched } = useGetPhoneNumber(debouncedPhone)
+  // const { data: getphonebookeddata,  } = useGetPhoneNumberBooked(debouncedPhone)
+
+  // console.log("getphonebookeddata",getphonebookeddata)
+  // console.log('getphonedata', getphonedata)
 
   const [checkindate, setcheckindate] = useState<string | undefined>(undefined)
   const [checkoutdate, setcheckoutdate] = useState<string | undefined>(
     undefined,
   )
-  const { data: roomprices } = useGetPrice(checkindate)
+  const [bookeddata, setBookeddata] = useState([])
+  const { data: roomprices } = useGetPrice(checkindate, id)
+
+  // console.log('roomprices', roomprices)
 
   //  const [totalAmount, settotalAmount] = useState<number>(0)
 
@@ -100,23 +152,37 @@ const RoomSelection = () => {
   const [selectedRoomBasis, setselectedRoomBasis] = useState<
     SelectedRoomType[]
   >([])
+  const [roomtypeviewcounts, setroomtypeviewcounts] = useState<
+    RoomTypeViewType[]
+  >([])
 
-  console.log('roomprice', roomprices)
+  // console.log('roomprice', roomprices)
+
+  // useEffect(() => {
+  //   if(getphonebookeddata){
+  //     setBookeddata(getphonebookeddata)
+  //   }
+  // }, [getphonebookeddata]);
 
   useEffect(() => {
     if (getphonedata) {
-      form.setFieldValue('firstname', getphonedata.firstname)
-      form.setFieldValue('lastname', getphonedata.lastname)
-      form.setFieldValue('email', getphonedata.email)
-      form.setFieldValue('phonenumber', getphonedata.phonenumber)
-      form.setFieldValue('address', getphonedata.address)
-      form.setFieldValue('city', getphonedata.city)
-      form.setFieldValue('country', getphonedata.country)
-      form.setFieldValue('postalcode', getphonedata.postalcode)
+      // console.log("getphonedata",getphonedata)
+
+      form.setFieldValue('firstname', getphonedata.a.firstname)
+      form.setFieldValue('lastname', getphonedata.a.lastname)
+      form.setFieldValue('email', getphonedata.a.email)
+      form.setFieldValue('phonenumber', getphonedata.a.phonenumber)
+      form.setFieldValue('address', getphonedata.a.address)
+      form.setFieldValue('city', getphonedata.a.city)
+      form.setFieldValue('country', getphonedata.a.country)
+      form.setFieldValue('postalcode', getphonedata.a.postalcode)
     } else {
+      // console.log("getphonedatasss",getphonedata)
       form.reset()
     }
   }, [getphonedata])
+
+  // console.log("roomtypeviewcounts",roomtypeviewcounts)
 
   // form.setFieldValue('roles', roles.roles)
   const form = useForm({
@@ -141,7 +207,7 @@ const RoomSelection = () => {
       postalcode: '',
     },
     onSubmit: async ({ value: data }) => {
-      console.log('dataaaaaaaaaaaaaa', data)
+      // console.log('dataaaaaaaaaaaaaa', data)
       if (id) {
         // If id exists, we're updating the booking
         const dirtyValues = getDirtyValuesTF(
@@ -150,54 +216,62 @@ const RoomSelection = () => {
           [],
           'booking_id',
         )
-        console.log('dirtyvaluessssssss', dirtyValues)
-
+        let bookingHeaderData: any
+        let guestInfo: any
         if (dirtyValues) {
-          console.log('Dirty values to update:', dirtyValues)
+          console.log('dirtyvaluessssssss', dirtyValues)
+
+          // if (dirtyValues) {
+          // console.log('Dirty values to update:', dirtyValues)
           dirtyValues.hotelid = hotelid
           // Make the PUT request with only dirty fields
-          const bookingHeaderData = {
+          bookingHeaderData = {
             id,
             checkindate: dirtyValues.checkindate,
             checkoutdate: dirtyValues.checkoutdate,
           }
-          const guestInfo = { ...dirtyValues }
+
+          guestInfo = { ...dirtyValues, id: data.guestid }
           delete guestInfo.checkindate
           delete guestInfo.checkoutdate
+          delete guestInfo.booking_id
+        }
+        const responseData = await updateMutation.mutateAsync({
+          id,
+          checkindate: data.checkindate,
+          checkoutdate: data.checkoutdate,
+          bookingHeaderData,
+          guestInfo,
+          selectedRooms,
+        })
+        // console.log('responseData', responseData)
 
-          const responseData = await updateMutation.mutateAsync({
-            id,
-            bookingHeaderData,
-            guestInfo,
-            selectedRooms,
-          })
-
-          if (responseData) {
-            toast({
-              className: 'text-green-600',
-              title: 'Booking',
-              description: <span>Updated successfully.</span>,
-              duration: 2000,
-            })
-
-            navigate(`/booking/${id}`)
-          }
-        } else {
-          console.log('No fields were changed')
+        if (responseData) {
           toast({
-            className: 'text-blue-600',
+            className: 'text-green-600',
             title: 'Booking',
-            description: <span>No changes to update.</span>,
+            description: <span>Updated successfully.</span>,
             duration: 2000,
           })
+
+          navigate(`/booking/${id}`)
         }
+        //  else {
+        //   console.log('No fields were changed')
+        //   toast({
+        //     className: 'text-blue-600',
+        //     title: 'Booking',
+        //     description: <span>No changes to update.</span>,
+        //     duration: 2000,
+        //   })
+        // }
       } else {
         // Insert new booking
         const responseData = await insertMutation.mutateAsync({
           data: { ...data, selectedRooms, hotelid },
         })
 
-        console.log('responseData', responseData)
+        // console.log('responseData', responseData)
 
         if (responseData.success) {
           const newId = responseData.booking_id
@@ -223,9 +297,11 @@ const RoomSelection = () => {
   })
 
   const handleSearch = () => {
+    console.log('testttttttttt')
+
     const checkindate = form.getFieldValue('checkindate')
     const checkoutdate = form.getFieldValue('checkoutdate')
-    console.log('Searching for rooms with:', checkindate, checkoutdate)
+    // console.log('Searching for rooms with:', checkindate, checkoutdate)
 
     if (checkindate && checkoutdate) {
       // Set the state variables
@@ -233,21 +309,27 @@ const RoomSelection = () => {
       setcheckoutdate(checkoutdate)
 
       // Make API call with checkindate and checkoutdate
-      console.log('Searching for rooms with:', checkindate, checkoutdate)
+      // console.log('Searching for rooms with:', checkindate, checkoutdate)
       // Call your search function here
     } else {
       console.error('Both check-in and check-out dates are required.')
     }
   }
 
-  console.log('checkindateeeeeeeeeeeeeeeeeeeeeeee', checkindate)
+  // useEffect(() => {
+  //   handleSearch()
+  // }, [checkindate, checkoutdate])
+
+  // console.log('checkindateeeeeeeeeeeeeeeeeeeeeeee', checkindate)
 
   const { data: roomviewtypes, isFetched: isFetchedRoomTypes } = useGetRoomtype(
     checkindate,
     checkoutdate,
+    id,
   )
+  // console.log('cooooooo', roomviewtypes)
 
-  console.log('roomviewtypes', roomviewtypes)
+  // console.log('roomviewtypes', roomviewtypes)
 
   const { data: bookingdata, isLoading, isError, error } = useGetBooking(id)
 
@@ -257,10 +339,29 @@ const RoomSelection = () => {
     if (bookingdata) {
       try {
         // Populate the form with fetched data
-        form.setFieldValue('checkindate', bookingdata.data.checkindate)
+        const formatedcheckindate = formatInTimeZone(
+          bookingdata.data.checkindate,
+          'Asia/Colombo',
+          'yyyy-MM-dd',
+        )
+        const formatedcheckoutdate = formatInTimeZone(
+          bookingdata.data.checkoutdate,
+          'Asia/Colombo',
+          'yyyy-MM-dd',
+        )
+        const ttttaa = formatInTimeZone(
+          bookingdata.data.checkindate,
+          'Asia/Colombo',
+          'yyyy-MM-dd ',
+        )
+        // console.log('ttttaa', tttt)
+        // console.log('ttttaa', ttttaa)
+        setcheckindate(bookingdata.data.checkindate)
+
+        form.setFieldValue('checkindate', formatedcheckindate)
         form.setFieldValue('booking_id', bookingdata.data.booking_id)
         form.setFieldValue('guestid', bookingdata.data.guestid)
-        form.setFieldValue('checkoutdate', bookingdata.data.checkoutdate)
+        form.setFieldValue('checkoutdate', formatedcheckoutdate)
         form.setFieldValue('flexibledates', bookingdata.data.flexibledates)
         form.setFieldValue('adults', bookingdata.data.adults)
         form.setFieldValue('children', bookingdata.data.children)
@@ -275,9 +376,12 @@ const RoomSelection = () => {
         form.setFieldValue('postalcode', bookingdata.data.postalcode)
 
         //set details
+        // console.log('bookingdata', bookingdata)
 
         const grpRooms = Object.groupBy(bookingdata.details, (r) => {
-          return `${r.roomtypeid}-${r.roomviewid}-${r.basis}`
+          // console.log("r.typeid,r.viewid,r.basis",r.typeid,r.viewid,r.basis)
+
+          return `${r.typeid}-${r.viewid}-${r.basis}`
         })
 
         const r = Object.keys(grpRooms).map((r) => {
@@ -291,7 +395,7 @@ const RoomSelection = () => {
             })),
           }
         })
-        console.log('bookingdetails', r)
+        // console.log('bookingdetails', r)
         setselectedRooms(r)
       } catch (error) {
         console.error('Error fetching booking data:', error)
@@ -304,6 +408,23 @@ const RoomSelection = () => {
       }
     }
   }, [bookingdata])
+
+  useEffect(() => {
+    console.log('roomviewtypes', roomviewtypes)
+
+    if (roomviewtypes) {
+      setroomtypeviewcounts(roomviewtypes.roomcounts)
+    }
+  }, [roomviewtypes])
+
+  useEffect(() => {
+    const t = selectedRooms.reduce((a, c) => a + c.count * c.price, 0)
+
+    // console.log('qqqselectedRooms', selectedRooms)
+  }, [selectedRooms])
+  useEffect(() => {
+    // console.log('selectedRoomBasis', selectedRoomBasis)
+  }, [selectedRoomBasis])
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCurrency = e.target.value
@@ -331,9 +452,29 @@ const RoomSelection = () => {
     if (room) {
       if (room.occupantdetails.length == 1) {
         handleremove(room.typeid, room.viewid, room.basis)
+
         return
       }
     }
+    //increse room count
+    setroomtypeviewcounts((rc) => {
+      const rtindex = rc.findIndex(
+        (r) => r.typeid == typeid && r.viewid == viewid,
+      )
+      if (rtindex != -1) {
+        return [
+          ...rc.slice(0, rtindex),
+          {
+            ...rc[rtindex],
+            count: rc[rtindex].count + 1,
+          },
+          ...rc.slice(rtindex + 1),
+        ]
+      } else {
+        console.warn('not found typeis && viewid')
+        return rc
+      }
+    })
 
     setselectedRooms((p) => {
       const i = p.findIndex(
@@ -362,7 +503,7 @@ const RoomSelection = () => {
   }
 
   const handleremove = (typeid: number, viewid: number, basis: string) => {
-    console.log('pop2')
+    // console.log('pop2')
 
     setselectedRoomBasis((p) => {
       return p.filter(
@@ -370,11 +511,40 @@ const RoomSelection = () => {
           !(rb.typeid == typeid && rb.viewid == viewid && rb.basis == basis),
       )
     })
+
+    const totalRemovedCount = selectedRooms
+      .filter(
+        (rb) => rb.typeid == typeid && rb.viewid == viewid && rb.basis == basis,
+      )
+      .reduce((a, c) => {
+        return a + c.occupantdetails.length
+      }, 0)
+
     setselectedRooms((p) => {
       return p.filter(
         (rb) =>
           !(rb.typeid == typeid && rb.viewid == viewid && rb.basis == basis),
       )
+    })
+
+    //increse room count
+    setroomtypeviewcounts((rc) => {
+      const rtindex = rc.findIndex(
+        (r) => r.typeid == typeid && r.viewid == viewid,
+      )
+      if (rtindex != -1) {
+        return [
+          ...rc.slice(0, rtindex),
+          {
+            ...rc[rtindex],
+            count: rc[rtindex].count + totalRemovedCount,
+          },
+          ...rc.slice(rtindex + 1),
+        ]
+      } else {
+        console.warn('not found typeis && viewid')
+        return rc
+      }
     })
   }
 
@@ -401,6 +571,25 @@ const RoomSelection = () => {
       addoccupentdata(typeid, viewid, res.basis)
       return
     } else {
+      //decrease room conuts
+      setroomtypeviewcounts((rc) => {
+        const rtindex = rc.findIndex(
+          (r) => r.typeid == typeid && r.viewid == viewid,
+        )
+        if (rtindex != -1) {
+          return [
+            ...rc.slice(0, rtindex),
+            {
+              ...rc[rtindex],
+              count: rc[rtindex].count - 1,
+            },
+            ...rc.slice(rtindex + 1),
+          ]
+        } else {
+          console.warn('not found typeis && viewid')
+          return rc
+        }
+      })
       setselectedRooms((p) => {
         // const res = selectedRoomBasis.find(
         //   (r) => r.typeid == typeid && r.viewid == viewid,
@@ -414,7 +603,7 @@ const RoomSelection = () => {
         let newIndex = -1
 
         if (resSelRooms) {
-          console.log('res', resSelRooms)
+          // console.log('res', resSelRooms)
 
           const newrooms = resSelRooms.occupantdetails?.filter(
             (r) => r.roomid < 0,
@@ -424,7 +613,7 @@ const RoomSelection = () => {
             const lastMinusIndexObj = newrooms.reduce((a, c) => {
               return a.roomid < c.roomid ? a : c
             })
-            console.log('lastMinusIndexObj', lastMinusIndexObj)
+            // console.log('lastMinusIndexObj', lastMinusIndexObj)
             newIndex = lastMinusIndexObj.roomid - 1
           }
         }
@@ -454,6 +643,26 @@ const RoomSelection = () => {
   }
 
   const addoccupentdata = (typeid, viewid, basis) => {
+    //decrease available room count
+    setroomtypeviewcounts((rc) => {
+      const rtindex = rc.findIndex(
+        (r) => r.typeid == typeid && r.viewid == viewid,
+      )
+      if (rtindex != -1) {
+        return [
+          ...rc.slice(0, rtindex),
+          {
+            ...rc[rtindex],
+            count: rc[rtindex].count - 1,
+          },
+          ...rc.slice(rtindex + 1),
+        ]
+      } else {
+        console.warn('not found typeis && viewid')
+        return rc
+      }
+    })
+
     setselectedRooms((p) => {
       const i = p.findIndex(
         (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
@@ -465,7 +674,7 @@ const RoomSelection = () => {
           (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
         )
         if (resSelRooms) {
-          console.log('res', resSelRooms)
+          // console.log('res', resSelRooms)
 
           const newrooms = resSelRooms.occupantdetails?.filter(
             (r) => r.roomid < 0,
@@ -475,7 +684,7 @@ const RoomSelection = () => {
             const lastMinusIndexObj = newrooms.reduce((a, c) => {
               return a.roomid < c.roomid ? a : c
             })
-            console.log('lastMinusIndexObj', lastMinusIndexObj)
+            // console.log('lastMinusIndexObj', lastMinusIndexObj)
             newIndex = lastMinusIndexObj.roomid - 1
           }
         }
@@ -515,7 +724,7 @@ const RoomSelection = () => {
     propName: string,
     count: number,
   ) => {
-    console.log('xxcount', count, propName)
+    // console.log('xxcount', count, propName)
 
     const i = selectedRooms.findIndex(
       (r) => r.typeid == typeid && r.viewid == viewid && r.basis == basis,
@@ -552,11 +761,11 @@ const RoomSelection = () => {
     view: string,
     basis: string,
   ) => {
-    console.log('xxtypeid', typeid)
-    console.log('xxviewid', viewid)
-    console.log('xxselectedRooms', selectedRooms)
+    // console.log('xxtypeid', typeid)
+    // console.log('xxviewid', viewid)
+    // console.log('xxselectedRooms', selectedRooms)
     setselectedRoomBasis((p) => {
-      console.log('selectedRoomBasis falsee', checked)
+      // console.log('selectedRoomBasis falsee', checked)
       if (checked) {
         const t = p.filter((r) => !(r.typeid == typeid && r.viewid == viewid))
         return [...t, { typeid, viewid, price, type, view, basis }]
@@ -574,15 +783,6 @@ const RoomSelection = () => {
   //     settotalAmount((p) => p + r.count * r.price)
   //   })
   // }, [selectedRooms])
-
-  useEffect(() => {
-    const t = selectedRooms.reduce((a, c) => a + c.count * c.price, 0)
-
-    console.log('qqqselectedRooms', selectedRooms)
-  }, [selectedRooms])
-  useEffect(() => {
-    console.log('selectedRoomBasis', selectedRoomBasis)
-  }, [selectedRoomBasis])
 
   const handleCount = (
     typeid: number,
@@ -606,9 +806,23 @@ const RoomSelection = () => {
 
   return (
     <>
-      <div className="text-6xl font-bold items-center justify-center mb-5">
-        <div className="text-center ">cey-info solutions</div>
-      </div>
+      {/* <header className=" top-0 z-50 flex h-14 items-center justify-center gap-4 border-b  backdrop-blur-md px-4 lg:h-[90px] lg:px-6 bg-[#89749A]">
+        <div className="">
+          <img src="icon.jpg" className="w-[60px] h-[80px] " />
+        </div>
+      </header> */}
+
+      {/* jhg------------------------------------------------------------------ */}
+
+      {/* Background Image */}
+
+      {/* <img
+            src="banner.jpg"
+            alt="Resort Background"
+            className="w-full h-[500px] object-cover"
+          />   */}
+
+      {/* Overlay Form */}
       <div className=" bg-gray-100 bg-opacity-80 py-4 ">
         <div className="container mx-auto px-6">
           <form
@@ -775,7 +989,7 @@ const RoomSelection = () => {
               /> */}
 
               {/* Children */}
-              <form.Field
+              {/* <form.Field
                 name="currency"
                 children={(field) => (
                   <div className="col-span-1">
@@ -793,10 +1007,25 @@ const RoomSelection = () => {
                     </select>
                   </div>
                 )}
-              />
+              /> */}
 
               {/* Currency */}
-
+              {!id && (
+                <Button
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded w-full"
+                  onClick={handleSearch}
+                >
+                  Search
+                </Button>
+              )}
+              {id && (
+                <Button
+                  className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded w-full"
+                  onClick={() => navigate('/booking/add')}
+                >
+                  Add
+                </Button>
+              )}
               {/* Promo Code & Search Button */}
               {/* <div className="col-span-2 flex flex-col justify-center">
                 <label className="block text-sm font-semibold underline cursor-pointer">
@@ -804,17 +1033,73 @@ const RoomSelection = () => {
                 </label>
               </div> */}
               <div className="col-span-1">
-                <Button
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded w-full"
-                  onClick={handleSearch}
-                >
-                  Search
-                </Button>
+                <h1>Phonenumber</h1>
+                <form.Field
+                  name="phonenumber"
+                  children={(field) => (
+                    <input
+                      type="text"
+                      placeholder="Phone Number"
+                      className="w-full border border-gray-300 p-2 rounded"
+                      required
+                      value={field.state.value}
+                      // onChange={(e) => {
+                      //   console.log("q111111",e.target.value)
+                      //   field.handleChange(e.target.value)}}
+                      onChangeCapture={(e) => {
+                        // console.log('q122222', e.target.value)
+                        field.handleChange(e.target.value)
+
+                        setphone(e.target.value)
+                      }}
+                    />
+                  )}
+                />
               </div>
             </div>
           </form>
         </div>
       </div>
+
+      {/* <div className="flex flex-col items-center min-h-screen bg-gray-100 p-4"> */}
+      {getphonedata && (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">Booking ID</TableHead>
+              <TableHead>Check-in</TableHead>
+              <TableHead>Check-out</TableHead>
+              <TableHead className="text-right">Remarks</TableHead>
+              <TableHead className="text-right"></TableHead>
+            </TableRow>
+          </TableHeader>
+          {getphonedata.b.map((booking) => (
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">{booking.id}</TableCell>
+                <TableCell>
+                  {new Date(booking.checkindate).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  {new Date(booking.checkoutdate).toLocaleDateString()}
+                </TableCell>
+                <TableCell className="text-right">
+                  {booking.remarks || 'No remarks'}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    className="bg-green-400"
+                    onClick={() => navigate(`/booking/${booking.id}`)}
+                  >
+                    view booking
+                  </Button>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          ))}
+        </Table>
+      )}
+      {/* </div> */}
 
       {/* jhgjg-------------------------------------------------------------------- */}
       <div className="p-6">
@@ -841,11 +1126,11 @@ const RoomSelection = () => {
           <div>
             {isFetchedRoomTypes && roomprices && (
               <div>
-                {roomviewtypes.map((roomcat, index) => {
+                {roomviewtypes.data.map((roomcat, index) => {
                   const prices = roomprices.find(
                     (r) =>
-                      r.roomtypeid === roomcat.roomtypeid &&
-                      r.roomviewid === roomcat.roomviewid,
+                      r.typeid === roomcat.typeid &&
+                      r.viewid === roomcat.viewid,
                   )
 
                   return (
@@ -858,9 +1143,24 @@ const RoomSelection = () => {
                               {roomcat.roomtype} -{' '}
                             </h3>
                             <p className="text-xl font-bold">
-                              {roomcat.roomview}
+                              {roomcat.roomview} -{' '}
+                            </p>
+                            <p className="text-xl font-bold">
+                              {roomtypeviewcounts &&
+                                roomtypeviewcounts?.find(
+                                  (rtv) =>
+                                    rtv.typeid === roomcat.typeid &&
+                                    rtv.viewid === roomcat.viewid,
+                                )?.count}
                             </p>
                           </div>
+                          {(roomtypeviewcounts.find(
+                            (r) =>
+                              r.typeid == roomcat.typeid &&
+                              r.viewid == roomcat.viewid,
+                          )?.count ?? 0 != 0)
+                            ? ''
+                            : 'No rooms'}
                           {/* <button
                       className="text-blue-600 underline mt-2"
                       onClick={() => openModal(roomcat)}
@@ -880,7 +1180,10 @@ const RoomSelection = () => {
                       {prices && (
                         <p className="text-sm">HB Price: {prices.hbprice}</p>
                       )} */}
-                          <button className="text-blue-600 underline mt-2">
+                          <button
+                            className="text-blue-600 underline mt-2"
+                            // onClick={() => openModal(roomcat)}
+                          >
                             View Room Details
                           </button>
                         </div>
@@ -889,16 +1192,25 @@ const RoomSelection = () => {
                             <div className="flex items-center justify-between cursor-pointer    hover:bg-gray-200 rounded-lg">
                               <div className="flex items-center">
                                 <input
+                                  disabled={
+                                    !Boolean(
+                                      roomtypeviewcounts.find(
+                                        (r) =>
+                                          r.typeid == roomcat.typeid &&
+                                          r.viewid == roomcat.viewid,
+                                      )?.count,
+                                    )
+                                  }
                                   type="radio"
-                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  name={`deal-${roomcat.typeid}-${roomcat.viewid}`}
                                   className="mr-2"
                                   checked={
                                     selectedRoomBasis.find((rb) => {
                                       // console.log("ioi",rb )
 
                                       return (
-                                        rb.typeid == roomcat.roomtypeid &&
-                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.typeid == roomcat.typeid &&
+                                        rb.viewid == roomcat.viewid &&
                                         rb.basis == 'hb'
                                       )
                                     })
@@ -906,15 +1218,10 @@ const RoomSelection = () => {
                                       : false
                                   }
                                   onChange={(e) => {
-                                    console.log(
-                                      'e.target.value',
-                                      e.target.checked,
-                                    )
-
                                     bookingBasishandle(
                                       e.target.checked,
-                                      roomcat.roomtypeid,
-                                      roomcat.roomviewid,
+                                      roomcat.typeid,
+                                      roomcat.viewid,
                                       prices?.hbprice,
                                       roomcat.roomtype,
                                       roomcat.roomview,
@@ -924,8 +1231,8 @@ const RoomSelection = () => {
                                 />
                                 {/* onChangeCapture={(e) => {
                                 bookingBasishandle(e.target.checked,
-                                  roomcat.roomtypeid,
-                                  roomcat.roomviewid,
+                                  roomcat.typeid,
+                                  roomcat.viewid,
                                   prices?.hbprice,
                                   roomcat.roomtype,
                                   roomcat.roomview,
@@ -953,29 +1260,33 @@ const RoomSelection = () => {
                             <div className="flex items-center justify-between cursor-pointer     hover:bg-gray-200   rounded-lg">
                               <div className="flex items-center">
                                 <input
+                                  disabled={
+                                    !Boolean(
+                                      roomtypeviewcounts.find(
+                                        (r) =>
+                                          r.typeid == roomcat.typeid &&
+                                          r.viewid == roomcat.viewid,
+                                      )?.count,
+                                    )
+                                  }
                                   type="radio"
-                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  name={`deal-${roomcat.typeid}-${roomcat.viewid}`}
                                   className="mr-2"
                                   checked={
                                     selectedRoomBasis.find(
                                       (rb) =>
-                                        rb.typeid == roomcat.roomtypeid &&
-                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.typeid == roomcat.typeid &&
+                                        rb.viewid == roomcat.viewid &&
                                         rb.basis == 'fb',
                                     )
                                       ? true
                                       : false
                                   }
                                   onChange={(e) => {
-                                    console.log(
-                                      'e.target.value 1',
-                                      e.target.checked,
-                                    )
-
                                     bookingBasishandle(
                                       e.target.checked,
-                                      roomcat.roomtypeid,
-                                      roomcat.roomviewid,
+                                      roomcat.typeid,
+                                      roomcat.viewid,
                                       prices?.fbprice,
                                       roomcat.roomtype,
                                       roomcat.roomview,
@@ -1003,29 +1314,33 @@ const RoomSelection = () => {
                             <div className="flex items-center justify-between cursor-pointer    hover:bg-gray-200  rounded-lg">
                               <div className="flex items-center">
                                 <input
+                                  disabled={
+                                    !Boolean(
+                                      roomtypeviewcounts.find(
+                                        (r) =>
+                                          r.typeid == roomcat.typeid &&
+                                          r.viewid == roomcat.viewid,
+                                      )?.count,
+                                    )
+                                  }
                                   type="radio"
-                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  name={`deal-${roomcat.typeid}-${roomcat.viewid}`}
                                   className="mr-2"
                                   checked={
                                     selectedRoomBasis.find(
                                       (rb) =>
-                                        rb.typeid == roomcat.roomtypeid &&
-                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.typeid == roomcat.typeid &&
+                                        rb.viewid == roomcat.viewid &&
                                         rb.basis == 'ro',
                                     )
                                       ? true
                                       : false
                                   }
                                   onChange={(e) => {
-                                    console.log(
-                                      'e.target.value 2',
-                                      e.target.checked,
-                                    )
-
                                     bookingBasishandle(
                                       e.target.checked,
-                                      roomcat.roomtypeid,
-                                      roomcat.roomviewid,
+                                      roomcat.typeid,
+                                      roomcat.viewid,
                                       prices?.roprice,
                                       roomcat.roomtype,
                                       roomcat.roomview,
@@ -1053,29 +1368,33 @@ const RoomSelection = () => {
                             <div className="flex items-center justify-between cursor-pointer mb-2   hover:bg-gray-200  rounded-lg">
                               <div className="flex items-center">
                                 <input
+                                  disabled={
+                                    !Boolean(
+                                      roomtypeviewcounts.find(
+                                        (r) =>
+                                          r.typeid == roomcat.typeid &&
+                                          r.viewid == roomcat.viewid,
+                                      )?.count,
+                                    )
+                                  }
                                   type="radio"
-                                  name={`deal-${roomcat.roomtypeid}-${roomcat.roomviewid}`}
+                                  name={`deal-${roomcat.typeid}-${roomcat.viewid}`}
                                   className="mr-2"
                                   checked={
                                     selectedRoomBasis.find(
                                       (rb) =>
-                                        rb.typeid == roomcat.roomtypeid &&
-                                        rb.viewid == roomcat.roomviewid &&
+                                        rb.typeid == roomcat.typeid &&
+                                        rb.viewid == roomcat.viewid &&
                                         rb.basis == 'bb',
                                     )
                                       ? true
                                       : false
                                   }
                                   onChange={(e) => {
-                                    console.log(
-                                      'e.target.value 3',
-                                      e.target.checked,
-                                    )
-
                                     bookingBasishandle(
                                       e.target.checked,
-                                      roomcat.roomtypeid,
-                                      roomcat.roomviewid,
+                                      roomcat.typeid,
+                                      roomcat.viewid,
                                       prices?.bbprice,
                                       roomcat.roomtype,
                                       roomcat.roomview,
@@ -1102,17 +1421,26 @@ const RoomSelection = () => {
 
                           {selectedRoomBasis.find(
                             (r) =>
-                              r.typeid == roomcat.roomtypeid &&
-                              r.viewid == roomcat.roomviewid,
+                              r.typeid == roomcat.typeid &&
+                              r.viewid == roomcat.viewid,
                           ) && (
                             <div className=" flex items-center justify-end p-2 rounded-lg">
                               {/* <div>{selectedDeal}</div> */}
                               <Button
+                                disabled={
+                                  !Boolean(
+                                    roomtypeviewcounts.find(
+                                      (r) =>
+                                        r.typeid == roomcat.typeid &&
+                                        r.viewid == roomcat.viewid,
+                                    )?.count,
+                                  )
+                                }
                                 className="bg-orange-400 hover:bg-orange-500 text-black py-2 px-4 mt-4"
                                 onClick={() =>
                                   bookinghandle(
-                                    roomcat.roomtypeid,
-                                    roomcat.roomviewid,
+                                    roomcat.typeid,
+                                    roomcat.viewid,
                                     roomcat.roomtype,
                                     roomcat.roomview,
                                   )
@@ -1138,6 +1466,7 @@ const RoomSelection = () => {
               addoccupentdata={addoccupentdata}
               handleremoveocd={handleremoveocd}
               updateocupentcount={updateocupentcount}
+              roomtypeviewcounts={roomtypeviewcounts}
             />
           </div>
         </div>
@@ -1155,28 +1484,6 @@ const RoomSelection = () => {
               Been here before? Click here
             </p>
             <div className="space-y-4">
-              <form.Field
-                name="phonenumber"
-                children={(field) => (
-                  <input
-                    type="text"
-                    placeholder="Phone Number"
-                    className="w-full border border-gray-300 p-2 rounded"
-                    required
-                    value={field.state.value}
-                    // onChange={(e) => {
-                    //   console.log("q111111",e.target.value)
-                    //   field.handleChange(e.target.value)}}
-                    onChangeCapture={(e) => {
-                      console.log('q122222', e.target.value)
-                      field.handleChange(e.target.value)
-
-                      setphone(e.target.value)
-                    }}
-                  />
-                )}
-              />
-
               <form.Field
                 name="firstname"
                 validators={{
@@ -1284,8 +1591,91 @@ const RoomSelection = () => {
               >
                 BOOK NOW
               </Button>
+              {/* <button className="bg-yellow-500 text-white py-2 px-4 rounded w-full mt-4">
+              BOOK NOW
+            </button> */}
             </div>
           </div>
+
+          {/* Payment Method Section */}
+          {/* <div className="col-span-1 bg-white p-4 rounded">
+            <h2 className="text-lg font-semibold mb-2">Payment Method</h2>
+            <div className="flex space-x-2 mb-4">
+              <img src="visa-secure.svg" alt="Visa" className="w-12" />
+              <img src="master-secure.svg" alt="MasterCard" className="w-12" />
+            </div>
+            <form className="space-y-4">
+              <input
+                type="text"
+                placeholder="First and Last Name on Card"
+                className="w-full border border-gray-300 p-2 rounded"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Card Number"
+                className="w-full border border-gray-300 p-2 rounded"
+                required
+              />
+              <input
+                type="text"
+                placeholder="MM/YY"
+                className="w-full border border-gray-300 p-2 rounded"
+                required
+              />
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={useSameAddress}
+                  onChange={() => setUseSameAddress(!useSameAddress)}
+                />
+                <label>Use the same address as contact information</label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={notifySpecialOffers}
+                  onChange={() => setNotifySpecialOffers(!notifySpecialOffers)}
+                />
+                <label>Notify me about special offers</label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={() => setTermsAccepted(!termsAccepted)}
+                />
+                <label>
+                  I have read and agree to the{' '}
+                  <a href="#" className="text-blue-600 underline">
+                    Terms & Conditions
+                  </a>{' '}
+                  and{' '}
+                  <a href="#" className="text-blue-600 underline">
+                    Privacy Policy
+                  </a>
+                </label>
+              </div>
+            </form>
+            <p className="text-red-600 mt-4 text-sm">
+              Please do not close the payment pop-up(s) until your transaction
+              is completed. If you do not receive a booking confirmation via
+              email, please contact the hotel directly.
+            </p>
+            <Button
+              className="bg-yellow-500 text-white py-2 px-4 rounded w-full mt-4  "
+              type="submit"
+              onClick={form.handleSubmit}
+            >
+              BOOK NOW
+            </Button>
+            <button className="bg-yellow-500 text-white py-2 px-4 rounded w-full mt-4">
+              BOOK NOW
+            </button>
+          </div> */}
         </div>
       </div>
     </>

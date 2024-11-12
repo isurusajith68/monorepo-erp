@@ -1,12 +1,14 @@
 import ProjectBanner from './ProjectBanner '
+import { ServiceDetails } from './ServiceDetails'
 
-const Test = () => {
+function Home() {
   return (
     <>
       <ProjectBanner />
       {/* <ProjectBanner /> */}
+      <ServiceDetails />
     </>
   )
 }
 
-export default Test
+export default Home

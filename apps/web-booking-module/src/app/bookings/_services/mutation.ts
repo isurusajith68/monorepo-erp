@@ -1,4 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  MutateFunction,
+  useMutation,
+  UseMutationResult,
+  useQueryClient,
+} from '@tanstack/react-query'
 import axios from 'axios'
 const bapi = import.meta.env.VITE_API_BOOKINGAPI
 
@@ -9,11 +14,10 @@ export const useUpdateBookingMutation = () => {
   return useMutation({
     mutationFn: async (params: any) => {
       try {
-        const res = await axios.patch(
-          `${bapi}bookings/${params.id}`,
-          params.dirtyValues,
-        )
-        console.log('ressssssssssssssssssssssss', res)
+        console.log('params', params)
+
+        const res = await axios.patch(`${bapi}bookings/${params.id}`, params)
+
         return res
       } catch (error) {
         console.error('Error in API call:', error)
@@ -34,7 +38,7 @@ export const useInsertBookingMutation = () => {
 
       try {
         const res = await axios.post(`${bapi}bookinginsert`, data.data)
-        console.log('ressssssssssssssssssssssss', res.data)
+
         return res.data
       } catch (error) {
         console.error('Error in API call:', error)
