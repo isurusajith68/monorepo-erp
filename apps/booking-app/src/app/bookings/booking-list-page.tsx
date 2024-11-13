@@ -23,13 +23,11 @@ import {
 import { useNavigate } from 'react-router-dom'
 import Axios from 'axios'
 import { useToast } from '@/hooks/use-toast'
-import { useDeleteBookingMutation } from './_services/mutation'
 
 export default function BookingListPage() {
   const { toast } = useToast()
   const [booking, setBooking] = useState([])
   const navigate = useNavigate()
-  const deleteMutation = useDeleteBookingMutation()
 
   const fetchBooking = async () => {
     try {
@@ -63,11 +61,11 @@ export default function BookingListPage() {
   const deleteAction = async (id) => {
     if (id) {
       try {
-        // console.log('Deleting booking with id:', id)
+        console.log('Deleting booking with id:', id)
 
-        // // Make the DELETE request to the backend API
-        // await Axios.delete(`http://localhost:4000/deletebooking/${id}`)
-        const resMutation = deleteMutation.mutate({ id })
+        // Make the DELETE request to the backend API
+        await Axios.delete(`http://localhost:4000/deletebooking/${id}`)
+
         // Show success toast notification
         toast({
           className: 'text-red-600',

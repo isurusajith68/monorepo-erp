@@ -44,7 +44,6 @@ export const useUpdateBookingMutation = () => {
   //          });
   //  return mutation;
 }
-
 export const useInsertBookingMutation = () => {
   const bapi = import.meta.env.VITE_API_BOOKINGAPI
   // console.log("aaaqqq",bapi)
@@ -57,28 +56,6 @@ export const useInsertBookingMutation = () => {
 
       try {
         const res = await axios.post(`${bapi}`, data.data)
-        // console.log("ressssssssssssssssssssssss",res.data)
-        return res.data
-      } catch (error) {
-        console.error('Error in API call:', error)
-        throw error
-      }
-    },
-  })
-}
-
-export const useDeleteBookingMutation = () => {
-  const bapi = import.meta.env.VITE_API_BOOKINGAPI
-  // console.log("aaaqqq",bapi)
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (data: any) => {
-      // console.log("helloooooo",data.data )
-      // console.log("geeth",bapi + params.data.id)
-
-      try {
-        const res = await axios.delete(`${bapi}delete/${data.id}`, data.id)
         // console.log("ressssssssssssssssssssssss",res.data)
         return res.data
       } catch (error) {
