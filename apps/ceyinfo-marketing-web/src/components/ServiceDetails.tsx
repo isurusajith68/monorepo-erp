@@ -1,26 +1,31 @@
-import { useState } from 'react'
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from '@/components/ui/popover'
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card'
-import { FaCheckCircle, FaChevronRight } from 'react-icons/fa'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { useState } from 'react'
+import { FaCheckCircle } from 'react-icons/fa'
+import { HiTemplate } from 'react-icons/hi'
+import { IoIosLock } from 'react-icons/io'
+import { IoBookmarks } from 'react-icons/io5'
+import { MdInventory2 } from 'react-icons/md'
+import { PiUsersThreeFill } from 'react-icons/pi'
+import { RiAdminFill, RiMoneyDollarCircleFill } from 'react-icons/ri'
 
 import { Button } from '@/components/ui/button'
-import { Icons } from '@/components/icons'
 
 const features = [
   {
     title: 'Admin Application',
     description: 'Comprehensive admin controls and user management',
-    icon: <Icons.admin />,
+    icon: <RiAdminFill />,
     popdescription:
       'This app is designed to secure access toq systems and documents by providing robust authentication, user role management, and permission settings.',
     list: {
@@ -32,7 +37,7 @@ const features = [
   {
     title: 'Finance Management',
     description: 'Complete financial tracking and reporting',
-    icon: <Icons.finance />,
+    icon: <RiMoneyDollarCircleFill />,
     popdescription:
       'This app is designed to simplify financial tasks for hotels, providing an easy way to manage invoices, track purchases, and control expenses.',
     list: {
@@ -45,7 +50,7 @@ const features = [
   {
     title: 'Authentication',
     description: 'Manage permission',
-    icon: <Icons.authentication />,
+    icon: <IoIosLock />,
     popdescription:
       'This app is designed to secure access toq systems and documents by providing robust authentication, user role management, and permission settings.',
     list: {
@@ -57,7 +62,7 @@ const features = [
   {
     title: 'Booking Application',
     description: 'Comprehensive admin controls and user management',
-    icon: <Icons.booking />,
+    icon: <IoBookmarks />,
     popdescription:
       'This app streamlines hotel operations by combining room booking, guest registration, and front office management. It provides a central platform for handling reservations, guest check-ins and check-outs, and other essential front desk functions to ensure seamless service and an excellent guest experience.',
     list: {
@@ -69,7 +74,7 @@ const features = [
   {
     title: 'Inventory Control',
     description: 'Inventory tracking and management',
-    icon: <Icons.inventory />,
+    icon: <MdInventory2 />,
     popdescription:
       'This app is designed to streamline inventory operations by centralizing item management, request processing, and store management.It provides an efficient way to track stock levels, handle item requests',
     list: {
@@ -81,12 +86,12 @@ const features = [
   {
     title: 'Web Templates',
     description: 'Customize web templates',
-    icon: <Icons.templates />,
+    icon: <HiTemplate />,
   },
   {
     title: 'HR Management',
     description: 'Human resources management',
-    icon: <Icons.templates />,
+    icon: <PiUsersThreeFill />,
     popdescription:
       'This app centralizes human resource functions, including staff management, attendance tracking, and leave management.',
     list: {

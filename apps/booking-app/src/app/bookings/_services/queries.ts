@@ -163,3 +163,19 @@ export function useGetPrice(checkindate, id) {
     },
   })
 }
+
+//get room report details
+export function useGetAllRoomReportDetails() {
+  // console.log("first",id)
+  return useQuery({
+    queryKey: ['roomreport'],
+    queryFn: async () => {
+      let data1
+      data1 = await Axios.get(`${bapi}roomreport`)
+      // data1 = await Axios.get(`http://localhost:4000/bookings/28`);
+      console.log('data1', data1)
+
+      return data1.data
+    },
+  })
+}

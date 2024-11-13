@@ -689,4 +689,101 @@ where phonenumber = $1`
   } catch {}
 })
 
+//get all bookings
+bookingRouter.get('/allbookings', (req, res) => {
+  const getAllBookingQuery = `
+  SELECT 
+        b.id ,
+        
+        g.firstname,
+        g.lastname,
+        g.email,
+        g.phonenumber,
+        g.address,
+        g.city,
+        g.country,
+        g.postalcode
+      FROM 
+        booking b
+      JOIN 
+        guestinformation g ON b.guestid = g.id`
+
+  pool
+    .query(getAllBookingQuery)
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const bookingData = response.rows // Get all rows
+        res.json({ success: true, msg: '', data: bookingData })
+      } else {
+        res.json({ success: false, msg: 'No booking found', data: [] })
+      }
+    })
+    .catch((err) => {
+      console.error('Error fetching booking:', err)
+      res.json({ success: false, msg: 'Error fetching booking', data: [] })
+    })
+})
+
+//delete booking
+bookingRouter.delete('/bookings/delete/:id', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    // Prepare the SQL query
+    const sqlDel = 'DELETE FROM booking WHERE id = $1'
+    const result = await pool.query(sqlDel, [id])
+
+    // Check if any row was deleted
+    if (result.rowCount ?? 0 > 0) {
+      res
+        .status(200)
+        .json({ success: true, msg: 'booking deleted successfully', data: {} })
+    } else {
+      res
+        .status(404)
+        .json({ success: false, msg: 'booking not found', data: {} })
+    }
+  } catch (error) {
+    console.error('Error deleting booking:', error)
+    res.status(500).json({ success: false, msg: 'Server error', data: {} })
+  }
+})
+
+//get all room details and prices
+bookingRouter.get('/roomreport', async (req, res) => {
+  try {
+    // SQL query to retrieve room details and prices
+    const query = `
+      SELECT 
+          r.roomno,                     
+          rt.roomtype,                  
+          rv.roomview,                  
+          p.roprice,                    
+          p.bbprice,                    
+          p.hbprice,                    
+          p.fbprice                     
+      FROM 
+          public.hotelrooms r
+      JOIN 
+          public.hotelroomtypes rt ON r.roomtypeid = rt.id
+      JOIN 
+          public.hotelroomview rv ON r.roomviewid = rv.id
+      JOIN 
+          public.hotelroomprices p ON r.roomtypeid = p.roomtypeid 
+                                    AND r.roomviewid = p.roomviewid
+      JOIN 
+          public.hotelroompriceshedules s ON p.sheduleid = s.id;
+    `
+
+    // Execute the query
+    const result = await pool.query(query)
+
+    // Send the result back as JSON
+    res.json(result.rows)
+  } catch (error) {
+    console.error('Error fetching room prices:', error)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
 export default bookingRouter

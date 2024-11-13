@@ -8,23 +8,25 @@ function Dashboard() {
   const [date, setDate] = React.useState<Date | undefined>(new Date())
   return (
     <div>
-      <div className="flex ml-20">
-        <div className=" w-60 h-32 bg-green-100 border border-green-400">
+      <div className="flex justify-center items-center ">
+        <div className=" w-60 h-32 bg-green-100 border border-green-400  rounded-md shadow-lg">
           <div className="bg-green-300">
             <h1 className="text-center font-medium">Bookings</h1>
           </div>
         </div>
-        <div className=" w-60 h-32 bg-green-100 ml-10 border border-green-400">
+        <div className=" w-60 h-32 bg-green-100 ml-10 border border-green-400 rounded-md shadow-lg">
           <div className="bg-green-300">
             <h1 className="text-center font-medium">Registration</h1>
           </div>
         </div>
       </div>
-      <div className="ml-20 mt-10 ">
-        <h1 className="text-xl font-bold">Booked Dates</h1>
+      <div className="flex justify-center items-center min-h-screen mt-10">
+        <div className="w-full max-w-xs p-6 bg-green-100 rounded-md shadow-lg">
+          <h1 className="text-xl font-bold text-center mb-4">Booked Dates</h1>
 
-        <div className="w-1/3 items-center bg-green-100 justify-center">
-          <h1 className="text-center font-medium bg-green-400">Calendar</h1>
+          <div className="bg-green-400 py-2 rounded-t-md">
+            <h1 className="text-center font-medium text-white">Calendar</h1>
+          </div>
 
           <Calendar
             mode="single"
@@ -33,9 +35,9 @@ function Dashboard() {
             className="rounded-md border"
           />
 
-          <div className="flex justify-center">
+          <div className="flex justify-center mt-4">
             <Button
-              className="bg-green-400 rounded-lg "
+              className="bg-green-400 rounded-lg hover:bg-green-700 hover:text-white"
               variant="outline"
               onClick={() => navigate('/booking/add')}
             >
