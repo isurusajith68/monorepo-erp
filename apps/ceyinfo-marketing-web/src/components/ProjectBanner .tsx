@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
@@ -57,6 +58,15 @@ const FormSchema = z.object({
   companyname: z.string().min(2, {
     message: 'Username must be at least 2 characters.',
   }),
+  modules: z.object({
+    booking: z.boolean().default(false),
+    finance: z.boolean().default(false),
+    inventory: z.boolean().default(false),
+    templates: z.boolean().default(false),
+    hr: z.boolean().default(false),
+    authentication: z.boolean().default(false),
+    admin: z.boolean().default(false),
+  }),
 })
 
 const ProjectBanner = () => {
@@ -93,6 +103,7 @@ const ProjectBanner = () => {
     //   console.error('Error submitting form:', error)
     //   // Handle error here, such as showing an error message to the user
     // }
+    console.log('aaaaaaaaaaaaaaaaa', data)
 
     try {
       const response = await axios.post(
@@ -128,8 +139,8 @@ const ProjectBanner = () => {
           {/*<span className="text-blue-600">Monitoring!</span>*/}
         </h1>
         <p className="text-gray-700 text-lg text-center ">
-          Transform yout hotel with our comprehensive ERP solution. Manage
-          everything from one pice.
+          Transform your hotel with our comprehensive ERP solution. Manage
+          everything from one place.
         </p>
         {/* Call-to-Action Buttons */}
         <div className="flex  mt-4 justify-center">
@@ -176,7 +187,7 @@ const ProjectBanner = () => {
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
-                  className=" space-y-4 "
+                  className=" space-y-1 "
                 >
                   <div className="w-full grid grid-cols-3 gap-4">
                     <FormField
@@ -334,6 +345,124 @@ const ProjectBanner = () => {
                         </FormItem>
                       )}
                     />
+                  </div>
+
+                  {/* Module Selection Section */}
+                  <div className="w-full mt-6">
+                    <h3 className="text-lg font-semibold mb-2">
+                      Module Selection
+                    </h3>
+                    <div className="grid grid-cols-6 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="modules.booking"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value} // Use `checked` instead of `value`
+                                onCheckedChange={field.onChange} // onCheckedChange is typically used with boolean values in some UI libraries
+                              />
+                            </FormControl>
+                            <FormLabel className="ml-2">Booking</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="modules.finance"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value} // Use `checked` instead of `value`
+                                onCheckedChange={field.onChange} // onCheckedChange is typically used with boolean values in some UI libraries
+                              />
+                            </FormControl>
+                            <FormLabel className="ml-2">Finance</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="modules.inventory"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value} // Use `checked` instead of `value`
+                                onCheckedChange={field.onChange} // onCheckedChange is typically used with boolean values in some UI libraries
+                              />
+                            </FormControl>
+                            <FormLabel className="ml-2">Inventory</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="modules.templates"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value} // Use `checked` instead of `value`
+                                onCheckedChange={field.onChange} // onCheckedChange is typically used with boolean values in some UI libraries
+                              />
+                            </FormControl>
+                            <FormLabel className="ml-2">
+                              Web Templates
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="modules.hr"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value} // Use `checked` instead of `value`
+                                onCheckedChange={field.onChange} // onCheckedChange is typically used with boolean values in some UI libraries
+                              />
+                            </FormControl>
+                            <FormLabel className="ml-2">Hr</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="modules.authentication"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value} // Use `checked` instead of `value`
+                                onCheckedChange={field.onChange} // onCheckedChange is typically used with boolean values in some UI libraries
+                              />
+                            </FormControl>
+                            <FormLabel className="ml-2">
+                              Authentication
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="modules.admin"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value} // Use `checked` instead of `value`
+                                onCheckedChange={field.onChange} // onCheckedChange is typically used with boolean values in some UI libraries
+                              />
+                            </FormControl>
+                            <FormLabel className="ml-2">Admin</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
 
                   <div className="justify-center">

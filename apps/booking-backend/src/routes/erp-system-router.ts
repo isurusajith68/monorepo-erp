@@ -19,6 +19,7 @@ erp.post('/erpcreate', async (req: Request, res: Response) => {
       city,
       district,
       companyname,
+      modules,
     } = req.body
 
     // Create the JSON object to store in the details column
@@ -34,6 +35,7 @@ erp.post('/erpcreate', async (req: Request, res: Response) => {
       city,
       district,
       companyname,
+      modules,
     })
 
     // Insert the object into the apprequests table
