@@ -28,15 +28,10 @@ import Axios from 'axios'
 import { useToast } from '@/hooks/use-toast'
 import { useQuery } from '@tanstack/react-query'
 import {
-  useDeleteBookingMutation,
   useInsertBookingMutation,
   useUpdateBookingMutation,
 } from '../../_services/mutation'
-import {
-  useGetBooking,
-  useGetNextBooking,
-  useGetPrevBooking,
-} from '../../_services/queries'
+import { useGetBooking, useGetPrevBooking } from '../../_services/queries'
 
 const formSchema = z.object({
   roomnumber: z.coerce.number().min(2, {
@@ -96,7 +91,6 @@ const BookingForm = () => {
 
   const updateMutation = useUpdateBookingMutation()
   const insertMutation = useInsertBookingMutation()
-  const deleteMutation = useDeleteBookingMutation()
 
   //   useEffect(() => {
   //     if (id) {
@@ -447,9 +441,9 @@ const BookingForm = () => {
     if (id) {
       try {
         // console.log("Deleting booking with id:", id);
-        const resMutation = deleteMutation.mutate({ id })
+
         // Make the DELETE request to the backend API
-        // await Axios.delete(`http://localhost:4000/bookings/delete/${id}`)
+        await Axios.delete(`http://localhost:4000/deletebooking/${id}`)
 
         // Show success toast notification
         toast({
@@ -492,11 +486,13 @@ const BookingForm = () => {
       })
     }
   }
+  const getNextItem = async () => {
+    const nextItem = await Axios.get(
+      `http://localhost:4000/next-material-item/${id ?? 0}`,
+    )
 
-  const { data: nextItem } = useGetNextBooking(id)
-  const getNextItem = () => {
-    if (nextItem && Object.keys(nextItem).length !== 0) {
-      navigate(`/booking/${nextItem.id}`)
+    if (nextItem.data.data && Object.keys(nextItem.data.data).length !== 0) {
+      navigate(`/booking/${nextItem.data.data.id}`)
     } else {
       toast({
         className: 'text-blue-600',

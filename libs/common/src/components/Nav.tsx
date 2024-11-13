@@ -21,15 +21,7 @@ type NavBarProps = {
   use?: string
 }
 
-/**
- * A navigation bar component.
- *
- * @param {NavItem[]} items - An array of navigation items. Each item should have a `path` and a `name`.
- * @param {Logo} logo - A logo for the navigation bar. The `url` should be the URL of the logo image, and the `siteName` should be the name of the site.
- * @param {string} [activeItem] - The path of the currently active item.
- * @param {string} [use] - The framework to use for linking. Either 'next' or 'react'. If not specified, links will be rendered as regular HTML links.
- */
-export const NavBar = ({ items, logo, activeItem, use }: NavBarProps) => {
+export default function NavBar({ items, logo, activeItem, use }: NavBarProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleMenu = () => {

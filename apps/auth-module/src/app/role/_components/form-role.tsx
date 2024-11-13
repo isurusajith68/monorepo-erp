@@ -29,7 +29,6 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Textarea } from '@/components/ui/textarea'
 import Axios from 'axios'
-import { useQuery } from '@tanstack/react-query'
 
 export const detailRowSchema = z.object({
   name: z.string().min(2, {
@@ -59,62 +58,17 @@ export default function FormRole() {
     control: form.control,
   })
 
-  // const { data:dataa, isLoading, isError, error } = useQuery({
-  //   queryKey: ["booking"],
-  //   queryFn: async () => {
-  //     let data1;
-  //     data1 = await Axios.get('http://localhost:10000/getData');
-  //     console.log("response",data1)
-  //     return data1.data;
-  //   }})
-
-  // const fetchData = async () => {
-  //   const response = await Axios.get('http://localhost:10000/getData');
-  //   return response.data;
-  // };
-
-  // const { data, isLoading, isError, error } = useQuery({
-  //   queryKey: ['getData'],
-  //   queryFn: fetchData,
-  // });
-
-  // if (isLoading) {
-  //   return <div>Loading...</div>;
-  // }
-
-  // if (isError) {
-  //   return <div>Error: {error.message}</div>;
-  // }
-
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log('data', data)
 
-    // const addRole=async()=>{
-
-    //     const response=await Axios.post("http://localhost:10000/addrole",data)
-    //     console.log(response)
-
-    // }
-    // addRole();
-
-    const {
-      data: dataa,
-      isLoading,
-      isError,
-      error,
-    } = useQuery({
-      queryKey: ['booking'],
-      queryFn: async () => {
-        let data1
-        data1 = await Axios.get('http://localhost:10000/getData')
-        console.log('response', data1)
-        return data1.data
-      },
-    })
+    const addRole = async () => {
+      const response = await Axios.post('http://localhost:10000/addrole', data)
+      console.log(response)
+    }
+    addRole()
   }
   return (
     <div>
-      {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="border-2 rounded-lg border-green-300 p-4 bg-green-100 ">
@@ -205,22 +159,3 @@ export default function FormRole() {
     </div>
   )
 }
-
-// const { data, isLoading, isError, error } = useQuery({
-//   queryKey: ["booking", id],
-//   queryFn: async () => {
-//     let data1;
-//     data1 = await Axios.get('http://localhost:10000/getData');
-//     return data1.data.data;
-
-// const getData = async () => {
-//   const response = await Axios.get('http://localhost:10000/getData', {
-//     withCredentials: true, // This ensures cookies are sent with the request
-//   })
-//   console.log('first')
-//   setData(response.data)
-// }
-
-// useEffect(() => {
-//   getData()
-// }, [])

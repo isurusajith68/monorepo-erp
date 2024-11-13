@@ -2,10 +2,7 @@
 
 import './globals.css'
 import NavBar from '@erp/common/src/components/Nav'
-import SideBar from '@erp/common/src/components/SideBar'
 import { usePathname } from 'next/navigation'
-import { HiAcademicCap, HiAnnotation, HiArrowCircleRight } from 'react-icons/hi'
-import { HiArchiveBox } from 'react-icons/hi2'
 
 const items = [
   { path: '/', name: 'Home' },
@@ -32,51 +29,10 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className="flex flex-col w-full h-screen bg-gray-50">
+      <body>
         {' '}
         <NavBar items={items} logo={logo} activeItem={currentPath} use={use} />
-        <div className="flex w-full h-full">
-          <div className="flex ">
-            <SideBar
-              sideBarItems={[
-                {
-                  path: '/',
-                  name: 'Home',
-                  icon: <HiAcademicCap className="w-6 h-6 text-white" />,
-                },
-                {
-                  path: '/about',
-                  name: 'About',
-                  icon: <HiAnnotation className="w-6 h-6 text-white" />,
-                },
-                {
-                  path: '/contact',
-                  name: 'Contact',
-                  icon: <HiArrowCircleRight className="w-6 h-6 text-white" />,
-                },
-                {
-                  path: '/isuru',
-                  name: 'Isuru',
-                  icon: <HiArchiveBox className="w-6 h-6 text-white" />,
-                },
-              ]}
-              userInfo={{
-                name: 'Sajith',
-                email: 'sajith68@gmail.com',
-                profileImage:
-                  'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=600',
-              }}
-              sideBarHeight="90vh"
-              sideBarWidth="20vw"
-              handleLogout={() => alert('Logout')}
-              use={use}
-              activeItem={currentPath}
-            />
-          </div>
-          <div className="flex w-full min-h-[100%] bg ">
-            <div>{children}</div>
-          </div>
-        </div>
+        {children}
       </body>
     </html>
   )
