@@ -2,12 +2,13 @@
   "name": "@erp/common",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build": "vite build"
   },
   "dependencies": {
     "@types/react-router-dom": "^5.3.3",
