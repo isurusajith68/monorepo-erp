@@ -19,6 +19,7 @@ import RequestForm from './views/RequestForm.vue';
 
 .router-view-container {
   margin-left: 380px;
-  margin-top: -600px; 
+  margin-top: 50px; 
+  width:1000px;
 }
 </style>

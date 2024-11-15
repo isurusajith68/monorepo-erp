@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import ItemQuentityPopup from './ItemQuentityPopup.vue';
-
-import { computed, onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import axios from 'axios';
 import { toast, useToast } from '@/components/ui/toast';
 import { Input } from '@/components/ui/input';
@@ -27,65 +25,85 @@ import Card from '@/components/ui/card/Card.vue';
 import Popover from '@/components/ui/popover/Popover.vue';
 import PopoverTrigger from '@/components/ui/popover/PopoverTrigger.vue';
 import PopoverContent from '@/components/ui/popover/PopoverContent.vue';
+import VueSelect from 'vue3-select-component';
 
 
 // Store fetched data
 type FormData = {
   hotelid?:string;
-  requester?: string;
+  invno?: string;
+  vendor?: string;
   date?: string;
-  department?: string;
+  //department?: string;
   remark?:string;
+  defaultunit?:string;
 };
 
 type FormData1 = {
-  id: string;
-  requester: string;
+  id:string;
+  hotelid:string;
+  invoiceno: string;
+  vendorname: string;
   date: string;
-  department: string;
-  // item:string;
-  // total_quantity:string;
-  // remark:string;
+  //department?: string;
+  remark:string;
 };
 
 type RequestDetails = {
   item: string;
   quentity: string;
+  unit:string;
+  description:string;
+  remark:string;
 };
-
-
-type fetchItems={
-  id:string;
-  name:string;
-  defaultunit:string;
-}
 
 type EditForm = {
   id:string;
   date: string;
-  requester: string;
-  department: string;
   remark: string;
   item: string;
   quentity: string;
+  unit:string;
+  description:string;
+  invno:string;
+  vendor:string;
+  
 }
+
+
+
+type UnitOptions={
+  value: string;
+  label:string;
+}
+
+
+type ItemOptions={
+  value: string;
+  label:string;
+}
+
 
 const selectedData = ref<EditForm>({
   id:'',
-  date: '',
-  requester: '',
-  department: '',
+  date:'',
   remark: '',
   item: '',
-  quentity: ''
+  quentity:'',
+  unit:'',
+  description:'',
+  invno:'',
+  vendor:'',
 });
 
 
 const formSchema = toTypedSchema(z.object({
-  requester: z.string().optional(),
+  invno: z.string().optional(),
+  vendor: z.string().optional(),
   date: z.string().optional(),
-  department: z.string().optional(),
+  //department: z.string().optional(),
   remark:z.string().optional(),
+  defaultunit:z.string().optional(),
 }));
 
 const form = useForm({
@@ -94,7 +112,7 @@ const form = useForm({
 
 const fetchedData = ref<FormData1[]>([]);
 const submittedData = ref<FormData[]>([]);
-const requestDetails = ref<RequestDetails[]>([{ item: '', quentity: '' }]);
+const requestDetails = ref<RequestDetails[]>([{ item: '',description:'',unit:'', quentity: '',remark:''}]);
 const dialogRef = ref<HTMLDialogElement | null>(null);
 
 
@@ -102,7 +120,7 @@ const dialogRef = ref<HTMLDialogElement | null>(null);
 
 const fetchData1 = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/fetchrequests');
+    const response = await axios.get('http://localhost:3000/fetchgrn');
     console.log('Fetched Request Data:', response.data);
     fetchedData.value = response.data;
   } catch (error) {
@@ -115,114 +133,67 @@ const fetchData1 = async () => {
 
 onMounted(() => {
   fetchData1();
+  fetchunitdata();
+  fetchitemdata();
 });
-
-
-const quantityPopupRef = ref<HTMLDialogElement | null>(null);
-const selectedItem = ref<string>('');
-const quantity = ref<number | null>(null);
-
-
-
-// Track search input
-const searchQuery = ref('');
-const searchResults = ref<fetchItems[]>([]);
-
-// Fetch filtered data based on search query
-const fetchSearchResults = async () => {
-  try {
-    console.log("Search query being sent:", searchQuery.value);
-    const response = await axios.get(`http://localhost:3000/searchItems`, {
-      params: { query: searchQuery.value }
-    });
-    console.log("Response data:", response.data);
-    searchResults.value = response.data;
-  } catch (error) {
-    console.error('Error fetching search results:', error);
-  }
-};
-
-// Watch searchQuery to fetch data as user types
-watch(searchQuery, (newQuery) => {
-  if (newQuery){
-    fetchSearchResults();
-  } else{
-
-  }
-
-});
-
-// const openQuantityPopup = (name: string) => {
-//   selectedItem.value = name;
-//   quantityPopupRef.value?.showModal();
-// };
-
-const closeQuantityPopup = () => {
-  quantityPopupRef.value?.close();
-};
-
-
 
 
 const onSubmit = form.handleSubmit(async (values) => {
   try {
+    console.log('Selected Item:', selecteditem.value); // Log selected item
+    console.log('Selected Unit:', selectedunits.value); // Log selected unit
 
     const requestBody = {
       ...values, // Spread form values
       details: requestDetails.value, // Include additional details
     };
     console.log('Form Submitted with values:', values);
-   
     console.log('Request Header:', values);
     console.log('Request Details:', requestDetails.value);
+    console.log("Request Body", requestBody);
 
-    console.log("Request Body",requestBody)
-   
-    const response = await axios.post('http://localhost:3000/requests',requestBody);
-   
+    const response = await axios.post('http://localhost:3000/addgrn', requestBody);
     console.log('Request header:', response.data);
-   
+
     submittedData.value.push(values);
-    // requestDetails.value.push( requestDetails.value);
-    fetchData1();
-    closeModal(); 
+    closeModal();
   } catch (error) {
     console.error('Error submitting form:', error);
   }
 });
 
 
+
 const editModalRef = ref<HTMLDialogElement | null>(null);
 
-const itemRef=ref<HTMLDialogElement | null>(null);
 
-const openitemModal = () => {
-  itemRef.value?.showModal();
-  closeModal();
-  openselectedItem();
-  closeQuantityPopup()
-}
-const closeitemModal = () => itemRef.value?.close();
+
+
 
 
 const fetchData = async (id: any) => {
   console.log("id",id)
   try {
-    const response = await axios.get(`http://localhost:3000/fetchreqdetails/${id}`)
+    const response = await axios.get(`http://localhost:3000/fetchgrndetails/${id}`)
 
     if (response.data.success) {
       console.log('Fetched Request Header Data:', response.data.data.header);
       console.log('Fetched Request Details Data:', response.data.data.details);
       if (id) {
+        const rawDate = new Date(response.data.data.header.date);
+        const formattedDate = rawDate.toISOString().split('T')[0];
         selectedData.value = {
           id,
-          date: response.data.data.header.date,
-          requester: response.data.data.header.requester,
-          department: response.data.data.header.department,
+          // date: response.data.data.header.date,
+          date: formattedDate,
+          invno: response.data.data.header.invoiceno,
+          vendor: response.data.data.header.vendorname,
           remark: response.data.data.header.remark,
-          item: response.data.data.details.item,
-          quentity: response.data.data.details.quentity,
+          
+          // item: response.data.data.details.item,
+          // quentity: response.data.data.details.quentity,
         };
+        console.log("vendor",selectedData.value.vendor)
         requestDetails.value = response.data.data.details.map((detail: RequestDetails) => ({
           item: detail.item,
           quentity: detail.quentity,
@@ -237,17 +208,12 @@ const fetchData = async (id: any) => {
   }
 };
 
-const selectedRef=ref<HTMLDialogElement|null>(null)
-const openselectedItem=()=>{
-  selectedRef.value?.showModal()
-}
 
 const openEditModal = async (id: any) => {
   console.log("id ddddd",id)
   await fetchData(id); 
   editModalRef.value?.showModal(); 
 };
-
 
 
 const closeEditModal = () => editModalRef.value?.close();
@@ -257,9 +223,9 @@ const openModal = () => dialogRef.value?.showModal();
 const closeModal = () => dialogRef.value?.close();
 
 
-// const addRow = () => {
-//   requestDetails.value.push({ item: '', quentity: '' });
-// };
+const addRow = () => {
+  requestDetails.value.push({item: '',description:'',unit:'', quentity: '',remark:''});
+};
 
 const removeRow = (index: number) => {
   if (requestDetails.value.length > 1) {
@@ -277,7 +243,7 @@ const deleteheader = async (id: string) => {
     console.log('Header deleted:', response.data);
     
     
-    fetchData1();
+    //fetchData1();
   } catch (error) {
     console.error('Error deleting unit:', error);
   }
@@ -315,52 +281,60 @@ watch([selectedData,requestDetails], (n,m) => {
 
 //submit the edits
 
-const submitEditedData = async () => {
+// const submitEditedData = async () => {
+//   try {
+//     const editedDataPayload = {
+//       ...selectedData.value,
+//       details: requestDetails.value,
+//     };
+
+//     const response = await axios.put(`http://localhost:3000/editrequests/${selectedData.value.id}`, editedDataPayload);
+
+//     //fetchData1();
+//     closeEditModal();
+//   } catch (error) {
+//     console.error('Error submitting edited data:', error);
+//   }
+// };
+const selectedunits=ref("");
+const selecteditem=ref("");
+const unitOptions=ref<UnitOptions[]>([])
+const itemOptons=ref<ItemOptions[]>([])
+
+const fetchunitdata=async()=>{
   try {
-    const editedDataPayload = {
-      ...selectedData.value,
-      details: requestDetails.value,
-    };
-
-    const response = await axios.put(`http://localhost:3000/editrequests/${selectedData.value.id}`, editedDataPayload);
-
-    fetchData1();
-    closeEditModal();
-  } catch (error) {
-    console.error('Error submitting edited data:', error);
+  const response = await axios.get('http://localhost:3000/unitoptions');
+  console.log('Fetched Unit Data Options:', response.data);
+    fetchedData.value = response.data;
+   unitOptions.value=response.data.map((item)=>({value:item.unit,label:item.unit}))
   }
-};
-
-
-const selectedItemId = ref('');
-const selectedItemName = ref('');
-const selectedUnit = ref('');
-const quentity=ref('')
-
-
-const openQuantityPopup = (name: string, id: string,defaultunit:string) => {
-  selectedItemName.value = name;
-  selectedItemId.value = id;
-  selectedUnit.value=defaultunit
-  quantityPopupRef.value?.showModal();
-  console.log("itemname=",selectedItemName.value)
-  console.log("item id=",selectedItemId.value)
-  closeitemModal();
-};
-
-
-
-const handleQuantitySubmit = (data: { itemId: string, itemName: string, quantity: string,unit:string }) => {
-  console.log('Selected Item:', {
-    id: data.itemId,
-    name: data.itemName,
-    quantity: data.quantity,
-    unit:data.unit
-  });
-  openitemModal()
-  
+  catch(error){
+    console.error('Error fetching data:', error);
+  }
 }
 
+
+const fetchitemdata=async()=>{
+  try {
+  const response = await axios.get('http://localhost:3000/itemoptions');
+  console.log('Fetched Item Data Options:', response.data);
+    fetchedData.value = response.data;
+    itemOptons.value=response.data.map((item)=>({value:item.id,label:item.name}))
+  }
+  catch(error){
+    console.error('Error fetching data:', error);
+  }
+}
+
+watch(requestDetails, (newDetails) => {
+  newDetails.forEach((detail) => {
+    console.log('Item:', detail.item);
+    console.log('Quantity:', detail.quentity);
+    console.log('Unit:', detail.unit ); 
+    console.log('Unit:', detail.description ); 
+    console.log('Unit:', detail.remark ); 
+  });
+}, { deep: true });
 
 
 </script>
@@ -368,22 +342,22 @@ const handleQuantitySubmit = (data: { itemId: string, itemName: string, quantity
 <template>
   <Card>
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold">Category List</h2>
+      <h2 class="text-lg font-semibold">Grn Details</h2>
       <Button 
         class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200"
         @click="openModal"
       >
-        New Request
+     New Grn
       </Button>
     </div>
     <Table>
       <!-- <TableCaption>Request Details</TableCaption> -->
       <TableHeader class="bg-blue-400">
         <TableRow>
-          <TableHead>Request ID</TableHead>
-          <TableHead>Requester</TableHead>
+          <TableHead>Invoice Number</TableHead>
+          <TableHead>Vendor Name</TableHead>
           <TableHead>Date</TableHead>
-          <TableHead>Department</TableHead>
+          <TableHead>Remark</TableHead>
                  
           
           <TableHead class="justify-center">Action</TableHead>
@@ -391,10 +365,10 @@ const handleQuantitySubmit = (data: { itemId: string, itemName: string, quantity
       </TableHeader>
       <TableBody>
         <TableRow v-for="(data, index) in fetchedData" :key="index">
-          <TableCell>{{ index+1 }}</TableCell>
-          <TableCell>{{ data.requester }}</TableCell>
+          <TableCell>{{ data.invoiceno }}</TableCell>
+          <TableCell>{{ data.vendorname }}</TableCell>
           <TableCell>{{ data.date }}</TableCell>
-          <TableCell>{{ data.department }}</TableCell>
+          <TableCell>{{ data.remark }}</TableCell>
           <!-- <TableCell>{{ data.id }}</TableCell> -->
           <!-- <TableCell>{{ data.remark }}</TableCell> -->
           
@@ -418,18 +392,33 @@ const handleQuantitySubmit = (data: { itemId: string, itemName: string, quantity
   </Card>
 
   <!-- submit form -->
-  <dialog ref="dialogRef" class="bg-gray-200 rounded-md p-6 w-[600px] rounded-md">
+  <dialog ref="dialogRef" class="bg-gray-200 rounded-md p-6 w-[800px]  rounded-md">
     <form @submit.prevent="onSubmit" class="bg-white rounded-md p-6  ">
       <h3 class="text-lg font-bold mb-4">Add New Request</h3>
       <div class="grid grid-cols-2 gap-4">
         <div class="w-full">
-          <FormField v-slot="{ componentField }" name="requester">
+          <FormField v-slot="{ componentField }" name="invno">
             <FormItem>
-              <FormLabel>Requester</FormLabel>
+              <FormLabel>Invoice Number</FormLabel>
               <FormControl class="w-full">
                 <Input
                   type="text"
-                  placeholder="Requester"
+                  placeholder="Invoice Number"
+                  v-bind="componentField"
+                  class="border border-gray-300 rounded-md px-3 py-2"
+                />
+              </FormControl>
+            </FormItem>
+          </FormField>
+        </div>
+        <div>
+          <FormField v-slot="{ componentField }" name="vendor">
+            <FormItem>
+              <FormLabel>Vendor Name</FormLabel>
+              <FormControl class="w-full">
+                <Input
+                  type="text"
+                  placeholder="Vendor Name"
                   v-bind="componentField"
                   class="border border-gray-300 rounded-md px-3 py-2"
                 />
@@ -452,21 +441,7 @@ const handleQuantitySubmit = (data: { itemId: string, itemName: string, quantity
             </FormItem>
           </FormField>
         </div>
-        <div>
-          <FormField v-slot="{ componentField }" name="department">
-            <FormItem>
-              <FormLabel>Department</FormLabel>
-              <FormControl class="w-full">
-                <Input
-                  type="text"
-                  placeholder="Department"
-                  v-bind="componentField"
-                  class="border border-gray-300 rounded-md px-3 py-2"
-                />
-              </FormControl>
-            </FormItem>
-          </FormField>
-        </div>
+       
         <div>
           <FormField v-slot="{ componentField }" name="remark">
             <FormItem>
@@ -483,69 +458,126 @@ const handleQuantitySubmit = (data: { itemId: string, itemName: string, quantity
         </div>
       </div>
 
-      <!-- Request details -->
+      
       <div class="border-1">
-        <Table class="mt-5">
-          <TableHeader class="bg-gray-500">
-            <TableRow>
-              <TableHead>Item</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead class="w-[100px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow v-for="(detail, index) in requestDetails" :key="index">
-              <TableCell>
-                <FormField name="requestDetails.item">
-                  <FormItem>
-                    <FormControl class="w-full">
-                      <Input
-                        v-model="detail.item"
-                        type="text"
-                        placeholder="Item name"
-                        class="w-full"
-                      />
-                    </FormControl>
-                  </FormItem>
-                </FormField>
-              </TableCell>
-              <TableCell>
-                <FormField name="requestDetails.quantity">
-                  <FormItem>
-                    <FormControl class="w-full">
-                      <Input
-                        v-model="detail.quantity"
-                        type="text"
-                        placeholder="Quantity"
-                        class="w-full"
-                      />
-                    </FormControl>
-                  </FormItem>
-                </FormField>
-              </TableCell>
-              <TableCell>
-                <div class="flex space-x-5">
-                  <Button
-                    type="button"
-                    class="bg-red-600 text-white p-2 rounded-full"
-                    @click="removeRow(index)"
-                    :disabled="requestDetails.length === 1"
-                  >
-                    <Minus class="size-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    class="bg-blue-600 text-white p-2 rounded-full"
-                    @click="openitemModal"
-                  >
-                    <Plus class="size-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
+  <Table class="mt-5">
+    <TableHeader class="bg-gray-500">
+      <TableRow>
+        <TableHead class="w-[200px]">Item</TableHead>
+        <TableHead class="w-[200px]">Description</TableHead>
+        <TableHead class="w-[200px]">Unit</TableHead>
+        <TableHead class="w-[150px]">Quantity</TableHead>
+        <TableHead class="w-[150px]">Remark</TableHead>
+        <TableHead class="w-[100px]"></TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      <TableRow v-for="(detail, index) in requestDetails" :key="index">
+        <!-- Item Cell -->
+        <TableCell class="w-[200px]">
+          <FormField name="item">
+            <FormItem>
+              <FormControl>
+                <VueSelect
+                  v-model="detail.item"
+                  :options="itemOptons"
+                  placeholder="Default Item"
+                />
+              </FormControl>
+            </FormItem>
+          </FormField>
+        </TableCell>
+
+        <!-- Description Cell -->
+        <TableCell class="w-[200px]">
+          <FormField name="requestDetails.description">
+            <FormItem>
+              <FormControl>
+                <Input
+                  v-model="detail.description"
+                  type="text"
+                  placeholder="Description"
+                  class="w-full"
+                />
+              </FormControl>
+            </FormItem>
+          </FormField>
+        </TableCell>
+
+        <!-- Unit Cell -->
+        <TableCell class="w-[200px]">
+          <FormField name="defaultunit">
+            <FormItem>
+              <FormControl>
+                <VueSelect
+                  v-model="detail.unit"
+                  :options="unitOptions"
+                  placeholder="Default Unit"
+                />
+              </FormControl>
+            </FormItem>
+          </FormField>
+        </TableCell>
+
+        <!-- Quantity Cell -->
+        <TableCell class="w-[150px]">
+          <FormField name="requestDetails.quantity">
+            <FormItem>
+              <FormControl>
+                <Input
+                  v-model="detail.quentity"
+                  type="text"
+                  placeholder="Quantity"
+                  class="w-full"
+                />
+              </FormControl>
+            </FormItem>
+          </FormField>
+        </TableCell>
+
+        <TableCell class="w-[200px]">
+          <FormField name="requestDetails.remark">
+            <FormItem>
+              <FormControl>
+                <Input
+                  v-model="detail.remark"
+                  type="text"
+                  placeholder="Remark"
+                  class="w-full"
+                />
+              </FormControl>
+            </FormItem>
+          </FormField>
+        </TableCell>
+
+        <!-- Action Buttons Cell -->
+        <TableCell class="w-[100px]">
+          <div class="flex space-x-5">
+            <Button
+              type="button"
+              class="bg-red-600 text-white p-2 rounded-full"
+              @click="removeRow(index)"
+              :disabled="requestDetails.length === 1"
+            >
+              <Minus class="size-4" />
+            </Button>
+            <Button
+              type="button"
+              class="bg-blue-600 text-white p-2 rounded-full"
+              @click="addRow"
+            >
+              <Plus class="size-4" />
+            </Button>
+          </div>
+        </TableCell>
+      </TableRow>
+    </TableBody>
+  </Table>
+</div>
+
+
+
+
 
       <div class="flex justify-end gap-4 mt-6">
         <Button type="button" class="bg-red-600 text-white" @click="closeModal">
@@ -561,19 +593,34 @@ const handleQuantitySubmit = (data: { itemId: string, itemName: string, quantity
 
 
   <!-- edit form -->
-  <dialog ref="editModalRef" class="bg-gray-200 rounded-md p-6 w-[600px] rounded-md">
+  <dialog ref="editModalRef"  class="bg-gray-200 rounded-md p-6 w-[800px]  rounded-md">
     <form @submit.prevent="submitEditedData" class="bg-white rounded-md p-6  ">
-      <h3 class="text-lg font-bold mb-4">Add New Request</h3>
+      <h3 class="text-lg font-bold mb-4">Edit Grn</h3>
       <div class="grid grid-cols-2 gap-4">
         <div class="w-full">
           <FormField  name="requester">
             <FormItem>
-              <FormLabel>Requester</FormLabel>
+               <FormLabel>Invoice Number</FormLabel>
+              <FormControl class="w-full">
+                <Input
+                type="text"
+                  v-model="selectedData.invno"
+                  :options="itemOptons"
+                  placeholder="Invoice Number"
+                />
+              </FormControl>
+            </FormItem>
+          </FormField>
+        </div>
+        <div>
+          <FormField  name="date">
+            <FormItem>
+              <FormLabel>Vendor Name</FormLabel>
               <FormControl class="w-full">
                 <Input
                   type="text"
-                  placeholder="Requester"
-                  v-model="selectedData.requester"
+                  placeholder="Vendor Name"
+                  v-model="selectedData.vendor"
                   class="border border-gray-300 rounded-md px-3 py-2"
                 />
               </FormControl>
@@ -589,21 +636,6 @@ const handleQuantitySubmit = (data: { itemId: string, itemName: string, quantity
                   type="date"
                   placeholder="Date"
                   v-model="selectedData.date"
-                  class="border border-gray-300 rounded-md px-3 py-2"
-                />
-              </FormControl>
-            </FormItem>
-          </FormField>
-        </div>
-        <div>
-          <FormField  name="department">
-            <FormItem>
-              <FormLabel>Department</FormLabel>
-              <FormControl class="w-full">
-                <Input
-                  type="text"
-                  placeholder="Department"
-                  v-model="selectedData.department"
                   class="border border-gray-300 rounded-md px-3 py-2"
                 />
               </FormControl>
@@ -631,8 +663,12 @@ const handleQuantitySubmit = (data: { itemId: string, itemName: string, quantity
         <Table class="mt-5">
           <TableHeader class="bg-gray-500">
             <TableRow>
-              <TableHead>Item</TableHead>
-              <TableHead>Quantity</TableHead>
+              <TableHead class="w-[200px]">Item</TableHead>
+              <TableHead class="w-[200px]">Description</TableHead>
+              <TableHead class="w-[200px]">Unit</TableHead>
+              <TableHead class="w-[150px]">Quantity</TableHead>
+              <TableHead class="w-[150px]">Remark</TableHead>
+              <TableHead class="w-[100px]"></TableHead>
               
               <TableHead class="w-[100px]"></TableHead>
             </TableRow>
@@ -647,14 +683,33 @@ const handleQuantitySubmit = (data: { itemId: string, itemName: string, quantity
                         v-model="detail.item"
                         type="text"
                         placeholder="Item name"
+                        class="w-full"                                
+                      />
+                    </FormControl>
+                  </FormItem>
+                </FormField>
+              </TableCell>
+          
+
+
+                <TableCell>
+                <FormField name="description">
+                  <FormItem>
+                    <FormControl class="w-full">
+                      <Input
+                        v-model="detail.description"
+                        type="text"
+                        placeholder="Description"
                         class="w-full"
                       />
                     </FormControl>
                   </FormItem>
                 </FormField>
               </TableCell>
+             
+
               <TableCell>
-                <FormField name="quantity">
+                <FormField name="defaultunit">
                   <FormItem>
                     <FormControl class="w-full">
                       <Input
@@ -704,93 +759,6 @@ const handleQuantitySubmit = (data: { itemId: string, itemName: string, quantity
       </div>
     </form>
   </dialog>
-
-
-  
-<!-- item popup -->
-  <dialog ref="itemRef" class="bg-gray-200 rounded-md p-6 w-[600px] rounded-md  ">
-    <div class="w-1/2 pr-4">
-    <button @click="closeitemModal" class="absolute top-3 right-3 text-black hover:text-gray-700 w-[50px]">
-    X
-  </button>
-    <form @submit.prevent="onSubmit" class="bg-white rounded-md p-6  ">
-      <h3 class="text-lg font-bold mb-4">Search Items</h3>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="w-full">
-          <FormField v-slot="{ componentField }" name="searchitems">
-            <FormItem>
-              
-              <FormControl class="w-full">
-                <Input
-                  type="search"
-                  placeholder="Search Items"
-                  v-model="searchQuery"
-                  class="border border-gray-300 rounded-md px-3 py-2"
-                />
-              </FormControl>
-            </FormItem>
-          </FormField>
-        </div>
-       </div>
-    </form>
-    <Table class="mt-4">
-        <TableHeader class="bg-gray-500">
-          <TableRow>
-            <TableHead>Id</TableHead>
-            <TableHead>Item Name</TableHead>
-            <TableHead>Unit</TableHead>
-            
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow v-for="(item, index) in searchResults" :key="index" class="cursor-pointer hover:bg-white"  @click="openQuantityPopup(item.name, item.id,item.defaultunit)">
-            <TableCell>{{ item.id }}</TableCell>
-            <TableCell>{{ item.name }}</TableCell>
-            <TableCell>{{ item.defaultunit }}</TableCell>
-       
-          </TableRow>
-        </TableBody>
-      </Table>
-      </div>
-      <div class="w-1/2 pl-4">
-        <ItemQuentityPopup ref="openselectedItem" :itemId="selectedItemId" :itemName="selectedItemName" :quantity="quentity" :unit="selectedUnit" />
-      </div>
-  </dialog>
-
- 
-<!-- add quentity  -->
-   <dialog ref="quantityPopupRef" class="bg-gray-200 rounded-md p-6 w-[600px] rounded-md">
-    <button @click="closeQuantityPopup" class="absolute top-3 right-3 text-black hover:text-gray-700 w-[50px]">
-    X
-  </button>
-    <form @submit.prevent="handleQuantitySubmit({itemId:selectedItemId,itemName:selectedItemName,quantity:quentity,unit:selectedUnit})" class="bg-white rounded-md p-6  ">
-      <h3 class="text-lg font-bold mb-4">Add Quentity</h3>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="w-full">
-          <FormField v-slot="{ componentField }" name="addquentity">
-            <FormItem>
-              
-              <FormControl class="w-full">
-                <Input
-                  type="text"
-                  placeholder="Add Quentity"
-                  v-model="quentity"
-                  class="border border-gray-300 rounded-md px-3 py-2"
-                />
-              </FormControl>
-            </FormItem>
-          </FormField>
-        </div>
-       </div>
-       <Button type="submit">Ok</Button>
-    </form>
-   
-  </dialog> 
-
-
-
- 
- 
 
 </template>
 

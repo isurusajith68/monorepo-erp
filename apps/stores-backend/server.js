@@ -310,18 +310,18 @@ app.post('/requests', async (req, res) => {
     try {
         console.log('Received data:', req.body);
 
-        const { requester, date, department, remark, details } = req.body;
+        const { requester, date, department, remark, details,hotelid } = req.body;
 
-        const insertSTMT = `INSERT INTO requests (requester, date, department, remark) VALUES ($1, $2, $3, $4) RETURNING id`;
+        const insertSTMT = `INSERT INTO requests (requester, date, department, remark,hotelid) VALUES ($1, $2, $3, $4,$5) RETURNING id`;
 
-        const result = await pool.query(insertSTMT, [requester, date, department, remark]);
+        const result = await pool.query(insertSTMT, [requester, date, department, remark,hotelid]);
         const requestId = result.rows[0].id;
 
        
-        const insertSTMT2 = `INSERT INTO requestdetails (item, quentity, requestid) VALUES ($1, $2, $3)`;
+        const insertSTMT2 = `INSERT INTO requestdetails (item, quentity, requestid,unit) VALUES ($1, $2, $3,$4)`;
         for (const detail of details) {
             const { item, quantity } = detail;
-            await pool.query(insertSTMT2, [item, quantity, requestId]);
+            await pool.query(insertSTMT2, [item, quantity, requestId,unit]);
         }
 
         res.send('Data inserted successfully');
@@ -486,6 +486,131 @@ app.put('/editrequests/:id', async (req, res) => {
     }
 });
    
+
+
+
+//add new grn 
+// app.post('/addgrn', async (req, res) => {
+//     console.log("new grn");
+//     try {
+//         console.log('Received data:', req.body);
+
+//         const { invno, vendor, date ,remark} = req.body; 
+
+//         const insertSTMT = `INSERT INTO grn (invoiceno, vendorname, date,remark) VALUES ($1, $2, $3,$4)`;
+        
+//         await pool.query(insertSTMT, [invno, vendor, date ,remark]); 
+
+//         res.send('Data inserted successfully');
+//     } catch (error) {
+//         console.error('Error processing request:', error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// });
+
+
+
+//fetch grn header
+app.get('/fetchgrn', async (req, res) => {
+    try {
+        const result = await pool.query(`SELECT 
+
+                                       *    FROM 
+                                        grn rq
+                                   `);
+        console.log('Fetched Data:', result.rows); 
+        res.json(result.rows); 
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+//fetch item options 
+app.get('/itemoptions', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT id,name FROM items');
+        console.log('Fetched Data:', result.rows); 
+        res.json(result.rows); 
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+
+app.post('/addgrn', async (req, res) => {
+    console.log("addrequest");
+     try {
+      console.log('Received data grnnnnnn:', req.body);
+
+        const { invno,  vendor, date, remark,details,hotelid } = req.body;
+
+        const insertSTMT = `INSERT INTO grn (invoiceno, vendorname, date, remark,hotelid) VALUES ($1, $2, $3, $4,$5) RETURNING id`;
+
+        const result = await pool.query(insertSTMT, [invno, vendor,date, remark,hotelid]);
+        const requestId = result.rows[0].id;
+
+       
+        const insertSTMT2 = `INSERT INTO grndetails (grnid,itemid, description, unit,quantity,remark) VALUES ($1, $2, $3,$4,$5,$6)`;
+        for (const detail of details) {
+            const {item, description,unit,quentity,remark } = detail;
+            await pool.query(insertSTMT2, [requestId,item, description,unit,quentity,remark]);
+        }
+
+        res.send('Data inserted successfully');
+    } catch (error) {
+        console.error('Error processing request:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+
+
+//fetch data
+app.get('/fetchgrndetails/:id', async (req, res) => {
+    console.log("hello")
+    const { id } = req.params;
+    console.log(id)
+    try {
+        const resulth = await pool.query(`SELECT  * FROM grn 
+                                        where id=$1;
+                                   `,[id]);
+
+        const resultd = await pool.query(`SELECT * FROM grndetails rd
+                                        where grnid=$1;
+                                   `,[id]);
+        console.log('Fetched Data:', resulth.rows); 
+        console.log('Fetched Data:', resultd.rows); 
+        res.json({success:true,data:{header:resulth.rows[0],details:resultd.rows},msg:"Success!"}); 
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.json({success:false,data:{},msg:"Something went wrong!"}); 
+    }
+});
+
+
+// search items 
+app.get('/searchItems', async (req, res) => {
+    const searchQuery = req.query.query;
+    try {
+        // const result = await pool.query('SELECT * from items');
+
+        const result = await pool.query(
+            'SELECT * FROM items WHERE name ILIKE $1', 
+            [`%${searchQuery}%`]
+          );
+        console.log('Fetched item popup  Data:', result.rows); 
+        res.json(result.rows); 
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
 
 
 

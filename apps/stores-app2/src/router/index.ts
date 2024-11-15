@@ -6,6 +6,8 @@ import ItemTable from '@/views/ItemTable.vue'
 import UnitTable from '@/views/UnitTable.vue'
 import ItemCategories from '@/views/ItemCategories.vue'
 import PurchaseRequest from '@/views/PurchaseRequest.vue'
+import GrnDetails from '@/components/GrnDetails.vue'
+import ItemQuentityPopup from '@/views/ItemQuentityPopup.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -61,8 +63,17 @@ const router = createRouter({
     path: '/categories',
     name: 'categories',
     component: ItemCategories
-  }
-  
+  },
+   {
+    path: '/grn',
+    name: 'grn',
+    component: GrnDetails
+   },
+   {
+    path:'/itemquentity',
+    name:'itemquentity',
+    component:ItemQuentityPopup
+   }
   ]
 })
 
