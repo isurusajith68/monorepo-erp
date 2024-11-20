@@ -30,6 +30,7 @@ type FormType = z.infer<typeof formSchema>
 
 export default function NewFormRole() {
   const { hotelid } = useHotelIdStore()
+  console.log('hotelid', hotelid)
 
   const {
     mutate,
