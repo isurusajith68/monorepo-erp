@@ -55,6 +55,7 @@ import {
 } from '../../services/mutation'
 import { useGetBooking } from '@/app/bookings/_services/queries'
 import { formatInTimeZone } from 'date-fns-tz'
+import { useTimeStore } from '@/app/stores/booking-store'
 
 const ItemSchema = z.object({
   id: z.number().min(2, { message: 'Item details are required' }).optional(),
@@ -175,6 +176,8 @@ const RegistrationForm = () => {
   console.log('gbdata', gbdata)
 
   console.log('qqqqqqqqqqqqqqqqqqqqqqqqq', getphonenumber)
+  const { timeZone } = useTimeStore()
+  console.log('timeZone', timeZone)
 
   getphonenumber?.dates &&
     console.log(
@@ -801,8 +804,9 @@ const RegistrationForm = () => {
                               className="w-full"
                               value={
                                 field.value
-                                  ? format(
+                                  ? formatInTimeZone(
                                       new Date(field.value),
+                                      timeZone,
                                       "yyyy-MM-dd'T'HH:mm",
                                     )
                                   : ''
@@ -825,7 +829,7 @@ const RegistrationForm = () => {
                                 field.value
                                   ? formatInTimeZone(
                                       new Date(field.value),
-                                      'Asia/Colombo',
+                                      timeZone,
                                       "yyyy-MM-dd'T'HH:mm",
                                     )
                                   : ''

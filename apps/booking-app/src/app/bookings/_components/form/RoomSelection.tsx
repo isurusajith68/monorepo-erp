@@ -9,6 +9,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { getDirtyValuesTF } from '@/lib/utils'
@@ -120,13 +131,13 @@ const RoomSelection = () => {
   const [currency, setCurrency] = useState('LKR')
   const [exchangeRate, setExchangeRate] = useState(1)
   // const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
-  const [showModal, setShowModal] = useState(false)
-  const [selectedDeal, setSelectedDeal] = useState<string | null>(null)
+  // const [showModal, setShowModal] = useState(false)
+  // const [selectedDeal, setSelectedDeal] = useState<string | null>(null)
   const [phone, setphone] = useState()
   //--------------------------------------
-  const [useSameAddress, setUseSameAddress] = useState(false)
-  const [notifySpecialOffers, setNotifySpecialOffers] = useState(false)
-  const [termsAccepted, setTermsAccepted] = useState(false)
+  // const [useSameAddress, setUseSameAddress] = useState(false)
+  // const [notifySpecialOffers, setNotifySpecialOffers] = useState(false)
+  // const [termsAccepted, setTermsAccepted] = useState(false)
 
   const insertMutation = useInsertBookingMutation()
   const updateMutation = useUpdateBookingMutation()
@@ -141,8 +152,9 @@ const RoomSelection = () => {
   const [checkoutdate, setcheckoutdate] = useState<string | undefined>(
     undefined,
   )
-  const [bookeddata, setBookeddata] = useState([])
-  const { data: roomprices } = useGetPrice(checkindate, id)
+  const [flexible, setflexible] = useState(false)
+  // const [bookeddata, setBookeddata] = useState([])
+  const { data: roomprices } = useGetPrice(checkindate, flexible, id)
 
   // console.log('roomprices', roomprices)
 
@@ -207,7 +219,7 @@ const RoomSelection = () => {
       postalcode: '',
     },
     onSubmit: async ({ value: data }) => {
-      // console.log('dataaaaaaaaaaaaaa', data)
+      console.log('dataaaaaaaaaaaaaa', data)
       if (id) {
         // If id exists, we're updating the booking
         const dirtyValues = getDirtyValuesTF(
@@ -301,12 +313,14 @@ const RoomSelection = () => {
 
     const checkindate = form.getFieldValue('checkindate')
     const checkoutdate = form.getFieldValue('checkoutdate')
+    const flexible = form.getFieldValue('flexibledates')
     // console.log('Searching for rooms with:', checkindate, checkoutdate)
 
     if (checkindate && checkoutdate) {
       // Set the state variables
       setcheckindate(checkindate)
       setcheckoutdate(checkoutdate)
+      setflexible(flexible)
 
       // Make API call with checkindate and checkoutdate
       // console.log('Searching for rooms with:', checkindate, checkoutdate)
@@ -1069,8 +1083,8 @@ const RoomSelection = () => {
               <TableHead className="w-[100px]">Booking ID</TableHead>
               <TableHead>Check-in</TableHead>
               <TableHead>Check-out</TableHead>
-              <TableHead className="text-right">Remarks</TableHead>
-              <TableHead className="text-right"></TableHead>
+              <TableHead>Remarks</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           {getphonedata.b.map((booking) => (
@@ -1083,16 +1097,42 @@ const RoomSelection = () => {
                 <TableCell>
                   {new Date(booking.checkoutdate).toLocaleDateString()}
                 </TableCell>
-                <TableCell className="text-right">
-                  {booking.remarks || 'No remarks'}
-                </TableCell>
-                <TableCell className="text-right">
+                <TableCell>{booking.remarks || 'No remarks'}</TableCell>
+                <TableCell>
                   <Button
                     className="bg-green-400"
                     onClick={() => navigate(`/booking/${booking.id}`)}
                   >
                     view booking
                   </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button className="ml-5 bg-green-600 bg-destructive">
+                        Cancle
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete your data and remove your data from our
+                          servers.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-red-600"
+                          onClick={() => {}}
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -1193,13 +1233,11 @@ const RoomSelection = () => {
                               <div className="flex items-center">
                                 <input
                                   disabled={
-                                    !Boolean(
-                                      roomtypeviewcounts.find(
-                                        (r) =>
-                                          r.typeid == roomcat.typeid &&
-                                          r.viewid == roomcat.viewid,
-                                      )?.count,
-                                    )
+                                    !roomtypeviewcounts.find(
+                                      (r) =>
+                                        r.typeid == roomcat.typeid &&
+                                        r.viewid == roomcat.viewid,
+                                    )?.count
                                   }
                                   type="radio"
                                   name={`deal-${roomcat.typeid}-${roomcat.viewid}`}
@@ -1261,13 +1299,11 @@ const RoomSelection = () => {
                               <div className="flex items-center">
                                 <input
                                   disabled={
-                                    !Boolean(
-                                      roomtypeviewcounts.find(
-                                        (r) =>
-                                          r.typeid == roomcat.typeid &&
-                                          r.viewid == roomcat.viewid,
-                                      )?.count,
-                                    )
+                                    !roomtypeviewcounts.find(
+                                      (r) =>
+                                        r.typeid == roomcat.typeid &&
+                                        r.viewid == roomcat.viewid,
+                                    )?.count
                                   }
                                   type="radio"
                                   name={`deal-${roomcat.typeid}-${roomcat.viewid}`}
@@ -1315,13 +1351,11 @@ const RoomSelection = () => {
                               <div className="flex items-center">
                                 <input
                                   disabled={
-                                    !Boolean(
-                                      roomtypeviewcounts.find(
-                                        (r) =>
-                                          r.typeid == roomcat.typeid &&
-                                          r.viewid == roomcat.viewid,
-                                      )?.count,
-                                    )
+                                    !roomtypeviewcounts.find(
+                                      (r) =>
+                                        r.typeid == roomcat.typeid &&
+                                        r.viewid == roomcat.viewid,
+                                    )?.count
                                   }
                                   type="radio"
                                   name={`deal-${roomcat.typeid}-${roomcat.viewid}`}
@@ -1369,13 +1403,11 @@ const RoomSelection = () => {
                               <div className="flex items-center">
                                 <input
                                   disabled={
-                                    !Boolean(
-                                      roomtypeviewcounts.find(
-                                        (r) =>
-                                          r.typeid == roomcat.typeid &&
-                                          r.viewid == roomcat.viewid,
-                                      )?.count,
-                                    )
+                                    !roomtypeviewcounts.find(
+                                      (r) =>
+                                        r.typeid == roomcat.typeid &&
+                                        r.viewid == roomcat.viewid,
+                                    )?.count
                                   }
                                   type="radio"
                                   name={`deal-${roomcat.typeid}-${roomcat.viewid}`}
@@ -1428,13 +1460,11 @@ const RoomSelection = () => {
                               {/* <div>{selectedDeal}</div> */}
                               <Button
                                 disabled={
-                                  !Boolean(
-                                    roomtypeviewcounts.find(
-                                      (r) =>
-                                        r.typeid == roomcat.typeid &&
-                                        r.viewid == roomcat.viewid,
-                                    )?.count,
-                                  )
+                                  !roomtypeviewcounts.find(
+                                    (r) =>
+                                      r.typeid == roomcat.typeid &&
+                                      r.viewid == roomcat.viewid,
+                                  )?.count
                                 }
                                 className="bg-orange-400 hover:bg-orange-500 text-black py-2 px-4 mt-4"
                                 onClick={() =>

@@ -153,14 +153,17 @@ export function useGetRoomtype(checkindate, checkoutdate, id) {
     },
   })
 }
-export function useGetPrice(checkindate, id) {
+export function useGetPrice(checkindate, flexible, id) {
   return useQuery({
-    queryKey: ['price', checkindate, id],
+    queryKey: ['price', checkindate, flexible, id],
     queryFn: async () => {
+      console.log('flexyyyyyyy', checkindate, flexible, id)
       let data1
       data1 = await Axios.get(`${bapi}prices`, {
-        params: { checkindate, id },
+        params: { checkindate, flexible, id },
       })
+      console.log('flexyyyyyyy2', data1.data.data)
+
       return data1.data.data
     },
   })
@@ -172,8 +175,8 @@ export function useGetAllRoomReportDetails() {
   return useQuery({
     queryKey: ['roomreport'],
     queryFn: async () => {
-      let data1
-      data1 = await Axios.get(`${bapi}roomreport`)
+      // let data1
+      const data1 = await Axios.get(`${bapi}roomreport`)
       // data1 = await Axios.get(`http://localhost:4000/bookings/28`);
       console.log('data1', data1)
 

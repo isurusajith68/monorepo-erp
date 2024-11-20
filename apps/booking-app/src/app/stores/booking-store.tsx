@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 
-export const useStore = create((set) => ({
-  count: 1,
-  inc: () => set((state) => ({ count: state.count + 1 })),
+// let timeZone;
+
+export const useTimeStore = create((set) => ({
+  timeZone: 'Asia/Colombo',
+  // setTimeZone: () => set(( ) => ({ timeZone: 'Asia/Colombo' })),
+  setTimeZone: (newtimezone) => set({ timeZone: newtimezone }),
 }))
