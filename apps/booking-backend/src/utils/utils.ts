@@ -1,3 +1,5 @@
+// import pool from '../config/db'
+
 export default function getUpdateQuery(
   obj: any,
   tablename: string,
@@ -27,3 +29,10 @@ export default function getUpdateQuery(
     return ['', []]
   }
 }
+
+// export async function getTimeZones() {
+//   const checkPhoneQuery =
+//     'SELECT hotelid,timezone FROM hotelinfo '
+//   const phoneResult = await pool.query(checkPhoneQuery, [])
+//   return phoneResult.rows
+// }

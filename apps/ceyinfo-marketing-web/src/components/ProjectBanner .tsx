@@ -465,7 +465,7 @@ const ProjectBanner = () => {
                     </div>
                   </div>
 
-                  <div className="justify-center">
+                  <div className="flex justify-end">
                     <Button
                       type="submit"
                       className="bg-blue-500 hover:bg-blue-700"

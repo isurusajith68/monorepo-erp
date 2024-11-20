@@ -2,6 +2,7 @@ import { Router } from 'express'
 import pool from '../config/db'
 import { Request, Response } from 'express'
 import getUpdateQuery from '../utils/utils'
+// import { timezones } from '../app.js'
 
 const bookingRouter = Router()
 
@@ -248,7 +249,7 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
           'booking',
           'id',
         )
-        console.log('updateHsql', updateHsql, valuesHArray)
+        // console.log('updateHsql', updateHsql, valuesHArray)
 
         const hResult = await client.query(updateHsql, valuesHArray)
       }
@@ -470,6 +471,7 @@ bookingRouter.patch('/bookings/:id', async (req, res) => {
 // get all data
 bookingRouter.get('/bookings/:id', async (req: Request, res: Response) => {
   const { id } = req.params // Get booking ID from the URL
+  // console.log('timezons2', timezones)
 
   const client = await pool.connect()
 
@@ -656,9 +658,23 @@ bookingRouter.get('/guest-by-phone/:phone', async (req, res) => {
   try {
     const query = 'SELECT * FROM guestinformation WHERE phonenumber = $1'
     const result = await pool.query(query, [phone])
+    console.log('result', result.rows[0].id)
+
+    const query1 = `select b.id,b.checkindate,b.checkoutdate,bd.roomid,bd.checkintime,bd.checkouttime from booking b
+              join public.bookingdetails bd
+              on b.id=bd.bookingid
+              where guestid=$1`
+
+    const result1 = await pool.query(query1, [result.rows[0].id])
+    const result2 = await pool.query(`select * from your_table where id=$1`, [
+      5,
+    ])
 
     if (result.rows.length > 0) {
-      res.status(200).json({ success: true, data: result.rows[0] })
+      res.status(200).json({
+        success: true,
+        data: { ...result.rows[0], items: result1.rows, dates: result2.rows },
+      })
     } else {
       res.status(404).json({ success: false, msg: 'Booking not found' })
     }
@@ -783,6 +799,102 @@ bookingRouter.get('/roomreport', async (req, res) => {
   } catch (error) {
     console.error('Error fetching room prices:', error)
     res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
+bookingRouter.get('/guestbooking/:id', async (req, res) => {
+  const { id } = req.params
+  const sql = `select * from booking b
+          join public.bookingdetails bd
+          on b.id=bd.bookingid
+          where guestid=$1`
+
+  const result = await pool.query(sql, [id])
+
+  // console.log("result",result)
+
+  res.json(result.rows)
+})
+
+bookingRouter.patch('/times/:id', async (req, res) => {
+  // const { id } = req.params
+  // const dirtyfields = req.body
+  console.log('reqqqqqqqqqqqqqqqqqqqqqqqq', req.body)
+  console.log('req1', req.params.id)
+
+  const bookingId = req.params.id
+  const { checkinTime, checkoutTime } = req.body
+
+  // Check if both checkinTime and checkoutTime are provided
+  // if (!checkinTime || !checkoutTime) {
+  //   res.status(400).json({
+  //     success: false,
+  //     msg: 'Both checkinTime and checkoutTime are required',
+  //   })
+  // }
+
+  // SQL query to update checkinTime and checkoutTime
+  const updateBookingTimesQuery = `
+    UPDATE bookingdetails 
+    SET checkintime = $1, checkouttime = $2 
+    WHERE bookingid = $3
+    RETURNING *
+  `
+
+  pool
+    .query(updateBookingTimesQuery, [checkinTime, checkoutTime, bookingId])
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const updatedBooking = response.rows[0]
+        res.json({
+          success: true,
+          msg: 'Booking times updated successfully',
+          data: updatedBooking,
+        })
+      } else {
+        res.json({ success: false, msg: 'Booking not found', data: [] })
+      }
+    })
+    .catch((err) => {
+      console.error('Error updating booking times:', err)
+      res.json({
+        success: false,
+        msg: 'Error updating booking times',
+        data: [],
+      })
+    })
+})
+
+bookingRouter.post('/update-checkin-checkout', async (req, res) => {
+  const { items } = req.body
+  // await pool.query(
+  //   ` INSERT INTO your_table (event_time)
+  //   VALUES ( '2024-11-20 02:30:00' );`,
+  //   [],
+  // )
+  await pool.query(
+    ` INSERT INTO your_table (event_time)
+    VALUES (TIMESTAMP '2024-11-20 02:30:00' AT TIME ZONE '${Intl.DateTimeFormat().resolvedOptions().timeZone}');`,
+    [],
+  )
+
+  try {
+    for (const item of items) {
+      const query = `
+        UPDATE bookingdetails
+        SET checkintime = $1, checkouttime = $2
+        WHERE id = $3;
+      `
+      await pool.query(query, [item.checkintime, item.checkouttime, item.id])
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Check-in and check-out times updated successfully',
+    })
+  } catch (error) {
+    console.error('Error updating check-in/check-out times:', error)
+    res.status(500).json({ success: false, message: 'Failed to update times' })
   }
 })
 

@@ -2,6 +2,9 @@ import express from 'express'
 import cors from 'cors'
 import bookingRouter from './routes/booking-router'
 import erp from './routes/erp-system-router'
+// import { getTimeZones } from './utils/utils'
+// export const timezones= getTimeZones()
+// console.log("timezons1",timezones)
 
 const app = express()
 

@@ -59,7 +59,19 @@ export function useGetPhoneNumber(id: any | undefined) {
     queryFn: async () => {
       let data1
       data1 = await Axios.get(`${bapi}guest-by-phone/${id ?? 0}`)
+      //formatInTimeZone(getphonenumber.dates[0].event_time, 'Asia/Colombo', 'yyyy-MM-dd\'T\'HH:mm'))
       return data1.data.data
+    },
+  })
+}
+
+export function useGetGuestBooking(id: any | undefined) {
+  return useQuery({
+    queryKey: ['id', id],
+    queryFn: async () => {
+      let data
+      data = await Axios.get(`${bapi}guestbooking/${id ?? 0}`)
+      return data.data
     },
   })
 }
