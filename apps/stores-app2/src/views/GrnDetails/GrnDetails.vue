@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import GrItemPopup from './GrItemPopup.vue';
 import { onMounted, ref, watch } from 'vue';
 import axios from 'axios';
 import { toast, useToast } from '@/components/ui/toast';
@@ -110,6 +111,7 @@ const form = useForm({
   validationSchema: formSchema,
 });
 
+
 const fetchedData = ref<FormData1[]>([]);
 const submittedData = ref<FormData[]>([]);
 const requestDetails = ref<RequestDetails[]>([{ item: '',description:'',unit:'', quentity: '',remark:''}]);
@@ -157,6 +159,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 
     submittedData.value.push(values);
     closeModal();
+    fetchData1();
   } catch (error) {
     console.error('Error submitting form:', error);
   }
@@ -326,21 +329,48 @@ const fetchitemdata=async()=>{
   }
 }
 
-watch(requestDetails, (newDetails) => {
-  newDetails.forEach((detail) => {
-    console.log('Item:', detail.item);
-    console.log('Quantity:', detail.quentity);
-    console.log('Unit:', detail.unit ); 
-    console.log('Unit:', detail.description ); 
-    console.log('Unit:', detail.remark ); 
-  });
-}, { deep: true });
+// watch(requestDetails, (newDetails) => {
+//   newDetails.forEach((detail) => {
+//     console.log('Item:', detail.item);
+//     console.log('Quantity:', detail.quentity);
+//     console.log('Unit:', detail.unit ); 
+//     console.log('Unit:', detail.description ); 
+//     console.log('Unit:', detail.remark ); 
+//   });
+// }, { deep: true });
 
 
+
+// delete grn
+
+const deletegrn = async (id: string) => {
+  try {
+    const response = await axios.delete(`http://localhost:3000/deletegrn/${id}`);
+    console.log('Unit deleted:', response.data);
+    
+    
+    fetchData1();
+  } catch (error) {
+    console.error('Error deleting unit:', error);
+  }
+};
+
+
+
+
+const itemRef=ref<HTMLDialogElement | null>(null);
+
+const openitemModal = () => {
+  itemRef.value?.showModal();
+  closeModal();
+
+ 
+}
+const closeitemModal = () => itemRef.value?.close();
 </script>
 
 <template>
-  <Card>
+  <Card class="p-8 shadow-lg">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-semibold">Grn Details</h2>
       <Button 
@@ -375,7 +405,7 @@ watch(requestDetails, (newDetails) => {
           <TableCell class="flex gap-2 justify-left">
             <Button
               class="p-2 rounded-full bg-red-500 text-white hover:bg-red-600"
-              @click="deleteheader(data.id)"
+              @click="deletegrn(data.id)"
             >
               <Minus class="size-4" />
             </Button>
@@ -393,7 +423,7 @@ watch(requestDetails, (newDetails) => {
 
   <!-- submit form -->
   <dialog ref="dialogRef" class="bg-gray-200 rounded-md p-6 w-[800px]  rounded-md">
-    <form @submit.prevent="onSubmit" class="bg-white rounded-md p-6  ">
+    <form @submit="onSubmit" class="bg-white rounded-md p-6  ">
       <h3 class="text-lg font-bold mb-4">Add New Request</h3>
       <div class="grid grid-cols-2 gap-4">
         <div class="w-full">
@@ -564,7 +594,7 @@ watch(requestDetails, (newDetails) => {
             <Button
               type="button"
               class="bg-blue-600 text-white p-2 rounded-full"
-              @click="addRow"
+              @click="openitemModal"
             >
               <Plus class="size-4" />
             </Button>
@@ -759,6 +789,12 @@ watch(requestDetails, (newDetails) => {
       </div>
     </form>
   </dialog>
+
+
+  <dialog ref="itemRef" class="bg-gray-200 rounded-md p-6 w-[750px] rounded-md  ">
+    
+    <GrItemPopup  @close="closeitemModal" />
+</dialog>
 
 </template>
 

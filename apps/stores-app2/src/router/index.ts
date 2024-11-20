@@ -1,13 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import RequestForm from '@/views/RequestForm.vue'
-import RequestTable  from '@/views/RequestTable.vue'
+
 import ItemTable from '@/views/ItemTable.vue'
 import UnitTable from '@/views/UnitTable.vue'
 import ItemCategories from '@/views/ItemCategories.vue'
-import PurchaseRequest from '@/views/PurchaseRequest.vue'
-import GrnDetails from '@/components/GrnDetails.vue'
-import ItemQuentityPopup from '@/views/ItemQuentityPopup.vue'
+import PrSelectedItems from '@/views/PurchaseRequests/PrSelectedItems.vue'
+import GrnDetails from '@/views/GrnDetails/GrnDetails.vue'
+import PrRequestList from '@/views/PurchaseRequests/PrRequestList.vue'
+import PrRequestForm from '@/views/PurchaseRequests/PrRequestForm.vue'
+import PrEditForm from '@/views/PurchaseRequests/PrEditForm.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -30,22 +31,11 @@ const router = createRouter({
     {
       path: '/request',
       name: 'request',
-      component: PurchaseRequest,
+      component: PrRequestList,
     },
 
 
-   {
-      path: '/form',
-      name: 'form',
-      component: RequestForm
-    },
-
-    
-   {
-    path: '/table',
-    name: 'table',
-    component: RequestTable
-  },
+ 
 
     
   {
@@ -72,7 +62,19 @@ const router = createRouter({
    {
     path:'/itemquentity',
     name:'itemquentity',
-    component:ItemQuentityPopup
+    component:PrSelectedItems
+   },
+   {
+    path:'/newpequest',
+    name:'newpequest',
+    component:PrRequestForm
+   },
+   
+   {
+    path:'/editrequest/:id',
+    name:'editrequest',
+    component:PrEditForm,
+    props:true
    }
   ]
 })

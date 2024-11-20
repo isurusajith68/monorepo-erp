@@ -283,9 +283,9 @@ const closeEditModal = () => editModalRef.value?.close();
 </script>
 
 <template class="bg-gray-600">
-      <Card class="relative p-6">
+      <Card class="p-8 shadow-lg">
         <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold">Item List</h2>
+      <h2 class="text-lg font-semibold">Items</h2>
       <Button 
         class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200"
          @click="openModal"
@@ -295,7 +295,7 @@ const closeEditModal = () => editModalRef.value?.close();
     </div>
   <Table>
     <!-- <TableCaption>Details</TableCaption> -->
-    <TableHeader>
+    <TableHeader class="bg-blue-400">
       <TableRow>
         <!-- <TableHead>#</TableHead> -->
         <TableHead>Name</TableHead>

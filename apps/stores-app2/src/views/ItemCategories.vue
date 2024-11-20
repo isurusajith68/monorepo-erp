@@ -279,7 +279,7 @@ const onEditSubmit = async () => {
 <template>
 
         
-<Card class="w-[1000px]  p-8">
+<Card class="w-[1000px]  p-8 shadow-lg">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-semibold">Category List</h2>
       <Button 

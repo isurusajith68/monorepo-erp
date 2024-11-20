@@ -172,9 +172,9 @@ const closeEditModal = () => editModalRef.value?.close();
 <template>
 
         
-<Card class="w-[1000px]  p-8">
+<Card class="w-[1000px]  p-8 shadow-lg">
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold">Item List</h2>
+      <h2 class="text-lg font-semibold">Units</h2>
       <Button 
         class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200"
            @click="openModal"

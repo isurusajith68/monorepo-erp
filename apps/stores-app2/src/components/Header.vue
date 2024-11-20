@@ -1,5 +1,5 @@
 <template>
-    <header class="bg-slate-700 text-white py-4 px-6 flex items-center justify-between w-full">
+    <header class="fixed bg-slate-700 text-white py-5  px-6 flex items-center justify-between w-full">
       <!-- Logo Section -->
       <div class="flex items-center space-x-4">
         <img
@@ -7,7 +7,7 @@
           alt="Logo"
           class="h-10 w-10 rounded-md"
         />
-        <h1 class="text-xl font-bold">Inventory App</h1>
+        <h1 class="text-xl font-bold">Stores App</h1>
       </div>
   
       <!-- Search Section -->

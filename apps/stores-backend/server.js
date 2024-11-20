@@ -611,8 +611,29 @@ app.get('/searchItems', async (req, res) => {
 });
 
 
+//delete grn
+app.delete('/deletegrn/:id', async (req, res) => {
+    console.log("hello");
+    try {
+        const { id } = req.params;
 
+        // Delete related records in requestdetails table
+        await pool.query(`DELETE FROM grndetails WHERE grnid = $1`, [id]);
 
+        // Delete the main record in requests table
+        const deleteSTMT = `DELETE FROM grn WHERE id = $1`;
+        const result = await pool.query(deleteSTMT, [id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
+
+        res.json({ message: 'Request deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting unit:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
