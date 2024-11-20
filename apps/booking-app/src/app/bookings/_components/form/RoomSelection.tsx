@@ -231,7 +231,7 @@ const RoomSelection = () => {
         let bookingHeaderData: any
         let guestInfo: any
         if (dirtyValues) {
-          console.log('dirtyvaluessssssss', dirtyValues)
+          // console.log('dirtyvaluessssssss', dirtyValues)
 
           // if (dirtyValues) {
           // console.log('Dirty values to update:', dirtyValues)
@@ -309,7 +309,7 @@ const RoomSelection = () => {
   })
 
   const handleSearch = () => {
-    console.log('testttttttttt')
+    // console.log('testttttttttt')
 
     const checkindate = form.getFieldValue('checkindate')
     const checkoutdate = form.getFieldValue('checkoutdate')
@@ -346,6 +346,7 @@ const RoomSelection = () => {
   // console.log('roomviewtypes', roomviewtypes)
 
   const { data: bookingdata, isLoading, isError, error } = useGetBooking(id)
+  console.log('bookingdata', bookingdata)
 
   //--------------------------------------------------------------------
 
@@ -424,7 +425,7 @@ const RoomSelection = () => {
   }, [bookingdata])
 
   useEffect(() => {
-    console.log('roomviewtypes', roomviewtypes)
+    // console.log('roomviewtypes', roomviewtypes)
 
     if (roomviewtypes) {
       setroomtypeviewcounts(roomviewtypes.roomcounts)

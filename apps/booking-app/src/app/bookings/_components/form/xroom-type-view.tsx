@@ -54,11 +54,11 @@ function RoomTypeViewCompo() {
     view: string,
     basis: string,
   ) => {
-    console.log('xxtypeid', typeid)
-    console.log('xxviewid', viewid)
+    // console.log('xxtypeid', typeid)
+    // console.log('xxviewid', viewid)
 
     setselectedRoomBasis((p) => {
-      console.log('selectedRoomBasis falsee', checked)
+      // console.log('selectedRoomBasis falsee', checked)
       if (checked) {
         const t = p.filter((r) => !(r.typeid == typeid && r.viewid == viewid))
         return [...t, { typeid, viewid, price, type, view, basis }]
@@ -70,10 +70,10 @@ function RoomTypeViewCompo() {
   }
 
   useEffect(() => {
-    console.log('selectedRooms', selectedRooms)
+    // console.log('selectedRooms', selectedRooms)
   }, [selectedRooms])
   useEffect(() => {
-    console.log('selectedRoomBasis', selectedRoomBasis)
+    // console.log('selectedRoomBasis', selectedRoomBasis)
   }, [selectedRoomBasis])
   return (
     <div>
@@ -145,7 +145,7 @@ function RoomTypeViewCompo() {
                                 : false
                             }
                             onChange={(e) => {
-                              console.log('e.target.value', e.target.checked)
+                              // console.log('e.target.value', e.target.checked)
 
                               bookingBasishandle(
                                 e.target.checked,
@@ -202,7 +202,7 @@ function RoomTypeViewCompo() {
                                 : false
                             }
                             onChange={(e) => {
-                              console.log('e.target.value 1', e.target.checked)
+                              // console.log('e.target.value 1', e.target.checked)
 
                               bookingBasishandle(
                                 e.target.checked,
@@ -248,7 +248,7 @@ function RoomTypeViewCompo() {
                                 : false
                             }
                             onChange={(e) => {
-                              console.log('e.target.value 2', e.target.checked)
+                              // console.log('e.target.value 2', e.target.checked)
 
                               bookingBasishandle(
                                 e.target.checked,
@@ -294,7 +294,7 @@ function RoomTypeViewCompo() {
                                 : false
                             }
                             onChange={(e) => {
-                              console.log('e.target.value 3', e.target.checked)
+                              // console.log('e.target.value 3', e.target.checked)
 
                               bookingBasishandle(
                                 e.target.checked,

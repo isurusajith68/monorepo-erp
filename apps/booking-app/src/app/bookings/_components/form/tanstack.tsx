@@ -21,7 +21,7 @@ export default function LoginForm() {
       password: '',
     },
     onSubmit: ({ value }) => {
-      console.log(value)
+      // console.log(value)
     },
   })
   return (

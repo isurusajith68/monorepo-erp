@@ -8,11 +8,11 @@ export function useGetBooking(id: string | undefined) {
   return useQuery({
     queryKey: ['booking', id],
     queryFn: async () => {
-      console.log('firstkkkkkkkkkkkkkk')
+      // console.log('firstkkkkkkkkkkkkkk')
       let data1
       data1 = await Axios.get(`${bapi}bookings/${id ?? 0}`)
-      console.log('data1111', data1)
-      console.log('firstkkkkkkkkkkkkkk2')
+      // console.log('data1111', data1)
+      // console.log('firstkkkkkkkkkkkkkk2')
 
       // data1 = await Axios.get(`http://localhost:4000/bookings/28`);
       return { data: data1.data.data, details: data1.data.details }
@@ -75,22 +75,22 @@ export function useGetPhoneNumber(id: any | undefined) {
     queryKey: ['phone', id],
     queryFn: async () => {
       try {
-        console.log('qqqq')
+        // console.log('qqqq')
 
         let data1
         let data2
         data1 = await Axios.get(`${bapi}guest-by-phone/${id ?? 0}`)
-        console.log('data1', data1)
+        // console.log('data1', data1)
 
         data2 = await Axios.get(`${bapi}getbookedbookings/${id ?? 0}`)
         // console.log("ooooooo1",data1.data.data )
         // console.log("ooooooo2",data2.data.data )
         let alldata = { a: data1.data.data, b: data2.data.data }
-        console.log('ooooooo3', alldata)
+        // console.log('ooooooo3', alldata)
 
         return alldata
       } catch (e) {
-        console.log('ooooooo3www')
+        // console.log('ooooooo3www')
         return
       }
     },
@@ -141,13 +141,13 @@ export function useGetRoomtype(checkindate, checkoutdate, id) {
     queryKey: ['availableRooms', checkindate, checkoutdate, id],
     queryFn: async () => {
       let data1
-      console.log('checkindate, checkoutdate', checkindate, checkoutdate, id)
+      // console.log('checkindate, checkoutdate', checkindate, checkoutdate, id)
 
       data1 = await Axios.get(`${bapi}rooms`, {
         params: { checkindate, checkoutdate },
       })
 
-      console.log('11111111', data1)
+      // console.log('11111111', data1)
 
       return { data: data1.data.data, roomcounts: data1.data.roomcounts }
     },
@@ -157,12 +157,12 @@ export function useGetPrice(checkindate, flexible, id) {
   return useQuery({
     queryKey: ['price', checkindate, flexible, id],
     queryFn: async () => {
-      console.log('flexyyyyyyy', checkindate, flexible, id)
+      // console.log('flexyyyyyyy', checkindate, flexible, id)
       let data1
       data1 = await Axios.get(`${bapi}prices`, {
         params: { checkindate, flexible, id },
       })
-      console.log('flexyyyyyyy2', data1.data.data)
+      // console.log('flexyyyyyyy2', data1.data.data)
 
       return data1.data.data
     },
@@ -178,7 +178,7 @@ export function useGetAllRoomReportDetails() {
       // let data1
       const data1 = await Axios.get(`${bapi}roomreport`)
       // data1 = await Axios.get(`http://localhost:4000/bookings/28`);
-      console.log('data1', data1)
+      // console.log('data1', data1)
 
       return data1.data
     },

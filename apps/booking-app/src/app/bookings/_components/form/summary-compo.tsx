@@ -16,7 +16,7 @@ const SelectedRoomsList = ({
       (a, c) => a + c.occupantdetails?.length * c.price,
       0,
     )
-    console.log('tttt', t)
+    // console.log('tttt', t)
 
     setTotalAmount(t)
   }
@@ -33,7 +33,7 @@ const SelectedRoomsList = ({
   // }
 
   useEffect(() => {
-    console.log('selectedRoomsx', selectedRooms)
+    // console.log('selectedRoomsx', selectedRooms)
     calTotal(selectedRooms)
   }, [selectedRooms])
   // Function to update each room's total amount based on count and price

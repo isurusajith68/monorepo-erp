@@ -57,7 +57,7 @@ export const RoomSummaryItem = ({
   //   const [count, setCount] = useState<number>(room.count ?? 1)
 
   const handleRoomCount = (typeid, viewid, basis, c) => {
-    console.log('xcount', c)
+    // console.log('xcount', c)
 
     // setCount(c)
     handleCount(room.typeid, room.viewid, room.basis, c)
@@ -69,7 +69,7 @@ export const RoomSummaryItem = ({
     updateTotal(room.occupantdetails.length * room.price)
   }, [room.occupantdetails.length])
 
-  console.log('counttttt', room.occupantdetails.length)
+  // console.log('counttttt', room.occupantdetails.length)
 
   return (
     <div className="flex justify-between gap-2 mt-2">
@@ -100,7 +100,7 @@ export const RoomSummaryItem = ({
       <button
         className="bg-red-500 text-white py-1 px-2 rounded w-15 h-14"
         onClick={() => {
-          console.log('popo')
+          // console.log('popo')
 
           handleremove(room.typeid, room.viewid, room.basis)
         }}

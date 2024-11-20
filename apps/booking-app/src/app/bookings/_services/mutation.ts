@@ -14,7 +14,7 @@ export const useUpdateBookingMutation = () => {
   return useMutation({
     mutationFn: async (params: any) => {
       try {
-        console.log('params', params)
+        // console.log('params', params)
 
         const res = await axios.patch(`${bapi}bookings/${params.id}`, params)
 
@@ -33,7 +33,7 @@ export const useInsertBookingMutation = () => {
 
   return useMutation({
     mutationFn: async (data: any) => {
-      console.log('helloooooo', data.data)
+      // console.log('helloooooo', data.data)
       // console.log("geeth",bapi + params.data.id)
 
       try {
@@ -78,7 +78,7 @@ export const useInsertGuestInformationMutation = () => {
 
   return useMutation({
     mutationFn: async (data: any) => {
-      console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqq', data.data)
+      // console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqq', data.data)
       // console.log("geeth",bapi + params.data.id)
 
       try {

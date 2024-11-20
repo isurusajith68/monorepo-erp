@@ -28,7 +28,7 @@ const AvailableRooms = () => {
   const { data, isLoading } = useGetAllRoomDetails()
   // const { data: test } = useGetAllRoomBooking()
   const [selectedRooms, setSelectedRooms] = useState<string[]>([])
-  console.log('pasindu', data)
+  // console.log('pasindu', data)
   // console.log('pasinduuuuuuuuuuuuuuu', test)
   if (isLoading) {
     return <div>Loading...</div>
