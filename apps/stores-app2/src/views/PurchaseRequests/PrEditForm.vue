@@ -1,5 +1,5 @@
 <script setup lang="ts">
-
+import PrItemPopup from './PrItemPopup.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import axios from 'axios';
 import { Input } from '@/components/ui/input';
@@ -11,8 +11,8 @@ import { Button } from '@/components/ui/button';
 import { toTypedSchema } from '@vee-validate/zod';
 import * as z from 'zod';
 import { useForm } from 'vee-validate';
-import { Plus, Minus,  } from 'lucide-vue-next';
-
+import { Plus, Minus, ChevronsLeftRightEllipsis,  } from 'lucide-vue-next';
+import { pritemDetails } from './PrItemPopup.vue';
 import {
   FormControl,
   FormDescription,
@@ -20,8 +20,27 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import Card from '@/components/ui/card/Card.vue';
 
+type FormData = {
+  hotelid?:string;
+  requester?: string;
+  date?: string;
+  department?: string;
+  remark?:string;
+};
+
+const formSchema = toTypedSchema(z.object({
+  requester: z.string().optional(),
+  date: z.string().optional(),
+  department: z.string().optional(),
+  remark:z.string().optional(),
+}));
+
+const form = useForm({
+  validationSchema: formSchema,
+});
 
 type EditForm = {
   id:string;
@@ -29,8 +48,9 @@ type EditForm = {
   requester: string;
   department: string;
   remark: string;
-  item: string;
-  quentity: string;
+  itemName: string;
+  quantity: string;
+  unit:string
 }
 
 const selectedData = ref<EditForm>({
@@ -39,36 +59,58 @@ const selectedData = ref<EditForm>({
   requester: '',
   department: '',
   remark: '',
-  item: '',
-  quentity: ''
+  itemName: '',
+  quantity: '',
+  unit:'',
 });
+
+
+type RequestDetails = {
+  item: string;
+  quentity: string;
+  unit:string
+};
 
 const route = useRoute();
 const id = route.params.id as string
+
+const selectedItems=ref<pritemDetails[]>([])
+const requestDetails = ref([]);
+const submittedData = ref<FormData[]>([]);
+const dialogRef = ref<HTMLDialogElement | null>(null);
+const itemRef=ref<HTMLDialogElement | null>(null);
+
+
 const fetchData = async (id:string) => {
-   
-  console.log("id",id)
-  try {
+     console.log("idr",id)
+  if(id){
+    try {
     const response = await axios.get(`http://localhost:3000/fetchreqdetails/${id}`)
 
     if (response.data.success) {
-      console.log('Fetched Request Header Data:', response.data.data.header);
-      console.log('Fetched Request Details Data:', response.data.data.details);
-      if (id) {
-        selectedData.value = {
+      //console.log('Fetched Request Header Data:', response.data.data.header);
+      //console.log('Fetched Request Details Data:', response.data.data.details);
+
+      const { header, details } = response.data.data;
+
+    
+      selectedData.value = {
           id,
-          date: response.data.data.header.date,
-          requester: response.data.data.header.requester,
-          department: response.data.data.header.department,
-          remark: response.data.data.header.remark,
-          item: response.data.data.details.item,
-          quentity: response.data.data.details.quentity,
-        };
-        // requestDetails.value = response.data.data.details.map((detail: RequestDetails) => ({
-        //   item: detail.item,
-        //   quentity: detail.quentity,
-        // }));
-      }
+          date: header.date,
+          requester: header.requester,
+          department: header.department,
+          remark: header.remark,
+          itemName: details.item,
+          quantity: details.quentity,
+          unit:details.unit
+      };
+      selectedItems.value = response.data.data.details.map((detail: RequestDetails) => ({
+        itemName: detail.item,
+        unit: detail.unit,
+        quantity: detail.quentity,
+      }));
+      //console.log("details value 0000", requestDetails.value);
+          
       
     } else {
       console.error('Error in API response:', response.data.msg);
@@ -76,101 +118,178 @@ const fetchData = async (id:string) => {
   } catch (error) {
     console.error('Error fetching data:', error);
   }
+  }
+  else{
+    console.log("id is empty")
+  }
+ 
 };
 
 onMounted(() => {
-  fetchData(id);
+  if (id) {
+    fetchData(id);
+   
+  } else {
+    console.warn('ID is undefined; opening empty form.');
+      
+  }
 });
+
+
+
+const openitemModal = () => {
+  console.log("itemRef value:", itemRef.value);
+  itemRef.value?.showModal();
+};
+
+const closeitemModal = () => itemRef.value?.close();
+
+
+
+const removeRow = (index: number) => {
+  if (selectedItems.value.length > 1) {
+    selectedItems.value.splice(index, 1);
+  }
+};
+const router=useRouter()
+const closeModal = () =>{
+  router.push('/request')
+}
+
+
+
+const onSubmit = form.handleSubmit(async (values) => {
+  console.log("values",values)
+
+    try{
+    // console.log("Header",values)
+    // console.log("Details",selectedItems.value)
+
+    const requestBody={...values,...selectedData.value,details:selectedItems.value}
+    console.log("Request body",requestBody)
+    if(id)
+    {
+      console.log("id",id)
+      const response = await axios.put(`http://localhost:3000/editrequests/${id}`, requestBody);
+      console.log("response data",response.data)
+    }
+    else{
+      const response = await axios.post('http://localhost:3000/requests', requestBody);
+        console.log("Response from server:", response.data);
+        submittedData.value.push(values)
+        alert("Data Inserted Successfully");
+        fetchData(id)
+
+    }
+    
+  }
+  catch(error){
+   console.log("Something Went wrong",error)
+  }
+  }
+)
+
+
+
 </script>
 
 
 <template>
-    <div>
+  <div class="flex items-center justify-center min-h-[500px]">
+    <Card class="w-[1000px]  ">
  <!-- edit form -->
- 
-    <form @submit.prevent="" class="bg-white rounded-md p-6  ">
-      <h3 class="text-lg font-bold mb-4">Edit Request</h3>
+ <div class="w-full min-h-20 bg-sky-900">
+        <h3 class=" flex text-lg text-white  text-2xl pl-10 pt-5">Request Item</h3>
+  </div>
+    <form @submit.prevent="onSubmit" class=" pl-10 pr-10 pt-6 pb-7 bg-slate-200 border-black ">
       <div class="grid grid-cols-2 gap-4">
         <div class="w-full">
-          <FormField  name="requester">
+          <FormField v-slot="{ componentField }" name="requester">
             <FormItem>
               <FormLabel>Requester</FormLabel>
               <FormControl class="w-full">
                 <Input
+                 v-bind="componentField"
                   type="text"
                   placeholder="Requester"
                   v-model="selectedData.requester"
-                  class="border border-gray-300 rounded-md px-3 py-2"
+                  class="border border-white bg-whitw rounded-md px-3 py-2 shadow-2xl hover:bg-cyan-50"
                 />
               </FormControl>
             </FormItem>
           </FormField>
         </div>
         <div>
-          <FormField  name="date">
+          <FormField v-slot="{ componentField }" name="date">
             <FormItem>
               <FormLabel>Date</FormLabel>
               <FormControl class="w-full">
                 <Input
+                 v-bind="componentField"
                   type="date"
                   placeholder="Date"
                   v-model="selectedData.date"
-                  class="border border-gray-300 rounded-md px-3 py-2"
+                   class="border border-white bg-whitw rounded-md px-3 py-2 shadow-2xl hover:bg-cyan-50"
                 />
               </FormControl>
             </FormItem>
           </FormField>
         </div>
         <div>
-          <FormField  name="department">
+          <FormField v-slot="{ componentField }" name="department">
             <FormItem>
               <FormLabel>Department</FormLabel>
               <FormControl class="w-full">
                 <Input
+                 v-bind="componentField"
                   type="text"
                   placeholder="Department"
                   v-model="selectedData.department"
-                  class="border border-gray-300 rounded-md px-3 py-2"
+                    class="border border-white bg-whitw rounded-md px-3 py-2 shadow-2xl hover:bg-cyan-50"
                 />
               </FormControl>
             </FormItem>
           </FormField>
         </div>
         <div>
-          <FormField  name="remark">
+          <FormField v-slot="{ componentField }"  name="remark" class="">
             <FormItem>
               <FormLabel>Remark</FormLabel>
-              <FormControl class="w-full">
+              <FormControl class="border border-white bg-whitw rounded-md px-3 py-2 shadow-2xl hover:bg-cyan-50 w-full">
                 <Textarea
+                 v-bind="componentField"
                   placeholder="Remark"
                   v-model="selectedData.remark"
-                  class="border border-gray-300 rounded-md px-3 py-2"
+                    
                 />
               </FormControl>
             </FormItem>
           </FormField>
         </div>
       </div> 
-
+     
+     
       <!-- Request details -->
       <div class="border-1">
         <Table class="mt-5">
           <TableHeader class="bg-gray-500">
             <TableRow>
               <TableHead>Item</TableHead>
+              <TableHead>Unit</TableHead>
               <TableHead>Quantity</TableHead>
+              <TableHead></TableHead>
               
               <TableHead class="w-[100px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow v-for="(detail, index) in requestDetails" :key="index">
+            <TableRow v-if="selectedItems.length > 0"  v-for="(detail, index) in selectedItems" :key="index">
               <TableCell>
-                <FormField name="item">
+                <FormField v-slot="{ componentField } "name="itemName">
                   <FormItem>
                     <FormControl class="w-full">
                       <Input
-                        v-model="detail.item"
+                        v-model="detail.itemName"
                         type="text"
                         placeholder="Item name"
                         class="w-full"
@@ -180,11 +299,25 @@ onMounted(() => {
                 </FormField>
               </TableCell>
               <TableCell>
-                <FormField name="quantity">
+                <FormField v-slot="{ componentField }" name="unit">
                   <FormItem>
                     <FormControl class="w-full">
                       <Input
-                        v-model="detail.quentity"
+                        v-model="detail.unit"
+                        type="text"
+                        placeholder="Item name"
+                        class="w-full"
+                      />
+                    </FormControl>
+                  </FormItem>
+                </FormField>
+              </TableCell>
+              <TableCell>
+                <FormField v-slot="{ componentField }" name="quantity">
+                  <FormItem>
+                    <FormControl class="w-full">
+                      <Input
+                        v-model="detail.quantity"
                         type="text"
                         placeholder="Quantity"
                         class="w-full"
@@ -209,19 +342,44 @@ onMounted(() => {
                   <Button
                     type="button"
                     class="bg-blue-600 text-white p-2 rounded-full"
-                    @click="addRow"
+                    @click="openitemModal"
                   >
                     <Plus class="size-4" />
                   </Button>
                 </div>
               </TableCell>
             </TableRow>
+            <TableRow v-if="selectedItems.length === 0">
+    <TableCell><Input type="text" placeholder="Item name" class="w-full" /></TableCell>
+    <TableCell><Input type="text" placeholder="Unit" class="w-full" /></TableCell>
+    <TableCell><Input type="text" placeholder="Quantity" class="w-full" /></TableCell>
+    <TableCell>
+      <div class="flex space-x-5">
+                 
+                  <Button
+                    type="button"
+                    class="bg-blue-600 text-white p-2 rounded-full"
+                    @click="openitemModal"
+                  >
+                    <Plus class="size-4" />
+                  </Button>
+                </div>
+    </TableCell>
+   
+  </TableRow>
           </TableBody>
         </Table>
       </div> 
+      <dialog ref="itemRef" class="bg-gray-200 rounded-md p-6 w-[750px] rounded-md  ">
+       
+        
+    <PrItemPopup :parentselecteditems="selectedItems"  @close="closeitemModal" />
+  
+    
+</dialog>
 
       <div class="flex justify-end gap-4 mt-6">
-        <Button type="button" class="bg-red-600 text-white" @click="closeEditModal">
+        <Button type="button" class="bg-red-600 text-white" @click="closeModal">
           Cancel
         </Button>
         <Button type="submit" class="bg-blue-600 text-white">
@@ -232,7 +390,8 @@ onMounted(() => {
 
 
 
-    </div>
+    </Card>
+  </div>
 </template>
 
 

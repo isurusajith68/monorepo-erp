@@ -304,7 +304,7 @@ app.put('/edititem/:id', async (req, res) => {
 
 
 
-
+//insert Request
 app.post('/requests', async (req, res) => {
     console.log("addrequest");
     try {
@@ -320,8 +320,8 @@ app.post('/requests', async (req, res) => {
        
         const insertSTMT2 = `INSERT INTO requestdetails (item, quentity, requestid,unit) VALUES ($1, $2, $3,$4)`;
         for (const detail of details) {
-            const { item, quantity } = detail;
-            await pool.query(insertSTMT2, [item, quantity, requestId,unit]);
+            const { itemName, quantity,unit } = detail;
+            await pool.query(insertSTMT2, [itemName, quantity, requestId,unit]);
         }
 
         res.send('Data inserted successfully');
@@ -447,9 +447,10 @@ app.delete('/deleteheader/:id', async (req, res) => {
 // });
 app.put('/editrequests/:id', async (req, res) => {
     try {
-        const requestId = req.params.id;
-        const { requester, date, department, remark, details,item,quentity } = req.body;
-
+        const requestId =parseInt (req.params.id);
+        console.log(requestId)
+        const { requester, date, department, remark, details,itemName,quantity } = req.body;
+        console.log("request Body ",req.body)
         const updateRequestSTMT = `UPDATE requests SET requester = $1, date = $2, department = $3, remark = $4 WHERE id = $5`;
         await pool.query(updateRequestSTMT, [requester, date, department, remark, requestId]);
 
@@ -457,18 +458,18 @@ app.put('/editrequests/:id', async (req, res) => {
         const existingDetailIds = existingDetails.rows.map(row => row.id);
 
         for (const detail of details) {
-            const { id, item, quentity } = detail;
+            const { id, itemName, quantity,unit } = detail;
 
-            if (quentity == null) {
+            if (quantity == null) {
                 throw new Error(`Quantity is required for item ${item}`);
             }
 
             if (id && existingDetailIds.includes(id)) {
                 const updateDetailSTMT = `UPDATE requestdetails SET item = $1, quentity = $2 WHERE id = $3`;
-                await pool.query(updateDetailSTMT, [item, quentity, id]);
+                await pool.query(updateDetailSTMT, [itemName, quantity,unit, id]);
             } else if (!id) {
-                const insertDetailSTMT = `INSERT INTO requestdetails (item, quentity, requestid) VALUES ($1, $2, $3)`;
-                await pool.query(insertDetailSTMT, [item, quentity, requestId]);
+                const insertDetailSTMT = `INSERT INTO requestdetails (item, quentity, requestid,unit) VALUES ($1, $2, $3,$4)`;
+                await pool.query(insertDetailSTMT, [itemName, quantity, requestId,unit]);
             }
         }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PrSelectedItems from './PrSelectedItems.vue';
-
+import PrEditForm from './PrEditForm.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import axios from 'axios';
 import { Input } from '@/components/ui/input';
@@ -18,9 +18,16 @@ import {
 } from '@/components/ui/form';
 import Card from '@/components/ui/card/Card.vue';
 import { defineEmits } from 'vue';
-
+import PrItemDetails from './PrItemDetails.vue';
 
 const emit = defineEmits(['close']);
+
+ const props = defineProps({
+  parentselecteditems: {
+    type: Array as () => { itemId: string; itemName: string; unit: string; quantity: string }[],
+    required: true,
+  },
+});
 
 type fetchItems={
   id:string;
@@ -28,17 +35,23 @@ type fetchItems={
   defaultunit:string;
 }
 
-type itemDetails={
+export type pritemDetails={
     itemId:string;
     itemName:string;
     unit:string;
     quantity:string;
 }
 
-const searchQuery = ref('');
-const searchResults = ref<fetchItems[]>([]);
 
-const selectedItems=ref<itemDetails[]>([]);
+const searchResults = ref<fetchItems[]>([]);
+const selectedItems=ref<pritemDetails[]>([]);
+const quantityPopupRef = ref<HTMLDialogElement | null>(null);
+
+const searchQuery = ref('');
+const selectedItemId = ref('');
+const selectedItemName = ref('');
+const selectedUnit = ref('');
+const quantity=ref('')
 
 
 
@@ -67,12 +80,7 @@ watch(searchQuery, (newQuery) => {
 });
 
 
-const quantityPopupRef = ref<HTMLDialogElement | null>(null);
 
-const selectedItemId = ref('');
-const selectedItemName = ref('');
-const selectedUnit = ref('');
-const quantity=ref('')
 
 
 const openQuantityPopup = (name: string, id: string,defaultunit:string) => {
@@ -104,10 +112,19 @@ selectedItems.value.push({
    
 }
 
-
 const closeQuantityPopup = () => {
   quantityPopupRef.value?.close();
 };
+
+          
+const handleSaveItems=( )=>{
+  selectedItems.value.forEach(e=>
+  props.parentselecteditems.push(e)
+  )
+  props.parentselecteditems
+  console.log("data",selectedItems.value)
+  emit('close')
+}
 </script>
 
 
@@ -149,9 +166,7 @@ const closeQuantityPopup = () => {
         </TableRow>
       </TableHeader>
       <TableBody>
-      
-
-        <TableRow
+          <TableRow
           v-for="(item, index) in searchResults"
           :key="index"
           class="cursor-pointer hover:bg-gray-50"
@@ -174,9 +189,12 @@ const closeQuantityPopup = () => {
         ref="openselectedItem"
         :selectedItems="selectedItems"
         v-model="selectedItems"
-       
-        />
+       />
+        
     </Card>
+    
+    <!-- save button -->
+    <Button @click="handleSaveItems" class="w-full bg-green-600 rounded-lg text-white mt-2">Save</Button>
   </div>
 </div>
    </div>

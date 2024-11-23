@@ -20,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { useRoute, useRouter } from 'vue-router';
 
 
 
@@ -78,23 +79,8 @@ const form = useForm({
 
 const submittedData = ref<FormData[]>([]);
 const requestDetails = ref<RequestDetails[]>([{ item: '', quentity: '',unit:'' }]);
-
-
-
-
-
-
-
 const dialogRef = ref<HTMLDialogElement | null>(null);
 const selectedItem = ref<string>('');
-
-
-const closeModal = () => dialogRef.value?.close();
-
-
-
-
-
 const onSubmit = form.handleSubmit(async (values) => {
   try {
 
@@ -165,8 +151,10 @@ const removeRow = (index: number) => {
 //     console.error('Error submitting edited data:', error);
 //   }
 // };
-
-
+const router=useRouter()
+const closeModal = () =>{
+  router.push('/request')
+}
 
 </script>
 
@@ -333,10 +321,9 @@ const removeRow = (index: number) => {
   
 <!-- item popup -->
   <dialog ref="itemRef" class="bg-gray-200 rounded-md p-6 w-[750px] rounded-md  ">
-    <div>
-      Text
+    
       <PrItemPopup  @close="closeitemModal" />
-    </div>
+    
       
   </dialog>
 

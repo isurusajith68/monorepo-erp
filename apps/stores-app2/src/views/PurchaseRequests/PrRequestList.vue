@@ -54,9 +54,9 @@ const openModal = () => dialogRef.value?.showModal();
 
 
 const router=useRouter();
-const newRequest=()=>{
-  router.push('/newpequest')
-}
+// const newRequest=()=>{
+//   router.push('/newpequest')
+// }
 
 const editRequest=(id:string)=>{
   router.push(`/editrequest/${id}`)
@@ -70,7 +70,7 @@ const editRequest=(id:string)=>{
       <h2 class="text-lg font-semibold">Purshase Request</h2>
       <Button 
         class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200"
-        @click="newRequest"
+        @click="editRequest"
       >
         New Request
       </Button>
@@ -83,6 +83,7 @@ const editRequest=(id:string)=>{
           <TableHead>Requester</TableHead>
           <TableHead>Date</TableHead>
           <TableHead>Department</TableHead>
+          
                  
           
           <TableHead class="justify-center">Action</TableHead>
@@ -94,6 +95,7 @@ const editRequest=(id:string)=>{
           <TableCell>{{ data.requester }}</TableCell>
           <TableCell>{{ data.date }}</TableCell>
           <TableCell>{{ data.department }}</TableCell>
+         
          
           
           <TableCell class="flex gap-2 justify-left">

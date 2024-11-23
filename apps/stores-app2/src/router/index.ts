@@ -64,18 +64,25 @@ const router = createRouter({
     name:'itemquentity',
     component:PrSelectedItems
    },
-   {
-    path:'/newpequest',
-    name:'newpequest',
-    component:PrRequestForm
-   },
+  //  {
+  //   path:'/newpequest',
+  //   name:'newpequest',
+  //   component:PrRequestForm
+  //  },
    
    {
     path:'/editrequest/:id',
     name:'editrequest',
     component:PrEditForm,
     props:true
-   }
+   },
+   
+  //  {
+  //   path:'/editrequest',
+  //   name:'editrequest',
+  //   component:PrEditForm,
+  //   props:true
+  //  }
   ]
 })
 
