@@ -125,7 +125,7 @@ function FooterPage({ data }: any) {
                           <div className="hover:text-yellow-500 flex space-x-1">
                             <IoIosArrowForward />
                             <li key={index}>
-                              <a href="#">{services.serviceTitle}</a>
+                              <a href="#">{services.servicetitle}</a>
                             </li>
                           </div>
                         </div>

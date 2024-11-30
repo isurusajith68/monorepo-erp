@@ -1,6 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useFieldArray, useForm } from 'react-hook-form'
+import { format } from 'date-fns'
 import { z } from 'zod'
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,12 +39,55 @@ import Axios from 'axios'
 import { useToast } from '@/hooks/use-toast'
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import {
+  useGetGuestBooking,
+  useGetNextRegistraion,
+  useGetPhoneNumber,
+  useGetPrevRegistration,
+  useGetRegistrations,
+} from '../../services/queries'
+import {
+  useDeleteRegistrationMutation,
+  useInsertRegistrationMutation,
+  useUpdateCheckinCheckoutMutation,
+  useUpdateRegistrationDatesMutation,
+  useUpdateRegistrationMutation,
+} from '../../services/mutation'
+import { useGetBooking } from '@/app/bookings/_services/queries'
+import { formatInTimeZone } from 'date-fns-tz'
+import { useTimeStore } from '@/app/stores/booking-store'
+
+const ItemSchema = z.object({
+  id: z.number().min(2, { message: 'Item details are required' }).optional(),
+  checkindate: z
+    .string()
+    .min(1, { message: 'Check-in date is required' })
+    .optional(),
+  checkoutdate: z
+    .string()
+    .min(1, { message: 'Check-out date is required' })
+    .optional(),
+  roomid: z.number().min(1, { message: 'Room ID is required' }).optional(),
+  checkintime: z
+    .string()
+    .min(1, { message: 'Check-in time is required' })
+    .optional(),
+  checkouttime: z
+    .string()
+    .min(1, { message: 'Check-out time is required' })
+    .optional(),
+})
+
 const formSchema = z.object({
   //   id: z.string().min(2, {
   //     message: "Username must be at least 2 characters.",
   //   }),
+
   id: z.number().optional(),
-  fullname: z.string().min(2, {
+  firstname: z.string().min(2, {
+    message: 'Username must be at least 2 characters.',
+  }),
+  lastname: z.string().min(2, {
     message: 'Username must be at least 2 characters.',
   }),
   address: z.string().min(2, {
@@ -42,28 +96,57 @@ const formSchema = z.object({
   email: z.string().min(2, {
     message: 'Username must be at least 2 characters.',
   }),
-  telephone: z.string().min(2, {
+  phonenumber: z.string().min(2, {
     message: 'Username must be at least 2 characters.',
   }),
   city: z.string().min(2, {
     message: 'Username must be at least 2 characters.',
   }),
-  province: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
-  }),
+  // province: z.string().min(2, {
+  //   message: 'Username must be at least 2 characters.',
+  // }),
   country: z.string().min(2, {
     message: 'Username must be at least 2 characters.',
   }),
-  postalcode: z.string().min(2, {
+  postalcode: z.number().min(2, {
     message: 'Username must be at least 2 characters.',
   }),
+
+  items: z.array(ItemSchema),
 })
+
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  const Timehandle = (date) => {
+    const formatedcheckindate = formatInTimeZone(
+      date,
+      'Asia/Colombo',
+      'yyyy-MM-dd',
+    )
+    return formatedcheckindate
+  }
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler) // Cleanup on unmount or value change
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
 
 const RegistrationForm = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { toast } = useToast()
   const [phoneNumber, setPhoneNumber] = useState('')
+  const [checkinTime, setCheckinTime] = useState('')
+  const [checkoutTime, setCheckOutTime] = useState('')
   const [formData, setFormData] = useState({
     roomnumber: '',
     checkin: '',
@@ -74,10 +157,61 @@ const RegistrationForm = () => {
     childrencount: '',
     bookingdate: '',
   })
+
+  const updateMutation = useUpdateRegistrationMutation()
+  const insertMutation = useInsertRegistrationMutation()
+  const deleteMutation = useDeleteRegistrationMutation()
+  const updateTimesmutation = useUpdateRegistrationDatesMutation()
+  const updateCheckinCheckout = useUpdateCheckinCheckoutMutation()
+  const debouncedPhone = useDebounce(phoneNumber, 1000)
+  const { data: getphonenumber } = useGetPhoneNumber(debouncedPhone)
+
+  const bid = getphonenumber?.id
+  // const { data: bookingdata } = useGetBooking(bid)
+
+  console.log('id', bid)
+
+  const { data: gbdata } = useGetGuestBooking(bid)
+
+  console.log('gbdata', gbdata)
+
+  console.log('qqqqqqqqqqqqqqqqqqqqqqqqq', getphonenumber)
+  const { timeZone } = useTimeStore()
+  console.log('timeZone', timeZone)
+
+  getphonenumber?.dates &&
+    console.log(
+      'qqqqqqqqqqqqqqqqqqqqqqqqq2',
+      formatInTimeZone(
+        getphonenumber.dates[0].event_time,
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
+        "yyyy-MM-dd'T'HH:mm",
+      ),
+    )
+
+  // console.log('bookingdata', bookingdata)
+
+  useEffect(() => {
+    if (getphonenumber) {
+      // setValue('firstname', getphonenumber.firstname)
+      // setValue('lastname', getphonenumber.lastname)
+      // setValue('email', getphonenumber.email)
+      // setValue('address', getphonenumber.address)
+      // setValue('city', getphonenumber.city)
+      // setValue('country', getphonenumber.country)
+      // setValue('postalcode', getphonenumber.postalcode)
+      form.reset(getphonenumber)
+
+      // setValue('phonenumber', getphonenumber.phonenumber)
+    } else {
+      form.reset()
+    }
+  }, [getphonenumber])
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullname: '',
+      // fullname: '',
     },
   })
 
@@ -88,208 +222,97 @@ const RegistrationForm = () => {
     getValues,
     formState: { isDirty, dirtyFields, isLoading, isSubmitSuccessful },
   } = form
-
-  //   useEffect(() => {
-  //     if (id) {
-  //       const fetchRegistration = async () => {
-  //         try {
-  //           // Make API request to get registration data by ID
-  //           const response = await Axios.get(
-  //             `http://localhost:4000/registration/${id}`
-  //           );
-  //           if (response.data.success) {
-  //             // Reset the form with registration data
-  //             console.log("id", response.data.data);
-  //             form.reset(response.data.data);
-  //           } else {
-  //             console.error("registration not found:", response.data.msg);
-  //           }
-  //         } catch (error) {
-  //           console.error("Error fetching registration:", error);
-  //         }
-  //       };
-
-  //       fetchRegistration();
-  //     }
-  //   }, [id]);
-
-  const { data, isError, error } = useQuery({
-    queryKey: ['registration', id],
-    queryFn: async () => {
-      let data1
-      data1 = await Axios.get(`http://localhost:4000/registration/${id ?? 0}`)
-      return data1.data.data
-
-      // let data
-      // setTimeout(async() => {
-      //    data = await Axios.get(`http://localhost:4000/booking/${id?? 0}`);
-      //    return data.data;
-      // }, 2000);
-
-      // const p = new Promise((resolve) => {
-      //     setTimeout(async() => {
-      //        const data = await Axios.get(`http://localhost:4000/booking/${id?? 0}`);
-      //        console.log("data",data.data.data)
-      //         resolve(data.data.data);
-      //     }, 2000);
-      // })
-      // return p
-
-      // return fetchBookingData(id)
-    },
+  const { fields, append, remove } = useFieldArray({
+    name: 'items',
+    control: form.control,
   })
+  const { data, isError, error } = useGetRegistrations(id)
   useEffect(() => {
     form.reset(data)
     console.log('firstgggggggggg')
   }, [data])
 
-  //   useEffect(() => {
-  //     if (phoneNumber.length > 0) {
-  //       Axios.get(`http://localhost:4000/booking-by-phone/${phoneNumber}`)
-  //         .then((response) => {
-  //           if (response.data.success) {
-  //             setFormData(response.data.data); // Populate form with data
-  //           } else {
-  //             console.log('No booking found');
-  //           }
-  //         })
-  //         .catch((error) => {
-  //           console.error('Error fetching data:', error);
-  //         });
-  //     }
-  //   }, [phoneNumber]);
+  // async function onSubmit(data: any) {
+  //   const id = getValues('id') // Check if data already exists
+  //   console.log('Form data:', data)
 
-  //   function onSubmit(data: z.infer<typeof formSchema>) {
-  //     // axios.post("https://reqres.in/api/login", userData).then((response) => {
-  //     //   console.log(response.status, response.data.token);
-  //     // });
+  //   if (id) {
+  //     // If `id` exists, fetch updated data and display it in frontend
+  //     try {
+  //       let dirtyValues: any = {}
 
-  //     // navigate("/");
-  //     // console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", values);
-  //     // toast({
-  //     //   className: "text-green-600",
-  //     //   title: "Registration",
-  //     //   description: <span>Added successfully..</span>,
-  //     //   duration: 2000,
-  //     // });
-
-  //     //from next js
-  //     console.log("data", data);
-  //     const id = getValues("id"); // this checks if the data already exists in the database
-
-  //     if (id) {
-  //       // If an `id` exists, update the customer with only the changed fields (dirtyFields)
-  //       let dirtyValues: any = {};
-
+  //       // Capture only modified fields
   //       for (const key in dirtyFields) {
-  //         dirtyValues[key] = data[key];
+  //         dirtyValues[key] = data[key]
   //       }
 
-  //       console.log("dirtyValues", dirtyValues);
+  //       console.log('Dirty Values (Fields to Update):', dirtyValues)
 
-  //       //   await updateCustomer(dirtyValues, id.toString());
-  //       toast({
-  //         className: "text-green-600",
-  //         title: "Customer",
-  //         description: <span>Updated successfully..</span>,
-  //         duration: 5000,
-  //       });
-  //     } else {
-  //       // If no `id` exists, insert a new customer and get the new `id`
-  //       console.log(data);
-  //       const sendData = async () => {
-  //         const response = await Axios.post(
-  //           "http://localhost:4000/registration",
-  //           data
-  //         );
-  //         console.log("response.data", response.data);
-  //       };
+  //       const resMutation = updateMutation.mutate({ id, dirtyValues })
 
-  //       sendData();
-  //       setValue("id", objId.lastInsertRowid, { shouldDirty: false }); // Set the `id` to avoid adding the same data again
+  //       // Check if update was successful
+  //       if (updateMutation.isSuccess) {
+  //         toast({
+  //           className: 'text-green-600',
+  //           title: 'registration',
+  //           description: <span>Updated successfully.</span>,
+  //           duration: 5000,
+  //         })
+  //       }
+  //     } catch (error) {
+  //       console.error('Error updating registration:', error)
+  //     }
+  //   } else {
+  //     // If no `id`, insert a new registration
+  //     try {
+  //       console.log('Inserting new registration:', data)
 
-  //       toast({
-  //         className: "text-green-600",
-  //         title: "Customer",
-  //         description: <span>Added successfully..</span>,
-  //         duration: 2000,
-  //       });
-  //       // After inserting, use the newly generated `id`
-  //       navigate(`/customers/${objId.lastInsertRowid}`);
+  //       const responseData = await insertMutation.mutateAsync({ data })
+
+  //       if (responseData.success) {
+  //         const newId = responseData.lastInsertRowid
+
+  //         // Set the newly inserted id to avoid duplicate insertions
+  //         setValue('id', newId, { shouldDirty: false })
+
+  //         toast({
+  //           className: 'text-green-600',
+  //           title: 'Registeration',
+  //           description: <span>Added successfully.</span>,
+  //           duration: 2000,
+  //         })
+
+  //         // Optionally navigate to the registration detail page after successful insert
+  //         navigate(`/registration/${newId}`)
+
+  //         // Fetch the newly inserted registration and display it in the UI
+  //         const newRegisteration = data.newRegisteration
+  //         form.reset(newRegisteration) // Reset the form with new registration data
+  //       }
+  //     } catch (error) {
+  //       console.error('Error inserting registeration:', error)
   //     }
   //   }
-  async function onSubmit(data: any) {
-    const id = getValues('id') // Check if data already exists
-    console.log('Form data:', data)
+  // }
+  const onSubmit = async (data: any) => {
+    console.log('fffff')
 
-    if (id) {
-      // If `id` exists, fetch updated data and display it in frontend
-      try {
-        let dirtyValues: any = {}
+    // Extract the checkintime and checkouttime from each item
+    console.log('dataaaaaaa', data)
 
-        // Capture only modified fields
-        for (const key in dirtyFields) {
-          dirtyValues[key] = data[key]
-        }
+    const updatedItems = data.items.map((item) => ({
+      id: item.id, // assuming you need `id` to identify the record
+      checkintime: item.checkintime,
+      checkouttime: item.checkouttime,
+    }))
 
-        console.log('Dirty Values (Fields to Update):', dirtyValues)
-
-        // Send update request
-        const response = await Axios.put(
-          `http://localhost:4000/registrations/${id}`,
-          dirtyValues,
-        )
-
-        // Check if update was successful
-        if (response.data.success) {
-          toast({
-            className: 'text-green-600',
-            title: 'registration',
-            description: <span>Updated successfully.</span>,
-            duration: 5000,
-          })
-
-          // Update the UI with the new data (you can handle this as per your frontend logic)
-          const updatedData = response.data.updatedRegistration
-          // Example: Set updated data into the form
-          reset(updatedData)
-        }
-      } catch (error) {
-        console.error('Error updating registration:', error)
-      }
-    } else {
-      // If no `id`, insert a new registration
-      try {
-        console.log('Inserting new registration:', data)
-
-        const response = await Axios.post(
-          'http://localhost:4000/registration',
-          data,
-        )
-
-        if (response.data.success) {
-          const newId = response.data.lastInsertRowid
-
-          // Set the newly inserted id to avoid duplicate insertions
-          setValue('id', newId, { shouldDirty: false })
-
-          toast({
-            className: 'text-green-600',
-            title: 'Registeration',
-            description: <span>Added successfully.</span>,
-            duration: 2000,
-          })
-
-          // Optionally navigate to the registration detail page after successful insert
-          navigate(`/registration/${newId}`)
-
-          // Fetch the newly inserted registration and display it in the UI
-          const newRegisteration = response.data.newRegisteration
-          reset(newRegisteration) // Reset the form with new registration data
-        }
-      } catch (error) {
-        console.error('Error inserting registeration:', error)
-      }
+    try {
+      // Send only the updated items array to the API
+      const resMutation = updateCheckinCheckout.mutate({
+        updatedItems,
+      })
+    } catch (error) {
+      console.error('Error updating check-in/check-out times:', error)
     }
   }
 
@@ -299,7 +322,7 @@ const RegistrationForm = () => {
         console.log('Deleting registration with id:', id)
 
         // Make the DELETE request to the backend API
-        await Axios.delete(`http://localhost:4000/deleteregistration/${id}`)
+        const resMutation = deleteMutation.mutate({ id })
 
         // Show success toast notification
         toast({
@@ -324,6 +347,73 @@ const RegistrationForm = () => {
     }
   }
 
+  const {
+    data: prevItem,
+    isLoading: prevLoading,
+    error: prevError,
+  } = useGetPrevRegistration(id)
+  // console.log('prevvvvvvvvvvvvvvvvvvvvvvvv', prevItem)
+  const getPrevItem = () => {
+    if (prevItem && Object.keys(prevItem).length !== 0) {
+      navigate(`/registration/${prevItem.id}`)
+    } else {
+      toast({
+        className: 'text-blue-600',
+        title: 'Document Traverse',
+        description: <span>Reached Start of registration ID</span>,
+        duration: 2000,
+      })
+    }
+  }
+
+  const { data: nextItem } = useGetNextRegistraion(id)
+  const getNextItem = () => {
+    if (nextItem && Object.keys(nextItem).length !== 0) {
+      navigate(`/registration/${nextItem.id}`)
+    } else {
+      toast({
+        className: 'text-blue-600',
+        title: 'Document Traverse',
+        description: <span>Reached End of registration ID</span>,
+        duration: 2000,
+      })
+    }
+  }
+
+  const Timesave = (index: any) => {
+    const ids = getValues('items')
+    const id = ids[index].id
+    const checkinTime = ids[index].checkintime
+    const checkoutTime = ids[index].checkouttime
+    // console.log("d.id",d.id)
+
+    const resMutation = updateTimesmutation.mutate({
+      id,
+      checkinTime,
+      checkoutTime,
+    })
+    // console.log('d,checkinTime,checkoutTime', id, checkinTime, checkoutTime)
+
+    // Check if update was successful
+    if (updateTimesmutation.isSuccess) {
+      toast({
+        className: 'text-green-600',
+        title: 'registration',
+        description: <span>Updated successfully.</span>,
+        duration: 5000,
+      })
+    }
+  }
+  // const { data: getphonedata, isFetched } = useGetPhoneNumber(phoneNumber)
+  // console.log('first', getphonedata)
+
+  // useEffect(() => {
+  //   if (isFetched && getphonedata) {
+  //     setValue('phonenumber', getphonedata.telephone || '')
+  //     setValue('email', getphonedata.email || '')
+  //   }
+  // }, [isFetched, getphonedata])
+
   return (
     <div>
       <div className="flex items-center  justify-between ml-10 mt-5">
@@ -331,14 +421,34 @@ const RegistrationForm = () => {
         {id && (
           <h1 className="text-2xl font-bold ">Update Guest Registration </h1>
         )}
-        {!id && (
-          <Button
-            onClick={() => navigate('/registrations')}
-            className="bg-green-600"
-          >
-            View List
-          </Button>
-        )}
+        <div className="gap-5 flex">
+          {!id && (
+            <Button
+              onClick={() => navigate('/registrations')}
+              className="bg-green-600"
+            >
+              View List
+            </Button>
+          )}
+          {id && (
+            <div className="gap-5 flex">
+              <Button
+                className="  bg-green-600"
+                type="button"
+                onClick={getPrevItem}
+              >
+                previous
+              </Button>
+              <Button
+                className="  bg-green-600"
+                type="button"
+                onClick={getNextItem}
+              >
+                next
+              </Button>
+            </div>
+          )}
+        </div>
         {id && (
           <Button
             onClick={() => navigate('/registration/add')}
@@ -347,29 +457,55 @@ const RegistrationForm = () => {
             + Add
           </Button>
         )}
-        {/* <Button>View List</Button> */}
       </div>
       <hr className="border-2 border-green-300 ml-10 mt-5"></hr>
 
-      {/* <input
-        type="text"
-        placeholder="Enter Phone Number"
-        value={phoneNumber}
-        onChange={(e) => setPhoneNumber(e.target.value)}
-        className="mr-4 mt-5 p-2 border-2 border-green-600 rounded"
-      /> */}
+      {/* {!id && (
+        <input
+          type="text"
+          placeholder="Enter Phone Number"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          className="mr-4 mt-5 p-2 border-2 border-green-600 rounded"
+        />
+      )} */}
 
       <div className="mt-5 w-full h-2/3 bg-green-100 rounded border border-green-300 p-10 ">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 ">
             <div className="flex flex-col space-y-8 ">
+              <div className="flex items-center justify-center">
+                <FormField
+                  control={form.control}
+                  name="phonenumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telephone</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          className="rounded border-2 border-green-600 bg-white w-50 "
+                          placeholder=""
+                          onChangeCapture={(e) => {
+                            setPhoneNumber(e.target.value)
+                          }}
+                          {...field}
+                          // value={getphonedata.bookingdate}
+                        />
+                      </FormControl>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <div className=" w-full grid grid-cols-4 gap-4 ">
                 <FormField
                   control={form.control}
-                  name="fullname"
+                  name="firstname"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel>First Name</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
@@ -383,6 +519,47 @@ const RegistrationForm = () => {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="lastname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          className="rounded border-2 border-green-600 bg-white"
+                          placeholder=""
+                          {...field}
+                        />
+                      </FormControl>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          className="rounded border-2 border-green-600 bg-white"
+                          placeholder=""
+                          {...field}
+                          // value={getphonedata.email}
+                        />
+                      </FormControl>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="address"
@@ -402,48 +579,7 @@ const RegistrationForm = () => {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          className="rounded border-2 border-green-600 bg-white"
-                          placeholder=""
-                          {...field}
-                          //   value={formData.email}
-                        />
-                      </FormControl>
 
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="telephone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telephone</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          className="rounded border-2 border-green-600 bg-white"
-                          placeholder=""
-                          {...field}
-                          //   value={formData.telephone}
-                        />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="w-full grid grid-cols-4 gap-4">
                 <FormField
                   control={form.control}
                   name="city"
@@ -463,7 +599,7 @@ const RegistrationForm = () => {
                     </FormItem>
                   )}
                 />
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="province"
                   render={({ field }) => (
@@ -481,7 +617,7 @@ const RegistrationForm = () => {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
                 <FormField
                   control={form.control}
                   name="country"
@@ -523,7 +659,7 @@ const RegistrationForm = () => {
               </div>
             </div>
 
-            <div className="flex space-x-3">
+            {/* <div className="flex space-x-3">
               {!id && (
                 <Button type="submit" className="bg-green-600">
                   Save
@@ -534,7 +670,7 @@ const RegistrationForm = () => {
                   Upadte
                 </Button>
               )}
-              {/* <Button type="button">Close</Button> */}
+              <Button type="button">Close</Button>
               {id && (
                 <div>
                   <AlertDialog>
@@ -559,7 +695,7 @@ const RegistrationForm = () => {
                         <AlertDialogAction
                           className="bg-red-600"
                           onClick={() => {
-                            deleteAction(id)
+                            deleteAction(Number(id))
                           }}
                         >
                           Delete
@@ -569,11 +705,149 @@ const RegistrationForm = () => {
                   </AlertDialog>
                 </div>
               )}
+            </div> */}
+
+            <div className="mt-10">
+              <h1 className="text-2xl font-bold text-center mb-5">
+                Booking History
+              </h1>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="">Booking Id</TableHead>
+                    <TableHead className="">Room Id</TableHead>
+                    <TableHead className="">Checkin Date</TableHead>
+                    <TableHead>Checkout Date</TableHead>
+                    <TableHead>Checkin Time</TableHead>
+                    <TableHead className="">Checkout Time</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {fields.map((field, index) => (
+                    <TableRow key={field.id}>
+                      <TableCell className="font-medium">
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.id`}
+                          render={({ field }) => (
+                            <FormItem className="flex space-x-5">
+                              <FormControl>
+                                <Input placeholder="ID" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.roomid`}
+                          render={({ field }) => (
+                            <FormItem className="flex space-x-5">
+                              <FormControl>
+                                <Input placeholder="ID" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.checkindate`}
+                          render={({ field }) => (
+                            <Input
+                              type="date"
+                              {...field}
+                              placeholder="Check-in Date"
+                              className="w-full"
+                              value={
+                                field.value
+                                  ? format(new Date(field.value), 'yyyy-MM-dd')
+                                  : ''
+                              }
+                            />
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.checkoutdate`}
+                          render={({ field }) => (
+                            <Input
+                              type="date"
+                              {...field}
+                              placeholder="Check-out Date"
+                              className="w-full"
+                              value={
+                                field.value
+                                  ? format(new Date(field.value), 'yyyy-MM-dd')
+                                  : ''
+                              }
+                            />
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.checkintime`}
+                          render={({ field }) => (
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              placeholder="Check-in Time"
+                              className="w-full"
+                              value={
+                                field.value
+                                  ? formatInTimeZone(
+                                      new Date(field.value),
+                                      timeZone,
+                                      "yyyy-MM-dd'T'HH:mm",
+                                    )
+                                  : ''
+                              }
+                            />
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.checkouttime`}
+                          render={({ field }) => (
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              placeholder="Check-out Time"
+                              className="w-full"
+                              value={
+                                field.value
+                                  ? formatInTimeZone(
+                                      new Date(field.value),
+                                      timeZone,
+                                      "yyyy-MM-dd'T'HH:mm",
+                                    )
+                                  : ''
+                              }
+                            />
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell className="">
+                        <Button onClick={() => Timesave(index)}>Save</Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           </form>
         </Form>
-
-        <div></div>
       </div>
     </div>
   )

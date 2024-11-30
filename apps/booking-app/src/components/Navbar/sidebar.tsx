@@ -1,12 +1,20 @@
 import { Link } from 'react-router-dom'
 import {
+  Book,
+  BookOpenCheck,
+  BookOpenText,
   Home,
   LineChart,
+  NotebookPen,
   Package,
   Package2,
   ShoppingCart,
+  UserPlus,
   Users,
 } from 'lucide-react'
+import { TbReportAnalytics } from 'react-icons/tb'
+import { IoPersonAddSharp } from 'react-icons/io5'
+import { IoPeople } from 'react-icons/io5'
 
 export const description =
   'A products dashboard with a sidebar navigation and a main content area. The dashboard has a header with a search input and a user menu. The sidebar has a logo, navigation links, and a card with a call to action. The main content area shows an empty state with a call to action.'
@@ -17,7 +25,7 @@ const Sidebar = () => {
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 bg-green-400">
           <Link to="/" className="flex items-center gap-2 font-semibold">
-            <Package2 className="h-6 w-6" />
+            <Book className="w-8 h-8" />
             <span className="">Booking App</span>
           </Link>
           {/* <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
@@ -38,35 +46,56 @@ const Sidebar = () => {
               to="/booking/add"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
             >
-              <ShoppingCart className="h-4 w-4" />
+              <NotebookPen className="h-4 w-4" />
               Add Booking
             </Link>
             <Link
               to="bookings"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
             >
-              <Package className="h-4 w-4" />
+              <BookOpenText className="h-4 w-4" />
               View Booking
             </Link>
             <Link
               to="registration/add"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
             >
-              <Users className="h-4 w-4" />
+              <UserPlus className="h-4 w-4" />
               Guest Registration
             </Link>
             <Link
               to="registrations"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
             >
-              <LineChart className="h-4 w-4" />
+              <IoPeople className="h-4 w-4" />
               View Registration
             </Link>
             <Link
-              to="reports"
+              to="reports/booked-rooms"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
             >
-              <LineChart className="h-4 w-4" />
+              <TbReportAnalytics className="h-4 w-4" />
+              Reports
+            </Link>
+            <Link
+              to="roomdetails/add"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+            >
+              <TbReportAnalytics className="h-4 w-4" />
+              Room Details
+            </Link>
+            <Link
+              to="booking/available-rooms"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+            >
+              <TbReportAnalytics className="h-4 w-4" />
+              Available Rooms
+            </Link>
+            <Link
+              to="/test"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+            >
+              <TbReportAnalytics className="h-4 w-4" />
               Reports
             </Link>
           </nav>

@@ -1,0 +1,901 @@
+import { Router } from 'express'
+import pool from '../config/db'
+import { Request, Response } from 'express'
+import getUpdateQuery from '../utils/utils'
+// import { timezones } from '../app.js'
+
+const bookingRouter = Router()
+
+Object.defineProperty(Object, 'groupBy', {
+  value: function (array: any[], keyFunction: (item: any) => any) {
+    return array.reduce((result, item) => {
+      const key = keyFunction(item)
+      if (!result[key]) {
+        result[key] = []
+      }
+      result[key].push(item)
+      return result
+    }, {})
+  },
+  writable: true,
+  configurable: true,
+})
+
+//booking insert
+bookingRouter.post('/bookinginsert', async (req: Request, res: Response) => {
+  // console.log("dataaa", req.body )
+
+  const {
+    hotelid,
+    remarks,
+    createdate,
+    checkindate,
+    checkoutdate,
+    firstname,
+    lastname,
+    email,
+    phonenumber,
+    address,
+    city,
+    country,
+    postalcode,
+    selectedRooms,
+  } = req.body
+  try {
+    //console.log("checkindate,",checkindate,        checkoutdate,)
+
+    const checkPhoneQuery =
+      'SELECT * FROM guestinformation WHERE phonenumber = $1'
+    const phoneResult = await pool.query(checkPhoneQuery, [phonenumber])
+    //   console.log('qqqqqqqqqq', phoneResult)
+
+    let guestId = 0
+    //if exists
+    if (phoneResult.rowCount ?? 0 > 0) {
+      guestId = phoneResult.rows[0].id
+    } else {
+      const guestInsertSTMT = ` INSERT INTO guestinformation (firstname, lastname, email, phonenumber, address, city, country, postalcode,hotelid) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8 , $9)
+      RETURNING id;`
+
+      const guestRes = await pool.query(guestInsertSTMT, [
+        firstname,
+        lastname,
+        email,
+        phonenumber,
+        address,
+        city,
+        country,
+        postalcode,
+        hotelid,
+      ])
+      //console.log('guestRes', guestRes)
+
+      guestId = guestRes.rows[0].id
+    }
+
+    //insert booking
+    const bookingInsertSTMT = `
+    INSERT INTO booking ( guestid, checkindate, checkoutdate ,createdate,remarks,hotelid)
+    VALUES ($1,$2,$3,$4,$5,$6)
+    RETURNING id;`
+
+    const bookRes = await pool.query(bookingInsertSTMT, [
+      guestId,
+      checkindate,
+      checkoutdate,
+      createdate,
+      remarks,
+      hotelid,
+    ])
+    const bookingid = bookRes.rows[0].id
+
+    //check if all rooms with type and view are available
+    const rmgrupbyTYpeView: any = Object.groupBy(selectedRooms, (r: any) => {
+      return `${r.typeid}-${r.viewid}`
+    })
+
+    // console.log("rmgrupbyTYpeView",rmgrupbyTYpeView)
+
+    const keys = Object.keys(rmgrupbyTYpeView)
+
+    for (let index = 0; index < keys.length; index++) {
+      const elements = rmgrupbyTYpeView[keys[index] as string]
+      const rowcount = elements.reduce(
+        (a: any, c: any) => a + c.occupantdetails.length,
+        0,
+      )
+      const roomsql = `select * from public.hotelrooms where id not in
+        (SELECT bd.roomid FROM public.booking b
+      join public.bookingdetails bd on bd.bookingid = b.id
+        where $1  between b.checkindate   and b.checkoutdate 
+        and $2  between b.checkindate   and b.checkoutdate)
+        and roomtypeid = $3 and roomviewid=$4;`
+
+      const resrooms = await pool.query(roomsql, [
+        checkindate,
+        checkoutdate,
+        elements[0].typeid,
+        elements[0].viewid,
+      ])
+      // console.log('room count', resrooms.rows.length, 'ppp--', rowcount)
+      // console.log('elements[0].typeid', elements[0].typeid, elements[0].viewid)
+
+      if (resrooms.rows.length < rowcount) {
+        res.status(200).json({
+          success: false,
+          message: `Not enough rooms available for type ${elements[0].type} and view type ${elements[0].view}`,
+        })
+        return
+      }
+    }
+
+    //const allocatedRoomids:number[]=[]
+    // for (let index = 0; index < selectedRooms.length; index++) {
+    for (let index = 0; index < keys.length; index++) {
+      const elements = rmgrupbyTYpeView[keys[index] as string]
+      const rowcount = elements.length
+      // const room = selectedRooms[index]
+
+      for (let i1 = 0; i1 < elements.length; i1++) {
+        const room = elements[i1]
+
+        const roomsql = `select * from public.hotelrooms where id not in
+            (SELECT bd.roomid FROM public.booking b
+            join public.bookingdetails bd on bd.bookingid = b.id
+            where $1  between b.checkindate   and b.checkoutdate 
+            and $2  between b.checkindate   and b.checkoutdate)
+            and roomtypeid = $3 and roomviewid=$4;`
+
+        const resrooms1 = await pool.query(roomsql, [
+          checkindate,
+          checkoutdate,
+          room.typeid,
+          room.viewid,
+        ])
+        // console.log("resrooms",resrooms)
+
+        for (let rindex = 0; rindex < room.occupantdetails.length; rindex++) {
+          const rrow = room.occupantdetails[rindex]
+
+          //insert booking room
+
+          // console.log('rindex', rindex)
+
+          let roomId = 0
+          //if exists
+          if (resrooms1.rowCount ?? 0 > 0) {
+            roomId = resrooms1.rows[rindex].id
+            // if(!allocatedRoomids.includes(roomId)){
+            //   allocatedRoomids.push(roomId)
+            // }else{
+            //   //find next available room
+            //   roomId = resrooms.rows[0].id
+            // }
+
+            const { adultcount, childcount, infantcount } = rrow
+
+            const bookingInsertSTMT = `INSERT INTO bookingdetails ( bookingid,  roomId,  basis, adultcount,  childcount,  infantcount,price)
+                      VALUES ($1,$2,$3,$4,$5,$6,$7)
+                      RETURNING id;`
+
+            const res = await pool.query(bookingInsertSTMT, [
+              bookingid,
+              roomId,
+              room.basis,
+              adultcount,
+              childcount,
+              infantcount,
+              room.price,
+            ])
+            //   let bid = res.rowCount ?? 0 > 0 ? res.rows[0].id : 0
+            //   if (res.rowCount ?? 0 > 0) {
+            //     bid = res.rows[0].id
+          } else {
+            console.log('no room found')
+          }
+        }
+      }
+    }
+    console.log('Successfully added booking')
+    res.status(200).json({
+      success: true,
+      message: 'Booking created successfully',
+      booking_id: bookingid,
+      guestId, // Return the booking ID to the frontend
+    })
+  } catch (error) {
+    console.log('error', error)
+    res.status(500).json({ message: 'Error creating user', error })
+  }
+})
+
+//booking update
+bookingRouter.patch('/bookings/:id', async (req, res) => {
+  // const {id}= req.params
+  const {
+    id,
+    checkindate,
+    checkoutdate,
+    bookingHeaderData,
+    guestInfo,
+    selectedRooms,
+  }: any = req.body // modified fields from the frontend
+  console.log('update 1')
+
+  // const {firstname,lastname,email,phonenumber,address,city,country,postalcode,hotelid} = guestInfo
+  // const{bookingid,checkindate,checkoutdate}=bookingHeaderData
+  try {
+    const client = await pool.connect()
+    try {
+      //update guest information
+      // console.log('bookingHeaderData', bookingHeaderData)
+
+      if (guestInfo) {
+        // console.log('you', guestInfo)
+
+        const [updatesql, valuesArray] = getUpdateQuery(
+          guestInfo,
+          'guestinformation',
+          'id',
+        )
+        const guestResult = await client.query(updatesql, valuesArray)
+      }
+      console.log('update 1.01')
+      // Update booking information
+      if (bookingHeaderData) {
+        const [updateHsql, valuesHArray] = getUpdateQuery(
+          bookingHeaderData,
+          'booking',
+          'id',
+        )
+        // console.log('updateHsql', updateHsql, valuesHArray)
+
+        const hResult = await client.query(updateHsql, valuesHArray)
+      }
+      console.log('update 1.02')
+      const bdsql = `select roomid from bookingdetails where bookingid= $1 `
+      const bdresult = await pool.query(bdsql, [id])
+      // console.log("bdresultsssssssssssss",bdresult)
+      //check for deleted rooms which are already booked in a prev session
+      for (let index = 0; index < bdresult.rows.length; index++) {
+        console.log('update 1.1')
+        const row = bdresult.rows[index]
+        let roomFound: boolean = false
+        for (let index = 0; index < selectedRooms.length; index++) {
+          console.log('update 1.2')
+          const room = selectedRooms[index]
+          const bookedRoom = room.occupantdetails.find(
+            (r: any) => r.roomid == row.roomid,
+          )
+          if (bookedRoom) {
+            roomFound = true
+            break
+          }
+        }
+        console.log('update 1.3')
+        if (!roomFound) {
+          //delete from db
+          console.log('update 1.4')
+          const deleteRoomm = `delete from bookingdetails where roomid=$1 and bookingid=$2`
+          const del = await client.query(deleteRoomm, [row.roomid, id])
+        }
+      }
+      // look for newly inserted rooms -- occupantdetails roomid is minus
+      console.log('update 2')
+
+      for (let index = 0; index < selectedRooms.length; index++) {
+        const room = selectedRooms[index]
+
+        for (let rindex = 0; rindex < room.occupantdetails.length; rindex++) {
+          const rrow = room.occupantdetails[rindex]
+          if (rrow.roomid < 0) {
+            //insert new
+            //check if all rooms with type and view are available
+            const rmgrupbyTYpeView: any = Object.groupBy(
+              selectedRooms,
+              (r: any) => {
+                return `${r.typeid}-${r.viewid}`
+              },
+            )
+
+            // console.log("rmgrupbyTYpeView",rmgrupbyTYpeView)
+
+            const keys = Object.keys(rmgrupbyTYpeView)
+
+            for (let index = 0; index < keys.length; index++) {
+              const elements = rmgrupbyTYpeView[keys[index] as string]
+              const minusvalrooms = elements.filter((r: any) =>
+                r.occupantdetails.find((o: any) => o.roomid < 0) ? true : false,
+              )
+              const rowcount = minusvalrooms.reduce(
+                (a: any, c: any) =>
+                  a + c.occupantdetails.filter((o: any) => o.roomid < 0).length,
+                0,
+              )
+              // console.log('rowCountaaa', elements[0])
+
+              const roomsql = `select * from public.hotelrooms where id not in
+        (SELECT bd.roomid FROM public.booking b
+      join public.bookingdetails bd on bd.bookingid = b.id
+        where $1  between b.checkindate   and b.checkoutdate 
+        and $2  between b.checkindate   and b.checkoutdate)
+        and roomtypeid = $3 and roomviewid=$4;`
+
+              const resrooms = await pool.query(roomsql, [
+                checkindate,
+                checkoutdate,
+                elements[0].typeid,
+                elements[0].viewid,
+              ])
+              // console.log('room count', resrooms.rows.length, 'ppp--', rowcount)
+              // console.log('elements[0].typeid', elements[0].typeid, elements[0].viewid)
+              //console.log("resrooms.rows.length",elements)
+
+              if (resrooms.rows.length < rowcount) {
+                console.log('not enough rooms')
+
+                res.status(200).json({
+                  success: false,
+                  message: `Not enough rooms available for type ${elements[0].type} and view type ${elements[0].view}`,
+                })
+                return
+              }
+            }
+
+            //const allocatedRoomids:number[]=[]
+            // for (let index = 0; index < selectedRooms.length; index++) {
+            for (let index = 0; index < keys.length; index++) {
+              const elements = rmgrupbyTYpeView[keys[index] as string]
+              const minusvalrooms = elements.filter((r: any) =>
+                r.occupantdetails.find((o: any) => o.roomid < 0) ? true : false,
+              )
+              //const rowcount = minusvalrooms.length
+              // const room = selectedRooms[index]
+              // console.log('-insert0', room)
+              for (let i1 = 0; i1 < minusvalrooms.length; i1++) {
+                const room = elements[i1]
+                // console.log('-insert1', room)
+
+                const roomsql = `select * from public.hotelrooms where id not in
+            (SELECT bd.roomid FROM public.booking b
+            join public.bookingdetails bd on bd.bookingid = b.id
+            where $1  between b.checkindate   and b.checkoutdate 
+            and $2  between b.checkindate   and b.checkoutdate)
+            and roomtypeid = $3 and roomviewid=$4;`
+
+                const resrooms1 = await pool.query(roomsql, [
+                  checkindate,
+                  checkoutdate,
+                  room.typeid,
+                  room.viewid,
+                ])
+                // console.log("resrooms",resrooms)
+
+                for (
+                  let rindex = 0;
+                  rindex < room.occupantdetails.length;
+                  rindex++
+                ) {
+                  const rrow = room.occupantdetails[rindex]
+                  // console.log('-insert2', rrow)
+                  // console.log('insert-begins')
+
+                  //insert booking room
+
+                  // console.log('rindex', rindex)
+
+                  let roomId = 0
+                  //if exists
+                  if (resrooms1.rowCount ?? 0 > 0) {
+                    // console.log('awaa')
+
+                    roomId = resrooms1.rows[rindex].id
+                    // if(!allocatedRoomids.includes(roomId)){
+                    //   allocatedRoomids.push(roomId)
+                    // }else{
+                    //   //find next available room
+                    //   roomId = resrooms.rows[0].id
+                    // }
+
+                    const { adultcount, childcount, infantcount } = rrow
+
+                    const bookingInsertSTMT = `INSERT INTO bookingdetails ( bookingid,  roomId,  basis, adultcount,  childcount,  infantcount,price)
+                      VALUES ($1,$2,$3,$4,$5,$6,$7)
+                      RETURNING id;`
+
+                    const res = await pool.query(bookingInsertSTMT, [
+                      id,
+                      roomId,
+                      room.basis,
+                      adultcount,
+                      childcount,
+                      infantcount,
+                      room.price,
+                    ])
+                    // console.log('res', res)
+
+                    //   let bid = res.rowCount ?? 0 > 0 ? res.rows[0].id : 0
+                    //   if (res.rowCount ?? 0 > 0) {
+                    //     bid = res.rows[0].id
+                  } else {
+                    console.log('no room found')
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      //update exisiting room details like adultcount etc...
+      // Update booking details for each room
+
+      for (let index = 0; index < selectedRooms.length; index++) {
+        const room = selectedRooms[index]
+
+        if (room.roomid > 0) {
+          for (let rindex = 0; rindex < room.occupantdetails.length; rindex++) {
+            const rrow = room.occupantdetails[rindex]
+
+            //do update qery
+            const updateocupent = `UPDATE bookingdetails
+      SET adultcount = $1, childcount= $2 , infantcount=$3
+      WHERE bookingid = $4 and roomid=$5; `
+
+            const updateresult = await client.query(updateocupent, [
+              rrow.adultcount,
+              rrow.childcount,
+              rrow.infantcount,
+              id,
+              rrow.roomid,
+            ])
+          }
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Booking updated successfully',
+        bookingId: id,
+      })
+    } finally {
+      client.release()
+    }
+  } catch (error) {
+    // console.log('error', error)
+    res.status(500).json({ message: 'Error creating user', error })
+  }
+})
+
+// get all data
+bookingRouter.get('/bookings/:id', async (req: Request, res: Response) => {
+  const { id } = req.params // Get booking ID from the URL
+  // console.log('timezons2', timezones)
+
+  const client = await pool.connect()
+
+  try {
+    // Query to get booking and associated guest information
+    const query = `
+        SELECT 
+          b.id AS booking_id,
+          Date(b.checkindate) as checkindate ,
+          b.checkoutdate::DATE,
+          g.firstname,
+          g.lastname,
+          g.email,
+          g.phonenumber,
+          g.address,
+          g.city,
+          g.country,
+          g.postalcode,
+          b.guestid
+        FROM 
+          booking b
+        JOIN 
+          guestinformation g ON b.guestid = g.id
+        WHERE 
+          b.id = $1;
+      `
+    // console.log('process.env.TZ', process.env.TZ)
+
+    const result = await client.query(query, [id])
+
+    if (result.rows.length === 0) {
+      // No booking found with the given ID
+      res.status(404).json({
+        success: false,
+        msg: 'Booking not found',
+      })
+      return
+    }
+
+    const bookingData = result.rows[0]
+
+    //get details
+
+    const bookingdetails = `SELECT bd.* , r.roomtypeid as typeid ,r.roomviewid as viewid  ,ht.roomtype as type,hv.roomview as view
+              FROM bookingdetails bd
+              join public.hotelrooms r
+              on bd.roomid = r.id
+              join hotelroomtypes ht
+              on r.roomtypeid= ht.id
+              join hotelroomview hv
+              on hv.id = r.roomviewid 
+              WHERE bookingid =$1 `
+
+    const bdresult = await client.query(bookingdetails, [
+      bookingData.booking_id,
+    ])
+
+    // console.log('bdresult', bdresult)
+
+    // Return the booking and guest information
+    // console.log('bookingDatax', bookingData)
+
+    res.status(200).json({
+      success: true,
+      data: bookingData,
+      details: bdresult.rows,
+    })
+  } catch (err: any) {
+    // Add explicit type for error
+    console.error('Error fetching booking-get:', err)
+    res.status(500).json({
+      success: false,
+      msg: 'Error fetching booking details',
+      error: err.message,
+    })
+  } finally {
+    client.release()
+  }
+})
+
+// get all rooms
+bookingRouter.get('/rooms', async (req, res) => {
+  const { checkindate, checkoutdate } = req.query
+
+  const countsql = `select count(*), roomtypeid as typeid, roomviewid as viewid from public.hotelrooms where id not in
+        (SELECT bd.roomid FROM public.booking b
+      join public.bookingdetails bd on bd.bookingid = b.id
+        where $1  between b.checkindate   and b.checkoutdate 
+        or $2  between b.checkindate   and b.checkoutdate)
+	group by roomtypeid , roomviewid `
+
+  const count = await pool.query(countsql, [checkindate, checkoutdate])
+
+  // console.log('count', count.rows)
+
+  const getAllBookingQuery = `
+      select r.roomtypeid as typeid ,r.roomviewid as viewid, t.roomtype ,v.roomview,t.maxadultcount from public.hotelrooms r
+    JOIN public.hotelroomtypes t 
+    on t.id = r.roomtypeid 
+    JOIN public.hotelroomview v
+    on v.id = r.roomviewid 
+    group by r.roomtypeid , r.roomviewid ,t.roomtype ,v.roomview,t.maxadultcount
+    `
+  // const getAllBookingQuery = `
+  //     select r.roomtypeid,r.roomviewid, t.roomtype ,v.roomview,t.maxadultcount from public.hotelrooms r
+  //   JOIN public.hotelroomtypes t
+  //   on t.id = r.roomtypeid
+  //   JOIN public.hotelroomview v
+  //   on v.id = r.roomviewid
+  //   WHERE r.id not in
+  //   (SELECT bd.roomid FROM public.bookingdetails bd
+  //   join public.booking b
+  //   on b.id =bd.bookingid
+  //   WHERE $1 BETWEEN b.checkindate AND b.checkoutdate
+  //   or $2  between b.checkindate AND b.checkoutdate)
+  //   group by r.roomtypeid , r.roomviewid ,t.roomtype ,v.roomview,t.maxadultcount
+  //   `
+
+  pool
+    .query(getAllBookingQuery, [])
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const bookingData = response.rows // Get all rows
+        res.json({
+          success: true,
+          msg: '',
+          data: bookingData,
+          roomcounts: count.rows,
+        })
+      } else {
+        res.json({ success: false, msg: 'No booking found', data: [] })
+      }
+    })
+    .catch((err) => {
+      console.error('Error fetching booking-rooms:', err)
+      res.json({
+        success: false,
+        msg: 'Error fetching booking-rooms',
+        data: [],
+      })
+    })
+})
+
+// get all prices
+
+bookingRouter.get('/prices', (req, res) => {
+  const { checkindate } = req.query
+  const getAllBookingQuery = `
+      SELECT p.id, p.roprice, p.bbprice, p.hbprice, p.fbprice, p.nrroprice, p.nrbbprice, p.nrhbprice, p.nrfbprice, p.sheduleid, p.roomtypeid as typeid, p.roomviewid as viewid, v.roomview, t.roomtype from public.hotelroompriceshedules s
+    JOIN public.hotelroomprices p
+    on s.id = p.sheduleid
+    join public.hotelroomview v 
+    on v.id = p.roomviewid
+    join public.hotelroomtypes t 
+    on t.id = p.roomtypeid
+    WHERE $1 BETWEEN startdate AND enddate`
+
+  pool
+    .query(getAllBookingQuery, [checkindate])
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const bookingData = response.rows // Get all rows
+        res.json({ success: true, msg: '', data: bookingData })
+      } else {
+        res.json({ success: false, msg: 'No booking found', data: [] })
+      }
+    })
+    .catch((err) => {
+      console.error('Error fetching booking-prices:', err)
+      res.json({
+        success: false,
+        msg: 'Error fetching booking-prices',
+        data: [],
+      })
+    })
+})
+
+//check phone number
+
+bookingRouter.get('/guest-by-phone/:phone', async (req, res) => {
+  const { phone } = req.params
+  // console.log('phoneeee2222', phone)
+  //rrrrrrr
+  try {
+    const query = 'SELECT * FROM guestinformation WHERE phonenumber = $1'
+    const result = await pool.query(query, [phone])
+    console.log('result', result.rows[0].id)
+
+    const query1 = `select b.id,b.checkindate,b.checkoutdate,bd.roomid,bd.checkintime,bd.checkouttime from booking b
+              join public.bookingdetails bd
+              on b.id=bd.bookingid
+              where guestid=$1`
+
+    const result1 = await pool.query(query1, [result.rows[0].id])
+    const result2 = await pool.query(`select * from your_table where id=$1`, [
+      5,
+    ])
+
+    if (result.rows.length > 0) {
+      res.status(200).json({
+        success: true,
+        data: { ...result.rows[0], items: result1.rows, dates: result2.rows },
+      })
+    } else {
+      res.status(404).json({ success: false, msg: 'Booking not found' })
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, msg: 'Server error' })
+  }
+})
+
+bookingRouter.get('/getbookedbookings/:phonenum', async (req, res) => {
+  const { phonenum } = req.params
+  // console.log('phonenum', phonenum)
+
+  try {
+    const sql = `SELECT b.id,b.checkindate, b.checkoutdate,b.remarks FROM public.booking b
+JOIN guestinformation g
+on b.guestid=g.id
+where phonenumber = $1`
+
+    const resultsql = await pool.query(sql, [phonenum])
+
+    // console.log('resultsql', resultsql.rows)
+
+    // if (resultsql.rows.length > 0) {
+    res.status(200).json({ success: true, data: resultsql.rows })
+    // } else {
+    //   res.status(200).json({ success: false, msg: 'Booking not found' })
+    // }
+  } catch {}
+})
+
+//get all bookings
+bookingRouter.get('/allbookings', (req, res) => {
+  const getAllBookingQuery = `
+  SELECT 
+        b.id ,
+        
+        g.firstname,
+        g.lastname,
+        g.email,
+        g.phonenumber,
+        g.address,
+        g.city,
+        g.country,
+        g.postalcode
+      FROM 
+        booking b
+      JOIN 
+        guestinformation g ON b.guestid = g.id`
+
+  pool
+    .query(getAllBookingQuery)
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const bookingData = response.rows // Get all rows
+        res.json({ success: true, msg: '', data: bookingData })
+      } else {
+        res.json({ success: false, msg: 'No booking found', data: [] })
+      }
+    })
+    .catch((err) => {
+      console.error('Error fetching booking:', err)
+      res.json({ success: false, msg: 'Error fetching booking', data: [] })
+    })
+})
+
+//delete booking
+bookingRouter.delete('/bookings/delete/:id', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    // Prepare the SQL query
+    const sqlDel = 'DELETE FROM booking WHERE id = $1'
+    const result = await pool.query(sqlDel, [id])
+
+    // Check if any row was deleted
+    if (result.rowCount ?? 0 > 0) {
+      res
+        .status(200)
+        .json({ success: true, msg: 'booking deleted successfully', data: {} })
+    } else {
+      res
+        .status(404)
+        .json({ success: false, msg: 'booking not found', data: {} })
+    }
+  } catch (error) {
+    console.error('Error deleting booking:', error)
+    res.status(500).json({ success: false, msg: 'Server error', data: {} })
+  }
+})
+
+//get all room details and prices
+bookingRouter.get('/roomreport', async (req, res) => {
+  try {
+    // SQL query to retrieve room details and prices
+    const query = `
+      SELECT 
+          r.roomno,                     
+          rt.roomtype,                  
+          rv.roomview,                  
+          p.roprice,                    
+          p.bbprice,                    
+          p.hbprice,                    
+          p.fbprice                     
+      FROM 
+          public.hotelrooms r
+      JOIN 
+          public.hotelroomtypes rt ON r.roomtypeid = rt.id
+      JOIN 
+          public.hotelroomview rv ON r.roomviewid = rv.id
+      JOIN 
+          public.hotelroomprices p ON r.roomtypeid = p.roomtypeid 
+                                    AND r.roomviewid = p.roomviewid
+      JOIN 
+          public.hotelroompriceshedules s ON p.sheduleid = s.id;
+    `
+
+    // Execute the query
+    const result = await pool.query(query)
+
+    // Send the result back as JSON
+    res.json(result.rows)
+  } catch (error) {
+    console.error('Error fetching room prices:', error)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
+bookingRouter.get('/guestbooking/:id', async (req, res) => {
+  const { id } = req.params
+  const sql = `select * from booking b
+          join public.bookingdetails bd
+          on b.id=bd.bookingid
+          where guestid=$1`
+
+  const result = await pool.query(sql, [id])
+
+  // console.log("result",result)
+
+  res.json(result.rows)
+})
+
+bookingRouter.patch('/times/:id', async (req, res) => {
+  // const { id } = req.params
+  // const dirtyfields = req.body
+  console.log('reqqqqqqqqqqqqqqqqqqqqqqqq', req.body)
+  console.log('req1', req.params.id)
+
+  const bookingId = req.params.id
+  const { checkinTime, checkoutTime } = req.body
+
+  // Check if both checkinTime and checkoutTime are provided
+  // if (!checkinTime || !checkoutTime) {
+  //   res.status(400).json({
+  //     success: false,
+  //     msg: 'Both checkinTime and checkoutTime are required',
+  //   })
+  // }
+
+  // SQL query to update checkinTime and checkoutTime
+  const updateBookingTimesQuery = `
+    UPDATE bookingdetails 
+    SET checkintime = $1, checkouttime = $2 
+    WHERE bookingid = $3
+    RETURNING *
+  `
+
+  pool
+    .query(updateBookingTimesQuery, [checkinTime, checkoutTime, bookingId])
+    .then((response) => {
+      if (response.rows.length > 0) {
+        const updatedBooking = response.rows[0]
+        res.json({
+          success: true,
+          msg: 'Booking times updated successfully',
+          data: updatedBooking,
+        })
+      } else {
+        res.json({ success: false, msg: 'Booking not found', data: [] })
+      }
+    })
+    .catch((err) => {
+      console.error('Error updating booking times:', err)
+      res.json({
+        success: false,
+        msg: 'Error updating booking times',
+        data: [],
+      })
+    })
+})
+
+bookingRouter.post('/update-checkin-checkout', async (req, res) => {
+  const { items } = req.body
+  // await pool.query(
+  //   ` INSERT INTO your_table (event_time)
+  //   VALUES ( '2024-11-20 02:30:00' );`,
+  //   [],
+  // )
+  await pool.query(
+    ` INSERT INTO your_table (event_time)
+    VALUES (TIMESTAMP '2024-11-20 02:30:00' AT TIME ZONE '${Intl.DateTimeFormat().resolvedOptions().timeZone}');`,
+    [],
+  )
+
+  try {
+    for (const item of items) {
+      const query = `
+        UPDATE bookingdetails
+        SET checkintime = $1, checkouttime = $2
+        WHERE id = $3;
+      `
+      await pool.query(query, [item.checkintime, item.checkouttime, item.id])
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Check-in and check-out times updated successfully',
+    })
+  } catch (error) {
+    console.error('Error updating check-in/check-out times:', error)
+    res.status(500).json({ success: false, message: 'Failed to update times' })
+  }
+})
+
+export default bookingRouter

@@ -16,18 +16,20 @@ import ProtectedRoute from './protectedRoutes/page'
 export const router = createBrowserRouter(
   createRoutesFromElements(
     // wrap two childs inside the rootLayout
-    // <Route path="/" element={<RootLayout />}>
+    //  <Route path="/" element={<RootLayout />}>
     <Route path="/">
       <Route index element={<HomePage />}></Route>{' '}
       {/* This defines the default child route under the root (/). */}
       <Route path="/login" element={<Login />}></Route>
       <Route path="/signup" element={<SignUp />}></Route>
-      <Route element={<ProtectedRoute></ProtectedRoute>}>
-        <Route path="/dashboard" element={<Dashboard />}></Route>
-        <Route path="/loginl" element={<Navigate to="/login" />}></Route>
+      <Route path="/" element={<RootLayout />}>
+        <Route element={<ProtectedRoute></ProtectedRoute>}>
+          <Route path="/dashboard/:rid" element={<Dashboard />}></Route>
+          <Route path="/loginl" element={<Navigate to="/login" />}></Route>
+        </Route>
       </Route>
       {/* this is a public route */}
-      <Route path="*" element={<Navigate to="/" />}></Route>
+      {/* <Route path="*" element={<Navigate to="/" />}></Route> */}
     </Route>,
   ),
 )
