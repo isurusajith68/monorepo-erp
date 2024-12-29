@@ -126,7 +126,9 @@ export default function RoomView() {
   return (
     <>
       <div
-        className={`ml-[18.4%] h-screen mt-14 ${isPopoverOpen ? 'bg-blue-100' : ''}`}
+        className={`ml-[18.4%] h-screen mt-14 ${
+          isPopoverOpen ? 'bg-blue-100' : ''
+        }`}
       >
         <div className="ml-5 mt-2 text-xl font-semibold">
           <div className="flex items-center">

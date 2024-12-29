@@ -14,11 +14,10 @@ export const useUpdateBookingMutation = () => {
   return useMutation({
     mutationFn: async (params: any) => {
       try {
-        const res = await axios.put(
-          `${bapi}bookings/${params.id}`,
-          params.dirtyValues,
-        )
-        // console.log("ressssssssssssssssssssssss",res)
+        // console.log('params', params)
+
+        const res = await axios.patch(`${bapi}bookings/${params.id}`, params)
+
         return res
       } catch (error) {
         console.error('Error in API call:', error)
@@ -34,12 +33,12 @@ export const useInsertBookingMutation = () => {
 
   return useMutation({
     mutationFn: async (data: any) => {
-      // console.log("helloooooo",data.data )
+      // console.log('helloooooo', data.data)
       // console.log("geeth",bapi + params.data.id)
 
       try {
-        const res = await axios.post(`${bapi}bookings`, data.data)
-        // console.log("ressssssssssssssssssssssss",res.data)
+        const res = await axios.post(`${bapi}bookinginsert`, data.data)
+
         return res.data
       } catch (error) {
         console.error('Error in API call:', error)
@@ -63,6 +62,27 @@ export const useDeleteBookingMutation = () => {
           `${bapi}bookings/delete/${data.id}`,
           data.id,
         )
+        // console.log("ressssssssssssssssssssssss",res.data)
+        return res.data
+      } catch (error) {
+        console.error('Error in API call:', error)
+        throw error
+      }
+    },
+  })
+}
+
+export const useInsertGuestInformationMutation = () => {
+  // console.log("aaaqqq",bapi)
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: any) => {
+      // console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqq', data.data)
+      // console.log("geeth",bapi + params.data.id)
+
+      try {
+        const res = await axios.post(`${bapi}guestinformation`, data.data)
         // console.log("ressssssssssssssssssssssss",res.data)
         return res.data
       } catch (error) {

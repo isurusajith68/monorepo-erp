@@ -22,6 +22,71 @@ export const useUpdateRegistrationMutation = () => {
   })
 }
 
+//-----------------------------------------------------------------
+export const useUpdateCheckinCheckoutMutation = () => {
+  return useMutation({
+    mutationFn: async (updatedItems: any) => {
+      try {
+        const res = await axios.post(
+          `${bapi}update-checkin-checkout`,
+          JSON.stringify({ items: updatedItems }),
+          {
+            withCredentials: true,
+          },
+        )
+      } catch (error) {
+        console.error('Error in API call:', error)
+        throw error
+      }
+    },
+  })
+}
+
+// update checkin and checkout date finaly
+export const useUpdateDateMutation = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (params: any) => {
+      try {
+        const res = await axios.put(
+          `${bapi}registrations/${params.id}`,
+          params.dirtyValues,
+        )
+        // console.log("ressssssssssssssssssssssss",res)
+        return res
+      } catch (error) {
+        console.error('Error in API call:', error)
+        throw error
+      }
+    },
+  })
+}
+
+//update checkin and checkout dates
+
+export const useUpdateRegistrationDatesMutation = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (params: any) => {
+      console.log('params', params)
+
+      try {
+        const res = await axios.patch(`${bapi}times/${params.id}`, {
+          checkinTime: params.checkinTime,
+          checkoutTime: params.checkoutTime,
+        })
+        // console.log("ressssssssssssssssssssssss",res)
+        return res
+      } catch (error) {
+        console.error('Error in API call:', error)
+        throw error
+      }
+    },
+  })
+}
+
 export const useInsertRegistrationMutation = () => {
   const queryClient = useQueryClient()
 

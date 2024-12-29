@@ -9,7 +9,9 @@ export default function getUpdateQuery(obj, tablename, pkName) {
   })
 
   return [
-    `update ${tablename} set ${sqlUpdates.join(',')} where ${pkName} = ${obj[pkName]} `,
+    `update ${tablename} set ${sqlUpdates.join(',')} where ${pkName} = ${
+      obj[pkName]
+    } `,
     valuesArray,
   ]
 }

@@ -117,7 +117,9 @@ export default function getUpdateQuery(
     valuesArray.push(obj[pkName])
 
     return [
-      `update ${tablename} set ${sqlUpdates.join(',')} where ${pkName} = $${keyCount} `,
+      `update ${tablename} set ${sqlUpdates.join(
+        ',',
+      )} where ${pkName} = $${keyCount} `,
       valuesArray,
     ]
   } else {
